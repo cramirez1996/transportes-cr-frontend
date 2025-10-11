@@ -1,0 +1,75 @@
+<div class="max-w-7xl mx-auto">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Conductores</h1>
+    <button (click)="openCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+      + Nuevo Conductor
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  }
+
+  @if (!loading() && drivers().length > 0) {
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RUT</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Licencia</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Viajes</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          @for (driver of drivers(); track driver.id) {
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {{ driver.rut }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ driver.firstName }} {{ driver.lastName }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">{{ driver.email }}</div>
+                <div class="text-sm text-gray-500">{{ driver.phone }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">{{ driver.licenseNumber }}</div>
+                <div class="text-sm text-gray-500">Tipo {{ driver.licenseType }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ driver.totalTrips || 0 }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span [class]="'px-2 inline-flex text-xs leading-5 font-semibold rounded-full ' + getStatusBadgeClass(driver.status)">
+                  {{ getStatusLabel(driver.status) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button (click)="openEditModal(driver)" class="text-blue-600 hover:text-blue-900 mr-3">Editar</button>
+                <button (click)="deleteDriver(driver.id)" class="text-red-600 hover:text-red-900">Eliminar</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (!loading() && drivers().length === 0) {
+    <div class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No hay conductores</h3>
+      <p class="mt-1 text-sm text-gray-500">Comienza agregando un nuevo conductor.</p>
+    </div>
+  }
+
+</div>

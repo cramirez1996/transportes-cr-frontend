@@ -1,0 +1,198 @@
+<form [formGroup]="tripForm" (ngSubmit)="onSubmit()" class="space-y-4">
+  <div *ngIf="loading" class="text-center py-4 text-gray-500">
+    Cargando datos...
+  </div>
+
+  <div *ngIf="!loading">
+    <!-- Cliente -->
+    <div>
+      <label for="customerId" class="block text-sm font-medium text-gray-700 mb-1">
+        Cliente <span class="text-red-500">*</span>
+      </label>
+      <select
+        id="customerId"
+        formControlName="customerId"
+        [class.border-red-500]="isFieldInvalid('customerId')"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">Seleccione un cliente</option>
+        <option *ngFor="let customer of customers" [value]="customer.id">
+          {{ customer.businessName }}
+        </option>
+      </select>
+      <p *ngIf="hasError('customerId', 'required')" class="mt-1 text-sm text-red-500">
+        El cliente es requerido
+      </p>
+    </div>
+
+    <!-- Vehículo y Conductor -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="vehicleId" class="block text-sm font-medium text-gray-700 mb-1">
+          Vehículo <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="vehicleId"
+          formControlName="vehicleId"
+          [class.border-red-500]="isFieldInvalid('vehicleId')"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Seleccione un vehículo</option>
+          <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+            {{ vehicle.licensePlate }} - {{ vehicle.brand }} {{ vehicle.model }}
+          </option>
+        </select>
+        <p *ngIf="hasError('vehicleId', 'required')" class="mt-1 text-sm text-red-500">
+          El vehículo es requerido
+        </p>
+      </div>
+
+      <div>
+        <label for="driverId" class="block text-sm font-medium text-gray-700 mb-1">
+          Conductor <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="driverId"
+          formControlName="driverId"
+          [class.border-red-500]="isFieldInvalid('driverId')"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Seleccione un conductor</option>
+          <option *ngFor="let driver of drivers" [value]="driver.id">
+            {{ driver.firstName }} {{ driver.lastName }}
+          </option>
+        </select>
+        <p *ngIf="hasError('driverId', 'required')" class="mt-1 text-sm text-red-500">
+          El conductor es requerido
+        </p>
+      </div>
+    </div>
+
+    <!-- Origen y Destino -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="origin" class="block text-sm font-medium text-gray-700 mb-1">
+          Origen <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="origin"
+          formControlName="origin"
+          [class.border-red-500]="isFieldInvalid('origin')"
+          placeholder="Ej: Santiago Centro"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <p *ngIf="hasError('origin', 'required')" class="mt-1 text-sm text-red-500">
+          El origen es requerido
+        </p>
+        <p *ngIf="hasError('origin', 'maxlength')" class="mt-1 text-sm text-red-500">
+          Máximo 200 caracteres
+        </p>
+      </div>
+
+      <div>
+        <label for="destination" class="block text-sm font-medium text-gray-700 mb-1">
+          Destino <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="destination"
+          formControlName="destination"
+          [class.border-red-500]="isFieldInvalid('destination')"
+          placeholder="Ej: Valparaíso"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <p *ngIf="hasError('destination', 'required')" class="mt-1 text-sm text-red-500">
+          El destino es requerido
+        </p>
+        <p *ngIf="hasError('destination', 'maxlength')" class="mt-1 text-sm text-red-500">
+          Máximo 200 caracteres
+        </p>
+      </div>
+    </div>
+
+    <!-- Distancia y Duración -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="startKm" class="block text-sm font-medium text-gray-700 mb-1">
+          Kilometraje Inicial
+        </label>
+        <input
+          type="number"
+          id="startKm"
+          formControlName="startKm"
+          [class.border-red-500]="isFieldInvalid('startKm')"
+          placeholder="0"
+          min="0"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <p *ngIf="hasError('startKm', 'min')" class="mt-1 text-sm text-red-500">
+          El kilometraje no puede ser negativo
+        </p>
+      </div>
+
+      <div>
+        <label for="agreedPrice" class="block text-sm font-medium text-gray-700 mb-1">
+          Precio Acordado <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="number"
+          id="agreedPrice"
+          formControlName="agreedPrice"
+          [class.border-red-500]="isFieldInvalid('agreedPrice')"
+          placeholder="150000"
+          min="0"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <p *ngIf="hasError('agreedPrice', 'required')" class="mt-1 text-sm text-red-500">
+          El precio es requerido
+        </p>
+        <p *ngIf="hasError('agreedPrice', 'min')" class="mt-1 text-sm text-red-500">
+          El precio no puede ser negativo
+        </p>
+      </div>
+    </div>
+
+    <!-- Fecha de Salida -->
+    <div>
+      <label for="departureDate" class="block text-sm font-medium text-gray-700 mb-1">
+        Fecha de Salida <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="datetime-local"
+        id="departureDate"
+        formControlName="departureDate"
+        [class.border-red-500]="isFieldInvalid('departureDate')"
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <p *ngIf="hasError('departureDate', 'required')" class="mt-1 text-sm text-red-500">
+        La fecha de salida es requerida
+      </p>
+    </div>
+
+    <!-- Notas -->
+    <div>
+      <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">
+        Notas
+      </label>
+      <textarea
+        id="notes"
+        formControlName="notes"
+        rows="3"
+        [class.border-red-500]="isFieldInvalid('notes')"
+        placeholder="Observaciones adicionales sobre el viaje..."
+        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+      <p *ngIf="hasError('notes', 'maxlength')" class="mt-1 text-sm text-red-500">
+        Máximo 500 caracteres
+      </p>
+    </div>
+  </div>
+
+  <!-- Botones -->
+  <div class="flex justify-end gap-3 pt-4 border-t">
+    <button
+      type="button"
+      (click)="onCancel()"
+      class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+      Cancelar
+    </button>
+    <button
+      type="submit"
+      [disabled]="loading"
+      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
+      {{ trip ? 'Actualizar' : 'Crear' }} Viaje
+    </button>
+  </div>
+</form>

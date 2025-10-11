@@ -1,0 +1,216 @@
+<div class="container mx-auto px-4 py-6">
+  <div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-900">Gestión de Viajes</h1>
+    <button
+      (click)="openCreateModal()"
+      class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Nuevo Viaje
+    </button>
+  </div>
+
+  <!-- Filtro por estado -->
+  <div class="mb-6 bg-white p-4 rounded-lg shadow">
+    <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-2">
+      Filtrar por estado:
+    </label>
+    <select
+      id="statusFilter"
+      (change)="onStatusFilterChange($event)"
+      [value]="selectedStatus"
+      class="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <option value="all">Todos los estados</option>
+      <option value="PENDING">Pendientes</option>
+      <option value="IN_PROGRESS">En Curso</option>
+      <option value="COMPLETED">Completados</option>
+      <option value="CANCELLED">Cancelados</option>
+    </select>
+  </div>
+
+  <!-- Tabla de viajes -->
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Fecha Programada
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Cliente
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Origen - Destino
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Conductor
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Vehículo
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Distancia
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Costo
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Estado
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Acciones
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngIf="loading">
+            <td colspan="9" class="px-6 py-8 text-center text-gray-500">
+              Cargando viajes...
+            </td>
+          </tr>
+          <tr *ngIf="!loading && filteredTrips.length === 0">
+            <td colspan="9" class="px-6 py-8 text-center text-gray-500">
+              No se encontraron viajes
+            </td>
+          </tr>
+          <tr *ngFor="let trip of filteredTrips" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ formatDate(trip.departureDate) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ trip.customer.businessName || 'N/A' }}</div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-900">
+                <div class="font-medium">{{ trip.origin }}</div>
+                <div class="text-gray-500 flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                  </svg>
+                  {{ trip.destination }}
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ trip.driver ? (trip.driver.firstName + ' ' + trip.driver.lastName) : 'N/A' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ trip.vehicle.licensePlate || 'N/A' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ trip.totalKm || '-' }} km
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              {{ formatCurrency(trip.agreedPrice) }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span [class]="'px-2 inline-flex text-xs leading-5 font-semibold rounded-full ' + statusColors[trip.status]">
+                {{ statusLabels[trip.status] }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <div class="flex gap-2">
+                <!-- Botón Ver Detalle -->
+                <a
+                  [routerLink]="['/admin/trips', trip.id]"
+                  class="text-gray-600 hover:text-gray-900"
+                  title="Ver detalle">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                </a>
+
+                <!-- Botón Iniciar -->
+                <button
+                  *ngIf="canStart(trip)"
+                  (click)="startTrip(trip)"
+                  class="text-green-600 hover:text-green-900"
+                  title="Iniciar viaje">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </button>
+
+                <!-- Botón Completar -->
+                <button
+                  *ngIf="canComplete(trip)"
+                  (click)="completeTrip(trip)"
+                  class="text-blue-600 hover:text-blue-900"
+                  title="Completar viaje">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </button>
+
+                <!-- Botón Editar -->
+                <button
+                  *ngIf="canEdit(trip)"
+                  (click)="openEditModal(trip)"
+                  class="text-indigo-600 hover:text-indigo-900"
+                  title="Editar">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                </button>
+
+                <!-- Botón Cancelar -->
+                <button
+                  *ngIf="canCancel(trip)"
+                  (click)="cancelTrip(trip)"
+                  class="text-orange-600 hover:text-orange-900"
+                  title="Cancelar viaje">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+
+                <!-- Botón Eliminar -->
+                <button
+                  *ngIf="canDelete(trip)"
+                  (click)="deleteTrip(trip)"
+                  class="text-red-600 hover:text-red-900"
+                  title="Eliminar">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Resumen de estados -->
+  <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+      <div class="text-yellow-800 text-sm font-medium">Pendientes</div>
+      <div class="text-2xl font-bold text-yellow-900">
+        {{ getPendingCount() }}
+      </div>
+    </div>
+    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+      <div class="text-blue-800 text-sm font-medium">En Curso</div>
+      <div class="text-2xl font-bold text-blue-900">
+        {{ getInProgressCount() }}
+      </div>
+    </div>
+    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+      <div class="text-green-800 text-sm font-medium">Completados</div>
+      <div class="text-2xl font-bold text-green-900">
+        {{ getCompletedCount() }}
+      </div>
+    </div>
+    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+      <div class="text-red-800 text-sm font-medium">Cancelados</div>
+      <div class="text-2xl font-bold text-red-900">
+        {{ getCancelledCount() }}
+      </div>
+    </div>
+  </div>
+</div>

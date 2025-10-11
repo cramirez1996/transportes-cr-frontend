@@ -1,0 +1,17 @@
+<div class="h-screen flex flex-col">
+  <!-- Header -->
+  <app-header (menuToggle)="toggleSidebar()" />
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex overflow-hidden">
+    <!-- Sidebar -->
+    @if (currentUser(); as user) {
+      <app-sidebar [isOpen]="sidebarOpen()" [userRole]="user.role.name" />
+    }
+
+    <!-- Page Content -->
+    <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+      <router-outlet />
+    </main>
+  </div>
+</div>

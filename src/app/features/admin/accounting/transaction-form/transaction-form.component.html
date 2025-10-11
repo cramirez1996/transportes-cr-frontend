@@ -1,0 +1,223 @@
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">
+      {{ isEditMode ? 'Editar' : 'Nueva' }} Transacción
+    </h1>
+  </div>
+
+  <div *ngIf="isLoading" class="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+    Cargando...
+  </div>
+
+  <form *ngIf="!isLoading" [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="bg-white rounded-lg shadow-md p-6">
+    <!-- Tipo de transacción -->
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Tipo de transacción <span class="text-red-500">*</span>
+      </label>
+      <select formControlName="type" (change)="onTypeChange()"
+              class="w-full border border-gray-300 rounded-md px-3 py-2"
+              [class.border-red-500]="transactionForm.get('type')?.invalid && transactionForm.get('type')?.touched">
+        <option [value]="TransactionType.INCOME">Ingreso</option>
+        <option [value]="TransactionType.EXPENSE">Gasto</option>
+      </select>
+      <p *ngIf="transactionForm.get('type')?.invalid && transactionForm.get('type')?.touched"
+         class="mt-1 text-sm text-red-500">
+        El tipo es requerido
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Categoría -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Categoría <span class="text-red-500">*</span>
+        </label>
+        <select formControlName="categoryId"
+                class="w-full border border-gray-300 rounded-md px-3 py-2"
+                [class.border-red-500]="transactionForm.get('categoryId')?.invalid && transactionForm.get('categoryId')?.touched">
+          <option value="">Seleccione una categoría</option>
+          <option *ngFor="let category of getCategoriesByType()" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+        <p *ngIf="transactionForm.get('categoryId')?.invalid && transactionForm.get('categoryId')?.touched"
+           class="mt-1 text-sm text-red-500">
+          La categoría es requerida
+        </p>
+      </div>
+
+      <!-- Monto -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Monto <span class="text-red-500">*</span>
+        </label>
+        <input type="number" formControlName="amount" step="0.01" min="0"
+               class="w-full border border-gray-300 rounded-md px-3 py-2"
+               [class.border-red-500]="transactionForm.get('amount')?.invalid && transactionForm.get('amount')?.touched">
+        <p *ngIf="transactionForm.get('amount')?.invalid && transactionForm.get('amount')?.touched"
+           class="mt-1 text-sm text-red-500">
+          El monto es requerido y debe ser mayor a 0
+        </p>
+      </div>
+
+      <!-- Fecha -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Fecha <span class="text-red-500">*</span>
+        </label>
+        <input type="date" formControlName="date"
+               class="w-full border border-gray-300 rounded-md px-3 py-2"
+               [class.border-red-500]="transactionForm.get('date')?.invalid && transactionForm.get('date')?.touched">
+        <p *ngIf="transactionForm.get('date')?.invalid && transactionForm.get('date')?.touched"
+           class="mt-1 text-sm text-red-500">
+          La fecha es requerida
+        </p>
+      </div>
+
+      <!-- Método de pago -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Método de pago <span class="text-red-500">*</span>
+        </label>
+        <select formControlName="paymentMethod"
+                class="w-full border border-gray-300 rounded-md px-3 py-2"
+                [class.border-red-500]="transactionForm.get('paymentMethod')?.invalid && transactionForm.get('paymentMethod')?.touched">
+          <option [value]="PaymentMethod.CASH">Efectivo</option>
+          <option [value]="PaymentMethod.TRANSFER">Transferencia</option>
+          <option [value]="PaymentMethod.CARD">Tarjeta</option>
+          <option [value]="PaymentMethod.CHECK">Cheque</option>
+        </select>
+        <p *ngIf="transactionForm.get('paymentMethod')?.invalid && transactionForm.get('paymentMethod')?.touched"
+           class="mt-1 text-sm text-red-500">
+          El método de pago es requerido
+        </p>
+      </div>
+    </div>
+
+    <!-- Descripción -->
+    <div class="mt-4">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Descripción <span class="text-red-500">*</span>
+      </label>
+      <textarea formControlName="description" rows="3"
+                class="w-full border border-gray-300 rounded-md px-3 py-2"
+                [class.border-red-500]="transactionForm.get('description')?.invalid && transactionForm.get('description')?.touched"></textarea>
+      <p *ngIf="transactionForm.get('description')?.invalid && transactionForm.get('description')?.touched"
+         class="mt-1 text-sm text-red-500">
+        La descripción es requerida
+      </p>
+    </div>
+
+    <!-- Número de referencia -->
+    <div class="mt-4">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Número de referencia (factura, boleta, etc.)
+      </label>
+      <input type="text" formControlName="referenceNumber"
+             class="w-full border border-gray-300 rounded-md px-3 py-2">
+    </div>
+
+    <!-- Campos opcionales de relación -->
+    <div class="mt-6 pt-4 border-t border-gray-200">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Relaciones (Opcional)</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Factura -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Factura
+            <span class="text-xs text-gray-500" *ngIf="transactionForm.get('type')?.value === TransactionType.INCOME">
+              (Venta)
+            </span>
+            <span class="text-xs text-gray-500" *ngIf="transactionForm.get('type')?.value === TransactionType.EXPENSE">
+              (Compra)
+            </span>
+          </label>
+          <select formControlName="invoiceId"
+                  class="w-full border border-gray-300 rounded-md px-3 py-2">
+            <option value="">Sin factura asociada</option>
+            <option *ngFor="let invoice of getInvoicesByType()" [value]="invoice.id">
+              {{ invoice.documentNumber }} - ${{ invoice.totalAmount | number:'1.0-0' }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Viaje -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Viaje</label>
+          <select formControlName="tripId"
+                  class="w-full border border-gray-300 rounded-md px-3 py-2">
+            <option value="">Ninguno</option>
+            <option *ngFor="let trip of trips" [value]="trip.id">
+              {{ trip.origin }} → {{ trip.destination }} ({{ trip.date | date:'dd/MM/yyyy' }})
+            </option>
+          </select>
+        </div>
+
+        <!-- Vehículo -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Vehículo</label>
+          <select formControlName="vehicleId"
+                  class="w-full border border-gray-300 rounded-md px-3 py-2">
+            <option value="">Ninguno</option>
+            <option *ngFor="let vehicle of getActiveVehicles()" [value]="vehicle.id">
+              {{ vehicle.licensePlate }} - {{ vehicle.brand }} {{ vehicle.model }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Conductor -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Conductor</label>
+          <select formControlName="driverId"
+                  class="w-full border border-gray-300 rounded-md px-3 py-2">
+            <option value="">Ninguno</option>
+            <option *ngFor="let driver of getActiveDrivers()" [value]="driver.id">
+              {{ driver.firstName }} {{ driver.lastName }} - {{ driver.licenseNumber }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Cliente (solo para INCOME) -->
+        <div *ngIf="transactionForm.get('type')?.value === TransactionType.INCOME">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+          <select formControlName="customerId"
+                  class="w-full border border-gray-300 rounded-md px-3 py-2">
+            <option value="">Ninguno</option>
+            <option *ngFor="let customer of getActiveCustomers()" [value]="customer.id">
+              {{ customer.businessName }} - {{ customer.rut }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Proveedor (solo para EXPENSE) -->
+        <div *ngIf="transactionForm.get('type')?.value === TransactionType.EXPENSE">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+          <select formControlName="supplierId"
+                  class="w-full border border-gray-300 rounded-md px-3 py-2">
+            <option value="">Ninguno</option>
+            <option *ngFor="let supplier of suppliers" [value]="supplier.id">
+              {{ supplier.businessName }} - {{ supplier.rut }}
+            </option>
+          </select>
+          <p class="mt-1 text-xs text-gray-500">
+            Ej: Copec, Autopista Central, Talleres, etc.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="mt-6 flex justify-end gap-3">
+      <button type="button" (click)="cancel()"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+        Cancelar
+      </button>
+      <button type="submit" [disabled]="transactionForm.invalid || isLoading"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
+        {{ isEditMode ? 'Actualizar' : 'Crear' }} Transacción
+      </button>
+    </div>
+  </form>
+</div>

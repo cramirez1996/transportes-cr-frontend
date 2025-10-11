@@ -1,0 +1,106 @@
+<div class="container mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Transacciones</h1>
+    <a routerLink="/admin/accounting/new" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+      + Nueva Transacción
+    </a>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+        <select [(ngModel)]="filterType" (change)="onFilterChange()"
+                class="w-full border border-gray-300 rounded-md px-3 py-2">
+          <option value="">Todos</option>
+          <option [value]="TransactionType.INCOME">Ingresos</option>
+          <option [value]="TransactionType.EXPENSE">Gastos</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha desde</label>
+        <input type="date" [(ngModel)]="filterStartDate" (change)="onFilterChange()"
+               class="w-full border border-gray-300 rounded-md px-3 py-2">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Fecha hasta</label>
+        <input type="date" [(ngModel)]="filterEndDate" (change)="onFilterChange()"
+               class="w-full border border-gray-300 rounded-md px-3 py-2">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+        <input type="text" [(ngModel)]="searchTerm" (input)="onSearchChange()"
+               placeholder="Descripción, categoría..."
+               class="w-full border border-gray-300 rounded-md px-3 py-2">
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de transacciones -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div *ngIf="isLoading" class="p-8 text-center text-gray-500">
+      Cargando transacciones...
+    </div>
+
+    <table *ngIf="!isLoading" class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Método Pago</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let transaction of filteredTransactions" class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {{ transaction.date | date:'dd/MM/yyyy' }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span [class]="'px-2 py-1 text-xs font-semibold rounded-full ' + getTypeBadgeClass(transaction.type)">
+              {{ getTypeLabel(transaction.type) }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            {{ transaction.category?.name }}
+          </td>
+          <td class="px-6 py-4 text-sm text-gray-900">
+            {{ transaction.description }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"
+              [class.text-green-600]="transaction.type === TransactionType.INCOME"
+              [class.text-red-600]="transaction.type === TransactionType.EXPENSE">
+            {{ transaction.type === TransactionType.INCOME ? '+' : '-' }}
+            ${{ transaction.amount | number:'1.0-0' }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ getPaymentMethodLabel(transaction.paymentMethod) }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <a [routerLink]="['/admin/accounting/edit', transaction.id]"
+               class="text-blue-600 hover:text-blue-900 mr-3">
+              Editar
+            </a>
+            <button (click)="deleteTransaction(transaction.id)"
+                    class="text-red-600 hover:text-red-900">
+              Eliminar
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="filteredTransactions.length === 0">
+          <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+            No se encontraron transacciones
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

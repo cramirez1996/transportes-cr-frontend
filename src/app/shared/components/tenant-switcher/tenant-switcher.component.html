@@ -1,0 +1,38 @@
+<div class="tenant-switcher" *ngIf="(tenants$ | async) as tenants">
+  <div class="tenant-selector-wrapper" *ngIf="tenants.length > 1">
+    <label for="tenant-select" class="tenant-label">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+      </svg>
+      <span class="label-text">Empresa:</span>
+    </label>
+
+    <select
+      id="tenant-select"
+      [value]="(currentTenant$ | async)?.id"
+      (change)="onTenantChange($event)"
+      [disabled]="isLoading"
+      class="tenant-select"
+      [class.loading]="isLoading"
+    >
+      <option *ngFor="let tenant of tenants" [value]="tenant.id">
+        {{ tenant.businessName }}
+        <span *ngIf="tenant.tradeName"> ({{ tenant.tradeName }})</span>
+      </option>
+    </select>
+
+    <div class="loading-spinner" *ngIf="isLoading">
+      <svg class="spinner" viewBox="0 0 50 50">
+        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Single tenant: just display the name -->
+  <div class="single-tenant-display" *ngIf="tenants.length === 1 && (currentTenant$ | async) as tenant">
+    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+    </svg>
+    <span class="tenant-name">{{ tenant.businessName }}</span>
+  </div>
+</div>

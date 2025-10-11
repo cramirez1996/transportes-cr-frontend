@@ -1,0 +1,147 @@
+<form [formGroup]="driverForm" (ngSubmit)="onSubmit()" class="space-y-4">
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">RUT *</label>
+      <input
+        type="text"
+        formControlName="rut"
+        appRutFormat
+        placeholder="12345678-9"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="driverForm.get('rut')?.invalid && driverForm.get('rut')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('rut') }}</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+      <input
+        type="text"
+        formControlName="firstName"
+        placeholder="Nombre"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="driverForm.get('firstName')?.invalid && driverForm.get('firstName')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('firstName') }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Apellido *</label>
+      <input
+        type="text"
+        formControlName="lastName"
+        placeholder="Apellido"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="driverForm.get('lastName')?.invalid && driverForm.get('lastName')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('lastName') }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+      <input
+        type="email"
+        formControlName="email"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="driverForm.get('email')?.invalid && driverForm.get('email')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('email') }}</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono *</label>
+      <input
+        type="text"
+        formControlName="phone"
+        placeholder="+56 9 1234 5678"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="driverForm.get('phone')?.invalid && driverForm.get('phone')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('phone') }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Número de Licencia *</label>
+      <input
+        type="text"
+        formControlName="licenseNumber"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="driverForm.get('licenseNumber')?.invalid && driverForm.get('licenseNumber')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('licenseNumber') }}</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Licencia *</label>
+      <select
+        formControlName="licenseType"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="A1">A1 - Moto hasta 125cc</option>
+        <option value="A2">A2 - Moto sobre 125cc</option>
+        <option value="A3">A3 - Taxi, ambulancia</option>
+        <option value="A4">A4 - Camión hasta 3500kg</option>
+        <option value="A5">A5 - Camión sobre 3500kg</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Vencimiento *</label>
+      <input
+        type="date"
+        formControlName="licenseExpiry"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="driverForm.get('licenseExpiry')?.invalid && driverForm.get('licenseExpiry')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('licenseExpiry') }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Contratación *</label>
+      <input
+        type="date"
+        formControlName="hireDate"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="driverForm.get('hireDate')?.invalid && driverForm.get('hireDate')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('hireDate') }}</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
+      <select
+        formControlName="status"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="active">Activo</option>
+        <option value="inactive">Inactivo</option>
+        <option value="on_leave">De licencia</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-3 pt-4">
+    <button
+      type="button"
+      (click)="onCancel()"
+      class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+    >
+      Cancelar
+    </button>
+    <button
+      type="submit"
+      [disabled]="driverForm.invalid"
+      class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+    >
+      {{ driver ? 'Actualizar' : 'Crear' }} Conductor
+    </button>
+  </div>
+</form>

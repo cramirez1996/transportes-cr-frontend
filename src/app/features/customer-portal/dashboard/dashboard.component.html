@@ -1,0 +1,71 @@
+<div class="max-w-7xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Mi Dashboard</h1>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Viajes Activos -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-medium text-gray-500">Viajes en Curso</h3>
+        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+        </svg>
+      </div>
+      <p class="text-3xl font-bold text-gray-800">3</p>
+      <p class="text-sm text-blue-600 mt-2">Ver seguimiento →</p>
+    </div>
+
+    <!-- Viajes Completados -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-medium text-gray-500">Completados este Mes</h3>
+        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <p class="text-3xl font-bold text-gray-800">12</p>
+      <p class="text-sm text-gray-600 mt-2">100% a tiempo</p>
+    </div>
+
+    <!-- Facturas Pendientes -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-medium text-gray-500">Facturas Pendientes</h3>
+        <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+      </div>
+      <p class="text-3xl font-bold text-gray-800">2</p>
+      <p class="text-sm text-yellow-600 mt-2">$1.2M total</p>
+    </div>
+  </div>
+
+  <!-- Active Shipments -->
+  <div class="bg-white rounded-lg shadow mb-6">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-xl font-semibold text-gray-800">Envíos en Tránsito</h2>
+    </div>
+    <div class="p-6">
+      <p class="text-gray-500 text-center py-8">Próximamente: Lista de envíos activos con seguimiento...</p>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Solicitar Cotización</h3>
+      <p class="text-gray-600 mb-4">Solicita una cotización para tu próximo envío</p>
+      <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+        Nueva Cotización
+      </button>
+    </div>
+
+    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Ver Documentos</h3>
+      <p class="text-gray-600 mb-4">Accede a tus facturas y comprobantes</p>
+      <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+        Ir a Documentos
+      </button>
+    </div>
+  </div>
+</div>

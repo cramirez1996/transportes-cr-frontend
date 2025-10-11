@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* You can add global styles to this file, and also import other style files */
+
+/* Global button styles */
+button {
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+/* Global link styles */
+a {
+  cursor: pointer;
+}
