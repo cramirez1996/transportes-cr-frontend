@@ -8,10 +8,11 @@ import { CustomerService } from '../../../../core/services/business/customer.ser
 import { Customer } from '../../../../core/models/business/customer.model';
 import { TripService } from '../../../../core/services/trip.service';
 import { Trip } from '../../../../core/models/trip.model';
+import { TagsEditorComponent } from '../../../../shared/components/tags-editor/tags-editor.component';
 
 @Component({
   selector: 'app-invoice-form',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TagsEditorComponent],
   templateUrl: './invoice-form.component.html',
   styleUrl: './invoice-form.component.scss'
 })
@@ -118,7 +119,7 @@ export class InvoiceFormComponent implements OnInit {
       tripId: [''],
       vehicleId: [''],
       notes: [''],
-      status: [InvoiceStatus.DRAFT],
+      tags: [{}],
       items: this.fb.array([]),
       taxes: this.fb.array([])
     });
@@ -159,7 +160,7 @@ export class InvoiceFormComponent implements OnInit {
       tripId: invoice.trip?.id,
       vehicleId: invoice.vehicle?.id,
       notes: invoice.notes,
-      status: invoice.status
+      tags: invoice.tags || {}
     });
 
     // Cargar items
@@ -315,7 +316,7 @@ export class InvoiceFormComponent implements OnInit {
 
     request.subscribe({
       next: () => {
-        this.router.navigate(['/admin/invoices']);
+        this.router.navigate(['/admin/invoicing']);
       },
       error: (err) => {
         this.error = 'Error al guardar la factura';
@@ -326,6 +327,10 @@ export class InvoiceFormComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/admin/invoices']);
+    this.router.navigate(['/admin/invoicing']);
+  }
+
+  onTagsChange(tags: Record<string, any>): void {
+    this.invoiceForm.patchValue({ tags });
   }
 }

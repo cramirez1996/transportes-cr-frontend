@@ -126,6 +126,15 @@
     </div>
   </div>
 
+  <!-- Tags Editor -->
+  <div class="mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+    <app-tags-editor
+      [tags]="customerForm.get('tags')?.value"
+      (tagsChange)="onTagsChange($event)"
+      placeholder="Tags personalizados del cliente"
+    ></app-tags-editor>
+  </div>
+
   <div class="flex justify-end gap-3 pt-4">
     <button
       type="button"

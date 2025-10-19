@@ -1,0 +1,205 @@
+<div class="bulk-upload-container">
+  <div class="header">
+    <button type="button" class="btn-back" (click)="goBack()">
+      ← Volver
+    </button>
+    <h1>Carga Masiva de Facturas XML</h1>
+    <p class="subtitle">Sube múltiples archivos XML de facturas electrónicas (máximo 100 archivos)</p>
+  </div>
+
+  <!-- Formulario de carga -->
+  <div class="upload-section" *ngIf="!showResults">
+    <div class="file-input-wrapper">
+      <input
+        type="file"
+        id="xmlFiles"
+        multiple
+        accept=".xml,text/xml,application/xml"
+        (change)="onFilesSelected($event)"
+        class="file-input"
+      />
+      <label for="xmlFiles" class="file-input-label">
+        <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        <span>Click para seleccionar archivos XML o arrastra aquí</span>
+        <span class="file-hint">Archivos XML (máximo 5MB cada uno)</span>
+      </label>
+    </div>
+
+    <!-- Lista de archivos seleccionados -->
+    <div class="selected-files" *ngIf="selectedFiles.length > 0">
+      <div class="files-header">
+        <h3>Archivos seleccionados ({{ selectedFiles.length }})</h3>
+        <button type="button" class="btn-clear" (click)="clearFiles()">
+          Limpiar todo
+        </button>
+      </div>
+      <div class="files-list">
+        <div class="file-item" *ngFor="let file of selectedFiles; let i = index">
+          <div class="file-info">
+            <svg class="file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <div class="file-details">
+              <span class="file-name">{{ file.name }}</span>
+              <span class="file-size">{{ getFileSizeText(file) }}</span>
+            </div>
+          </div>
+          <button type="button" class="btn-remove" (click)="removeFile(i)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opciones adicionales -->
+    <div class="form-options">
+      <div class="form-group">
+        <label for="tripId">Viaje asociado (opcional)</label>
+        <select id="tripId" [(ngModel)]="uploadData.tripId" class="form-control">
+          <option [ngValue]="undefined">Ninguno</option>
+          <option *ngFor="let trip of trips" [value]="trip.id">
+            {{ trip.origin }} → {{ trip.destination }} ({{ trip.tripDate | date:'dd/MM/yyyy' }})
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Notas (opcional)</label>
+        <textarea
+          id="notes"
+          [(ngModel)]="uploadData.notes"
+          class="form-control"
+          rows="3"
+          placeholder="Agregar notas sobre esta carga masiva..."
+        ></textarea>
+      </div>
+
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            [(ngModel)]="uploadData.skipDuplicates"
+            class="checkbox-input"
+          />
+          <span>Omitir facturas duplicadas (recomendado)</span>
+        </label>
+        <p class="help-text">
+          Si está marcado, las facturas con folios duplicados serán omitidas.
+          Si no está marcado, se mostrará un error al encontrar duplicados.
+        </p>
+      </div>
+    </div>
+
+    <!-- Mensajes de error -->
+    <div class="alert alert-error" *ngIf="errorMessage">
+      <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <pre>{{ errorMessage }}</pre>
+    </div>
+
+    <!-- Botón de envío -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="goBack()"
+        [disabled]="isLoading"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="onSubmit()"
+        [disabled]="selectedFiles.length === 0 || isLoading"
+      >
+        <span *ngIf="!isLoading">Procesar {{ selectedFiles.length }} archivo(s)</span>
+        <span *ngIf="isLoading">Procesando...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Resultados de la carga -->
+  <div class="results-section" *ngIf="showResults && uploadResult">
+    <div class="results-header">
+      <h2>Resultados de la Carga</h2>
+      <button type="button" class="btn-download" (click)="downloadReport()">
+        Descargar Reporte JSON
+      </button>
+    </div>
+
+    <!-- Resumen -->
+    <div class="summary-cards">
+      <div class="summary-card total">
+        <div class="card-label">Total</div>
+        <div class="card-value">{{ uploadResult.summary.total }}</div>
+      </div>
+      <div class="summary-card success">
+        <div class="card-label">Éxito</div>
+        <div class="card-value">{{ uploadResult.summary.success }}</div>
+      </div>
+      <div class="summary-card failed">
+        <div class="card-label">Errores</div>
+        <div class="card-value">{{ uploadResult.summary.failed }}</div>
+      </div>
+      <div class="summary-card skipped">
+        <div class="card-label">Omitidos</div>
+        <div class="card-value">{{ uploadResult.summary.skipped }}</div>
+      </div>
+    </div>
+
+    <!-- Tabla de resultados -->
+    <div class="results-table-container">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Archivo</th>
+            <th>Estado</th>
+            <th>Folio</th>
+            <th>Monto</th>
+            <th>Detalles</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let result of uploadResult.results" [class]="getStatusClass(result.status)">
+            <td class="filename-cell">{{ result.filename }}</td>
+            <td>
+              <span class="status-badge" [class]="getStatusClass(result.status)">
+                {{ getStatusText(result.status) }}
+              </span>
+            </td>
+            <td>{{ result.folioNumber || '-' }}</td>
+            <td>
+              <span *ngIf="result.totalAmount">
+                ${{ result.totalAmount | number:'1.0-0' }}
+              </span>
+              <span *ngIf="!result.totalAmount">-</span>
+            </td>
+            <td class="details-cell">
+              <span *ngIf="result.error" class="error-text">{{ result.error }}</span>
+              <span *ngIf="result.reason" class="reason-text">{{ result.reason }}</span>
+              <span *ngIf="!result.error && !result.reason && result.status === BulkUploadStatus.SUCCESS">
+                ✓ Factura creada
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Acciones finales -->
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="showResults = false">
+        Nueva Carga
+      </button>
+      <button type="button" class="btn-primary" (click)="goBack()">
+        Volver al Listado
+      </button>
+    </div>
+  </div>
+</div>

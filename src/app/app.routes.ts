@@ -51,6 +51,21 @@ export const routes: Routes = [
           .then(m => m.VehicleListComponent)
       },
       {
+        path: 'fleet/maintenance',
+        loadComponent: () => import('./features/admin/fleet/maintenance-list/maintenance-list.component')
+          .then(m => m.MaintenanceListComponent)
+      },
+      {
+        path: 'fleet/maintenance/new',
+        loadComponent: () => import('./features/admin/fleet/maintenance-form/maintenance-form.component')
+          .then(m => m.MaintenanceFormComponent)
+      },
+      {
+        path: 'fleet/maintenance/:id/edit',
+        loadComponent: () => import('./features/admin/fleet/maintenance-form/maintenance-form.component')
+          .then(m => m.MaintenanceFormComponent)
+      },
+      {
         path: 'hr',
         loadComponent: () => import('./features/admin/hr/driver-list/driver-list.component')
           .then(m => m.DriverListComponent)
@@ -66,7 +81,7 @@ export const routes: Routes = [
           .then(m => m.TripDetailComponent)
       },
       {
-        path: 'invoices',
+        path: 'invoicing',
         loadChildren: () => import('./features/admin/invoicing/invoicing-routing.module')
           .then(m => m.InvoicingRoutingModule)
       },
@@ -84,6 +99,71 @@ export const routes: Routes = [
         path: 'accounting/edit/:id',
         loadComponent: () => import('./features/admin/accounting/transaction-form/transaction-form.component')
           .then(m => m.TransactionFormComponent)
+      },
+      {
+        path: 'suppliers',
+        loadComponent: () => import('./features/admin/suppliers/supplier-list/supplier-list.component')
+          .then(m => m.SupplierListComponent)
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('./features/admin/users/user-list/user-list.component')
+          .then(m => m.UserListComponent)
+      },
+      {
+        path: 'users/new',
+        loadComponent: () => import('./features/admin/users/user-form/user-form.component')
+          .then(m => m.UserFormComponent)
+      },
+      {
+        path: 'users/:id',
+        loadComponent: () => import('./features/admin/users/user-form/user-form.component')
+          .then(m => m.UserFormComponent)
+      },
+      {
+        path: 'users/:id/edit',
+        loadComponent: () => import('./features/admin/users/user-form/user-form.component')
+          .then(m => m.UserFormComponent)
+      },
+      {
+        path: 'roles',
+        loadComponent: () => import('./features/admin/roles/role-list/role-list.component')
+          .then(m => m.RoleListComponent)
+      },
+      {
+        path: 'roles/:id',
+        loadComponent: () => import('./features/admin/roles/role-detail/role-detail.component')
+          .then(m => m.RoleDetailComponent)
+      },
+      {
+        path: 'reports',
+        loadComponent: () => import('./features/admin/reports/reports-dashboard/reports-dashboard.component')
+          .then(m => m.ReportsDashboardComponent)
+      },
+      {
+        path: 'reports/trip-profitability',
+        loadComponent: () => import('./features/admin/reports/trip-profitability-report/trip-profitability-report.component')
+          .then(m => m.TripProfitabilityReportComponent)
+      },
+      {
+        path: 'reports/financial',
+        loadComponent: () => import('./features/admin/reports/financial-report/financial-report.component')
+          .then(m => m.FinancialReportComponent)
+      },
+      {
+        path: 'reports/expenses',
+        loadComponent: () => import('./features/admin/reports/expenses-report/expenses-report.component')
+          .then(m => m.ExpensesReportComponent)
+      },
+      {
+        path: 'documents',
+        loadComponent: () => import('./features/admin/documents/document-list/document-list.component')
+          .then(m => m.DocumentListComponent)
+      },
+      {
+        path: 'documents/:id',
+        loadComponent: () => import('./features/admin/documents/document-detail/document-detail.component')
+          .then(m => m.DocumentDetailComponent)
       }
     ]
   },

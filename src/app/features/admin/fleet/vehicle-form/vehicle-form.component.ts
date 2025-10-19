@@ -22,7 +22,7 @@ export class VehicleFormComponent implements OnInit {
     this.vehicle = this.data?.vehicle || null;
 
     this.vehicleForm = this.fb.group({
-      licensePlate: [this.vehicle?.licensePlate || '', [Validators.required, Validators.pattern(/^[A-Z]{4}-\d{2}$/)]],
+      licensePlate: [this.vehicle?.licensePlate || '', [Validators.required, Validators.pattern(/^[A-Z]{2,4}-?\d{2,4}$/i)]],
       brand: [this.vehicle?.brand || '', Validators.required],
       model: [this.vehicle?.model || '', Validators.required],
       year: [this.vehicle?.year || new Date().getFullYear(), [Validators.required, Validators.min(1990), Validators.max(new Date().getFullYear() + 1)]],
@@ -53,7 +53,7 @@ export class VehicleFormComponent implements OnInit {
       return 'Este campo es requerido';
     }
     if (control.errors['pattern']) {
-      return 'Formato de patente inválido (ej: ABCD-12)';
+      return 'Formato de patente inválido (ej: AB1234, ABCD12, AB-1234, ABCD-12)';
     }
     if (control.errors['min']) {
       return `Valor mínimo: ${control.errors['min'].min}`;

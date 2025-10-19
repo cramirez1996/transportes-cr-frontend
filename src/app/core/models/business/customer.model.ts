@@ -14,6 +14,7 @@ export interface Customer {
   city: string;
   region: string;
   status: CustomerStatus;
+  tags: Record<string, any>;
   createdAt: Date;
   updatedAt?: Date;
   totalTrips?: number;
@@ -30,6 +31,7 @@ export interface CreateCustomerDto {
   city: string;
   region: string;
   status?: CustomerStatus;
+  tags?: Record<string, any>;
 }
 
 export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {}

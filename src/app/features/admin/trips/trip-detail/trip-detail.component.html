@@ -53,61 +53,132 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-        <!-- Left Column -->
-        <div class="space-y-4">
-          <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Cliente</label>
-            <p class="mt-1 text-gray-900 font-medium">{{ trip.customer.businessName }}</p>
-            <p class="text-sm text-gray-600">{{ trip.customer.rut }}</p>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Trip Details (2 cols) -->
+        <div class="lg:col-span-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+            <!-- Left Column -->
+            <div class="space-y-4">
+              <div>
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Cliente</label>
+                <p class="mt-1 text-gray-900 font-medium">{{ trip.customer.businessName }}</p>
+                <p class="text-sm text-gray-600">{{ trip.customer.rut }}</p>
+              </div>
+
+              <div>
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Vehículo</label>
+                <p class="mt-1 text-gray-900 font-medium">{{ trip.vehicle.brand }} {{ trip.vehicle.model }}</p>
+                <p class="text-sm text-gray-600">{{ trip.vehicle.licensePlate }}</p>
+              </div>
+
+              <div>
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Conductor</label>
+                <p class="mt-1 text-gray-900 font-medium">{{ trip.driver.firstName }} {{ trip.driver.lastName }}</p>
+                <p class="text-sm text-gray-600">{{ trip.driver.rut }}</p>
+              </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-4">
+              <div>
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Fecha Salida</label>
+                <p class="mt-1 text-gray-900">{{ formatDate(trip.departureDate) }}</p>
+              </div>
+
+              <div>
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Fecha Llegada</label>
+                <p class="mt-1 text-gray-900">{{ formatDate(trip.arrivalDate) }}</p>
+              </div>
+
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Km Inicio</label>
+                  <p class="mt-1 text-gray-900">{{ trip.startKm || '-' }}</p>
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Km Fin</label>
+                  <p class="mt-1 text-gray-900">{{ trip.endKm || '-' }}</p>
+                </div>
+                <div>
+                  <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Km</label>
+                  <p class="mt-1 text-gray-900 font-semibold">{{ trip.totalKm || '-' }}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Vehículo</label>
-            <p class="mt-1 text-gray-900 font-medium">{{ trip.vehicle.brand }} {{ trip.vehicle.model }}</p>
-            <p class="text-sm text-gray-600">{{ trip.vehicle.licensePlate }}</p>
-          </div>
-
-          <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Conductor</label>
-            <p class="mt-1 text-gray-900 font-medium">{{ trip.driver.firstName }} {{ trip.driver.lastName }}</p>
-            <p class="text-sm text-gray-600">{{ trip.driver.rut }}</p>
+          <!-- Notes -->
+          <div *ngIf="trip.notes" class="mt-6 pt-6 border-t border-gray-200 col-span-2">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Notas</label>
+            <p class="mt-2 text-gray-900">{{ trip.notes }}</p>
           </div>
         </div>
 
-        <!-- Right Column -->
-        <div class="space-y-4">
-          <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Fecha Salida</label>
-            <p class="mt-1 text-gray-900">{{ formatDate(trip.departureDate) }}</p>
-          </div>
-
-          <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Fecha Llegada</label>
-            <p class="mt-1 text-gray-900">{{ formatDate(trip.arrivalDate) }}</p>
-          </div>
-
-          <div class="grid grid-cols-3 gap-4">
-            <div>
-              <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Km Inicio</label>
-              <p class="mt-1 text-gray-900">{{ trip.startKm || '-' }}</p>
+        <!-- Right Column - Map Miniature (1 col) -->
+        <div class="lg:col-span-1">
+          <div class="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+            <div class="p-3 bg-gray-100 border-b border-gray-200 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <span class="text-sm font-medium text-gray-700">Mapa de Ruta</span>
+              </div>
+              <button
+                (click)="openMapModal()"
+                class="text-blue-600 hover:text-blue-800 text-xs font-medium flex items-center gap-1"
+                title="Ver mapa completo"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+                Expandir
+              </button>
             </div>
-            <div>
-              <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Km Fin</label>
-              <p class="mt-1 text-gray-900">{{ trip.endKm || '-' }}</p>
+
+            <!-- Map Miniature Container -->
+            <div class="relative">
+              <div
+                #mapMiniature
+                class="w-full h-64 cursor-pointer"
+                (click)="openMapModal()"
+              >
+                <!-- Google Map miniature will be rendered here -->
+              </div>
+
+              <!-- Overlay hover effect -->
+              <div class="absolute inset-0 bg-blue-600 bg-opacity-0 hover:bg-opacity-5 transition-all pointer-events-none"></div>
+
+              <!-- Mini Legend -->
+              <div class="absolute top-2 left-2 bg-white bg-opacity-90 rounded px-2 py-1 text-xs space-y-1">
+                <div class="flex items-center gap-1">
+                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span class="text-gray-700">Origen</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <span class="text-gray-700">Destino</span>
+                </div>
+                <div *ngIf="trip?.status === 'IN_PROGRESS'" class="flex items-center gap-1">
+                  <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  <span class="text-gray-700">Actual</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Km</label>
-              <p class="mt-1 text-gray-900 font-semibold">{{ trip.totalKm || '-' }}</p>
+
+            <!-- Quick Stats -->
+            <div *ngIf="routeStats" class="p-3 bg-white border-t border-gray-200 grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <p class="text-gray-500">Distancia</p>
+                <p class="font-semibold text-gray-900">{{ routeStats.distanceKm }} km</p>
+              </div>
+              <div>
+                <p class="text-gray-500">Progreso</p>
+                <p class="font-semibold text-gray-900">{{ routeStats.progressPercent }}%</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Notes -->
-      <div *ngIf="trip.notes" class="mt-6 pt-6 border-t border-gray-200">
-        <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Notas</label>
-        <p class="mt-2 text-gray-900">{{ trip.notes }}</p>
       </div>
     </div>
 
@@ -332,6 +403,138 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Documents Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <app-entity-documents
+        [entityType]="DocumentEntityType.TRIP"
+        [entityId]="trip.id"
+        [showTitle]="true"
+        [allowUpload]="canEditExpenses()"
+        [allowDelete]="canEditExpenses()"
+      ></app-entity-documents>
+    </div>
+  </div>
+
+  <!-- Map Modal -->
+  <div
+    *ngIf="showMapModal"
+    class="fixed inset-0 z-50 overflow-y-auto"
+    (click)="closeMapModal()"
+  >
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+    <!-- Modal Content -->
+    <div class="flex min-h-screen items-center justify-center p-4">
+      <div
+        class="relative bg-white rounded-lg shadow-xl w-full max-w-6xl"
+        (click)="$event.stopPropagation()"
+      >
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900">Seguimiento GPS - {{ trip?.origin }} → {{ trip?.destination }}</h3>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              (click)="showRouteHistory = !showRouteHistory; toggleRouteHistory()"
+              [class]="'px-3 py-1.5 text-sm font-medium rounded-md transition-colors ' +
+                (showRouteHistory ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')"
+            >
+              {{ showRouteHistory ? 'Ocultar' : 'Ver' }} Historial
+            </button>
+            <button
+              *ngIf="trip?.status === 'IN_PROGRESS'"
+              (click)="centerMapOnVehicle()"
+              class="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200"
+              title="Centrar en vehículo"
+            >
+              <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Ubicar
+            </button>
+            <button
+              (click)="closeMapModal()"
+              class="text-gray-400 hover:text-gray-600 p-1"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="relative">
+          <div
+            #mapContainer
+            class="w-full h-[600px]"
+          >
+            <!-- Google Map full size will be rendered here -->
+          </div>
+
+          <!-- Map Legend -->
+          <div class="absolute top-4 left-4 bg-white rounded-lg shadow-md p-3 space-y-2 text-sm">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span class="text-gray-700">Origen</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <span class="text-gray-700">Destino</span>
+            </div>
+            <div *ngIf="trip?.status === 'IN_PROGRESS'" class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+              </svg>
+              <span class="text-gray-700">Posición Actual</span>
+            </div>
+            <div *ngIf="showRouteHistory" class="flex items-center gap-2">
+              <div class="w-8 h-0.5 bg-blue-400"></div>
+              <span class="text-gray-700">Ruta Recorrida</span>
+            </div>
+          </div>
+
+          <!-- Last Update Info -->
+          <div *ngIf="lastGPSUpdate" class="absolute bottom-4 right-4 bg-white rounded-lg shadow-md px-3 py-2 text-xs text-gray-600">
+            <div class="flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Última actualización: {{ formatDate(lastGPSUpdate) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer with Stats -->
+        <div *ngIf="routeStats" class="p-4 bg-gray-50 border-t border-gray-200">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white rounded-lg p-3 border border-gray-200">
+              <p class="text-xs text-gray-500 uppercase tracking-wide">Distancia Recorrida</p>
+              <p class="mt-1 text-lg font-semibold text-gray-900">{{ routeStats.distanceKm }} km</p>
+            </div>
+            <div class="bg-white rounded-lg p-3 border border-gray-200">
+              <p class="text-xs text-gray-500 uppercase tracking-wide">Tiempo en Ruta</p>
+              <p class="mt-1 text-lg font-semibold text-gray-900">{{ routeStats.travelTime }}</p>
+            </div>
+            <div class="bg-white rounded-lg p-3 border border-gray-200">
+              <p class="text-xs text-gray-500 uppercase tracking-wide">Velocidad Promedio</p>
+              <p class="mt-1 text-lg font-semibold text-gray-900">{{ routeStats.avgSpeed }} km/h</p>
+            </div>
+            <div class="bg-white rounded-lg p-3 border border-gray-200">
+              <p class="text-xs text-gray-500 uppercase tracking-wide">Progreso</p>
+              <p class="mt-1 text-lg font-semibold text-gray-900">{{ routeStats.progressPercent }}%</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

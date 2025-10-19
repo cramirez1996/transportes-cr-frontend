@@ -52,6 +52,7 @@ export class VehicleService {
       capacity: Number(vehicle.capacity),
       status: vehicle.status.toLowerCase(),
       mileage: vehicle.mileage,
+      tags: vehicle.tags || {},
       createdAt: new Date(vehicle.createdAt),
       updatedAt: new Date(vehicle.updatedAt)
     };
@@ -65,7 +66,8 @@ export class VehicleService {
       year: dto.year,
       type: dto.type?.toUpperCase(),
       capacity: dto.capacity,
-      mileage: dto.mileage
+      mileage: dto.mileage,
+      tags: dto.tags
     };
   }
 }

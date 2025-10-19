@@ -10,6 +10,7 @@ export interface Driver {
   licenseExpiry?: Date;
   status: 'active' | 'inactive' | 'on_leave';
   hireDate: Date;
+  tags: Record<string, any>;
   totalTrips?: number;
 }
 
@@ -23,4 +24,5 @@ export interface CreateDriverDto {
   licenseType: 'A1' | 'A2' | 'A3' | 'A4' | 'A5';
   licenseExpiry?: Date;
   hireDate: Date;
+  tags?: Record<string, any>;
 }

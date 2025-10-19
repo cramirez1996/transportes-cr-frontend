@@ -1,0 +1,129 @@
+<div class="max-w-7xl mx-auto">
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  }
+
+  @if (!loading() && role()) {
+    <!-- Header -->
+    <div class="mb-6">
+      <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+        <a [routerLink]="['/admin/roles']" class="hover:text-blue-600">Roles</a>
+        <span>/</span>
+        <span class="text-gray-900">{{ role()!.displayName }}</span>
+      </div>
+
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">{{ role()!.displayName }}</h1>
+          <div class="flex items-center gap-3 mt-2">
+            <span class="text-sm text-gray-500 font-mono">{{ role()!.name }}</span>
+            @if (role()!.isSystem) {
+              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                Rol del Sistema
+              </span>
+            } @else {
+              <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                Rol Personalizado
+              </span>
+            }
+          </div>
+        </div>
+
+        <a
+          [routerLink]="['/admin/roles']"
+          class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+        >
+          Volver
+        </a>
+      </div>
+    </div>
+
+    <!-- Role Info Card -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Información del Rol</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Nombre Técnico</label>
+          <p class="text-gray-900 font-mono">{{ role()!.name }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Nombre para Mostrar</label>
+          <p class="text-gray-900">{{ role()!.displayName }}</p>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-500 mb-1">Descripción</label>
+          <p class="text-gray-900">{{ role()!.description || 'Sin descripción' }}</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Tipo</label>
+          @if (role()!.isSystem) {
+            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+              Sistema (No modificable)
+            </span>
+          } @else {
+            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+              Personalizado
+            </span>
+          }
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Permisos Totales</label>
+          <p class="text-gray-900 font-semibold">{{ permissions().length }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permissions Card -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">
+        Permisos Asignados ({{ permissions().length }})
+      </h2>
+
+      @if (permissions().length === 0) {
+        <div class="text-center py-8">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          <p class="mt-2 text-sm text-gray-500">Este rol no tiene permisos asignados</p>
+        </div>
+      }
+
+      @if (permissions().length > 0) {
+        <div class="space-y-6">
+          @for (resource of getResourceKeys(); track resource) {
+            <div class="border border-gray-200 rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-gray-900 mb-3">
+                {{ getResourceDisplayName(resource) }}
+              </h3>
+
+              <div class="flex flex-wrap gap-2">
+                @for (permission of groupedPermissions()[resource]; track permission.id) {
+                  <span
+                    [class]="'px-3 py-1 text-xs font-medium rounded-full ' + getActionBadgeColor(permission.action)"
+                    [title]="permission.description || permission.displayName"
+                  >
+                    {{ getActionDisplayName(permission.action) }}
+                  </span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Audit Info -->
+    <div class="mt-6 text-xs text-gray-500">
+      <p>Creado: {{ role()!.createdAt | date:'medium' }}</p>
+      <p>Última actualización: {{ role()!.updatedAt | date:'medium' }}</p>
+    </div>
+  }
+</div>

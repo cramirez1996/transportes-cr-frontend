@@ -65,6 +65,6 @@ export class InvoiceDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/admin/invoices']);
+    this.router.navigate(['/admin/invoicing']);
   }
 }

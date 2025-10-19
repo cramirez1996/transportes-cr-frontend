@@ -10,6 +10,7 @@ export interface Vehicle {
   lastMaintenance?: Date;
   nextMaintenance?: Date;
   mileage: number; // km
+  tags: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,4 +23,5 @@ export interface CreateVehicleDto {
   type: 'truck' | 'van' | 'pickup';
   capacity: number;
   mileage: number;
+  tags?: Record<string, any>;
 }

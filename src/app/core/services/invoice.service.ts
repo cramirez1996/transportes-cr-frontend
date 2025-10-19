@@ -10,6 +10,8 @@ import {
   InvoiceStatistics,
   InvoiceStatus,
   UploadXmlInvoiceDto,
+  UploadXmlBulkDto,
+  BulkUploadResponse,
 } from '../models/invoice.model';
 import { environment } from '../../../environments/environment';
 
@@ -63,8 +65,25 @@ export class InvoiceService {
   }
 
   // Cambiar estado de factura
-  changeInvoiceStatus(id: string, status: InvoiceStatus): Observable<Invoice> {
-    return this.http.patch<any>(`${this.apiUrl}/${id}/status`, { status }).pipe(
+  changeInvoiceStatus(
+    id: string,
+    status: InvoiceStatus,
+    options?: {
+      categoryId?: string;
+      paymentMethod?: string;
+    }
+  ): Observable<Invoice> {
+    const payload: any = { status };
+
+    if (options?.categoryId) {
+      payload.categoryId = options.categoryId;
+    }
+
+    if (options?.paymentMethod) {
+      payload.paymentMethod = options.paymentMethod;
+    }
+
+    return this.http.patch<any>(`${this.apiUrl}/${id}/status`, payload).pipe(
       map(invoice => this.mapInvoiceFromBackend(invoice))
     );
   }
@@ -101,6 +120,28 @@ export class InvoiceService {
     return this.http.post<any>(`${this.apiUrl}/upload-xml`, formData).pipe(
       map(invoice => this.mapInvoiceFromBackend(invoice))
     );
+  }
+
+  // Subir múltiples XMLs
+  uploadXmlBulk(files: File[], uploadData: UploadXmlBulkDto): Observable<BulkUploadResponse> {
+    const formData = new FormData();
+
+    // Agregar todos los archivos
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    if (uploadData.tripId) {
+      formData.append('tripId', uploadData.tripId);
+    }
+    if (uploadData.notes) {
+      formData.append('notes', uploadData.notes);
+    }
+    if (uploadData.skipDuplicates !== undefined) {
+      formData.append('skipDuplicates', uploadData.skipDuplicates.toString());
+    }
+
+    return this.http.post<BulkUploadResponse>(`${this.apiUrl}/upload-xml-bulk`, formData);
   }
 
   // Mappers

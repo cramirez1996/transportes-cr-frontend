@@ -1,0 +1,148 @@
+<div class="space-y-4">
+  <!-- Header -->
+  <div *ngIf="showTitle" class="flex items-center justify-between">
+    <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+      </svg>
+      Documentos
+    </h3>
+    <button
+      *ngIf="allowUpload"
+      (click)="openUploadModal()"
+      class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium transition-colors flex items-center gap-2"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Subir Documento
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-8">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <p class="mt-2 text-gray-600 text-sm">Cargando documentos...</p>
+  </div>
+
+  <!-- No Documents -->
+  <div *ngIf="!loading && documents.length === 0" class="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+    </svg>
+    <p class="mt-2 text-gray-600">No hay documentos asociados</p>
+    <button
+      *ngIf="allowUpload"
+      (click)="openUploadModal()"
+      class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium transition-colors"
+    >
+      Subir primer documento
+    </button>
+  </div>
+
+  <!-- Documents Grid -->
+  <div *ngIf="!loading && documents.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div
+      *ngFor="let doc of documents"
+      class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+    >
+      <!-- Document Header -->
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <!-- Icon -->
+          <div class="flex-shrink-0">
+            <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getDocumentTypeIcon(doc.documentType)" />
+            </svg>
+          </div>
+
+          <!-- Document Info -->
+          <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-medium text-gray-900 truncate" [title]="doc.originalName">
+              {{ doc.originalName }}
+            </h4>
+            <p class="text-xs text-gray-500">
+              {{ documentTypeLabels[doc.documentType] }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Verification Badge -->
+        <div class="flex-shrink-0 ml-2">
+          <button
+            (click)="verifyDocument(doc)"
+            [title]="doc.isVerified ? 'Documento verificado' : 'Documento no verificado'"
+            class="focus:outline-none"
+          >
+            <svg
+              *ngIf="doc.isVerified"
+              class="w-5 h-5 text-green-600"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            <svg
+              *ngIf="!doc.isVerified"
+              class="w-5 h-5 text-gray-400 hover:text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <p *ngIf="doc.description" class="text-xs text-gray-600 mb-3 line-clamp-2">
+        {{ doc.description }}
+      </p>
+
+      <!-- Dates -->
+      <div class="space-y-1 mb-3 text-xs text-gray-500">
+        <div *ngIf="doc.issueDate" class="flex items-center justify-between">
+          <span>Emisión:</span>
+          <span class="font-medium text-gray-700">{{ formatDate(doc.issueDate) }}</span>
+        </div>
+        <div *ngIf="doc.expiryDate" class="flex items-center justify-between">
+          <span>Vencimiento:</span>
+          <span class="font-medium" [class]="getExpiryBadgeClass(doc) ? 'px-2 py-0.5 rounded ' + getExpiryBadgeClass(doc) : 'text-gray-700'">
+            {{ formatDate(doc.expiryDate) }}
+            <span *ngIf="getExpiryLabel(doc)" class="ml-1 text-xs">({{ getExpiryLabel(doc) }})</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- File Info -->
+      <div class="flex items-center justify-between text-xs text-gray-500 mb-3 pb-3 border-b border-gray-100">
+        <span>{{ formatFileSize(doc.fileSize) }}</span>
+        <span>{{ formatDate(doc.createdAt) }}</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-2">
+        <button
+          (click)="downloadDocument(doc)"
+          class="flex-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 text-xs font-medium transition-colors flex items-center justify-center gap-1"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Descargar
+        </button>
+        <button
+          *ngIf="allowDelete"
+          (click)="deleteDocument(doc)"
+          class="px-3 py-1.5 bg-red-50 text-red-700 rounded hover:bg-red-100 text-xs font-medium transition-colors"
+          title="Eliminar documento"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

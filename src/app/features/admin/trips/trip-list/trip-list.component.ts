@@ -211,7 +211,8 @@ export class TripListComponent implements OnInit {
   }
 
   canEdit(trip: Trip): boolean {
-    return trip.status === TripStatus.PENDING;
+    // Permitir editar viajes en cualquier estado
+    return true;
   }
 
   canDelete(trip: Trip): boolean {

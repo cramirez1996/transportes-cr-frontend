@@ -66,15 +66,13 @@
             </label>
             <input type="date" formControlName="issueDate" class="w-full border border-gray-300 rounded-lg px-3 py-2" />
           </div>
+        </div>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-            <select formControlName="status" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-              <option [value]="InvoiceStatus.DRAFT">Borrador</option>
-              <option [value]="InvoiceStatus.ISSUED">Emitida</option>
-              <option [value]="InvoiceStatus.PAID">Pagada</option>
-            </select>
-          </div>
+        <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p class="text-sm text-blue-800">
+            <span class="font-semibold">Nota:</span> El estado de la factura se gestiona desde la lista de facturas.
+            Las facturas nuevas se crean en estado "Borrador" por defecto.
+          </p>
         </div>
 
         <!-- Cliente / Proveedor según tipo -->
@@ -133,6 +131,15 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Notas / Observaciones</label>
           <textarea formControlName="notes" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2"
             placeholder="Notas adicionales..."></textarea>
+        </div>
+
+        <!-- Tags personalizados -->
+        <div class="mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+          <app-tags-editor
+            [tags]="invoiceForm.get('tags')?.value"
+            (tagsChange)="onTagsChange($event)"
+            placeholder="Tags personalizados de la factura"
+          ></app-tags-editor>
         </div>
       </div>
 

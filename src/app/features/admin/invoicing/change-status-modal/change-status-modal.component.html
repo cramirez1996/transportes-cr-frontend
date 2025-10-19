@@ -1,0 +1,99 @@
+<!-- Modal Backdrop -->
+<div *ngIf="isOpen" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+  (click)="close()">
+
+  <!-- Modal Content -->
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Cambiar Estado de Factura</h2>
+      <p class="text-gray-600 mt-2">
+        Cambiar de <span class="font-semibold">{{ getStatusLabel(currentStatus!) }}</span>
+        a <span class="font-semibold text-blue-600">{{ getStatusLabel(targetStatus!) }}</span>
+      </p>
+    </div>
+
+    <!-- Mensaje informativo -->
+    <div *ngIf="showAdditionalFields" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+      <p class="text-sm text-blue-800">
+        <span class="font-semibold">Nota:</span> Al cambiar el estado a "{{ getStatusLabel(targetStatus!) }}",
+        se creará automáticamente una transacción contable. Por favor, proporcione los siguientes datos:
+      </p>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="changeStatusForm" (ngSubmit)="onSubmit()">
+      <!-- Campos adicionales solo si se necesitan -->
+      <div *ngIf="showAdditionalFields">
+        <!-- Categoría de Transacción -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Categoría de Transacción <span class="text-red-500">*</span>
+          </label>
+
+          <div *ngIf="loadingCategories" class="text-sm text-gray-500">
+            Cargando categorías...
+          </div>
+
+          <select *ngIf="!loadingCategories" formControlName="categoryId"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2"
+            [class.border-red-500]="changeStatusForm.get('categoryId')?.invalid && changeStatusForm.get('categoryId')?.touched">
+            <option value="">Seleccione una categoría</option>
+            <option *ngFor="let category of categories" [value]="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+
+          <div *ngIf="changeStatusForm.get('categoryId')?.invalid && changeStatusForm.get('categoryId')?.touched"
+            class="text-red-500 text-sm mt-1">
+            Debe seleccionar una categoría
+          </div>
+
+          <p class="text-xs text-gray-500 mt-1">
+            La transacción se clasificará en esta categoría
+          </p>
+        </div>
+
+        <!-- Método de Pago -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Método de Pago <span class="text-red-500">*</span>
+          </label>
+
+          <select formControlName="paymentMethod" class="w-full border border-gray-300 rounded-lg px-3 py-2"
+            [class.border-red-500]="changeStatusForm.get('paymentMethod')?.invalid && changeStatusForm.get('paymentMethod')?.touched">
+            <option value="">Seleccione un método de pago</option>
+            <option *ngFor="let method of paymentMethods" [value]="method.value">
+              {{ method.label }}
+            </option>
+          </select>
+
+          <div *ngIf="changeStatusForm.get('paymentMethod')?.invalid && changeStatusForm.get('paymentMethod')?.touched"
+            class="text-red-500 text-sm mt-1">
+            Debe seleccionar un método de pago
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensaje para cambios que no requieren datos adicionales -->
+      <div *ngIf="!showAdditionalFields" class="mb-6">
+        <p class="text-gray-700">
+          ¿Está seguro de cambiar el estado de esta factura?
+        </p>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex justify-end gap-3">
+        <button type="button" (click)="close()"
+          class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+          Cancelar
+        </button>
+        <button type="submit"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50"
+          [disabled]="showAdditionalFields && changeStatusForm.invalid">
+          Confirmar Cambio
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

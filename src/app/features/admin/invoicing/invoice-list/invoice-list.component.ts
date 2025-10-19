@@ -5,10 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { InvoiceService } from '../../../../core/services/invoice.service';
 import { Invoice, InvoiceType, InvoiceStatus, InvoiceFilters } from '../../../../core/models/invoice.model';
 import { UploadXmlModalComponent } from '../upload-xml-modal/upload-xml-modal.component';
+import { ChangeStatusModalComponent } from '../change-status-modal/change-status-modal.component';
+import { PaymentMethod } from '../../../../core/models/transaction.model';
 
 @Component({
   selector: 'app-invoice-list',
-  imports: [CommonModule, RouterModule, FormsModule, UploadXmlModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, UploadXmlModalComponent, ChangeStatusModalComponent],
   templateUrl: './invoice-list.component.html',
   styleUrl: './invoice-list.component.scss'
 })
@@ -16,6 +18,9 @@ export class InvoiceListComponent implements OnInit {
   private invoiceService = inject(InvoiceService);
 
   @ViewChild(UploadXmlModalComponent) uploadXmlModal!: UploadXmlModalComponent;
+  @ViewChild(ChangeStatusModalComponent) changeStatusModal!: ChangeStatusModalComponent;
+
+  currentInvoice: Invoice | null = null;
 
   invoices: Invoice[] = [];
   filteredInvoices: Invoice[] = [];
@@ -68,14 +73,33 @@ export class InvoiceListComponent implements OnInit {
     this.loadInvoices();
   }
 
-  changeStatus(invoice: Invoice, newStatus: InvoiceStatus): void {
-    this.invoiceService.changeInvoiceStatus(invoice.id, newStatus).subscribe({
+  openChangeStatusModal(invoice: Invoice, newStatus: InvoiceStatus): void {
+    this.currentInvoice = invoice;
+    this.changeStatusModal.open(invoice.type, invoice.status, newStatus);
+  }
+
+  onStatusChanged(data: { status: InvoiceStatus; categoryId?: string; paymentMethod?: PaymentMethod }): void {
+    if (!this.currentInvoice) {
+      return;
+    }
+
+    this.invoiceService.changeInvoiceStatus(
+      this.currentInvoice.id,
+      data.status,
+      {
+        categoryId: data.categoryId,
+        paymentMethod: data.paymentMethod
+      }
+    ).subscribe({
       next: () => {
         this.loadInvoices();
+        this.currentInvoice = null;
       },
       error: (err) => {
         console.error('Error al cambiar estado:', err);
-        alert('Error al cambiar el estado de la factura');
+        const errorMessage = err.error?.message || 'Error al cambiar el estado de la factura';
+        alert(errorMessage);
+        this.currentInvoice = null;
       }
     });
   }

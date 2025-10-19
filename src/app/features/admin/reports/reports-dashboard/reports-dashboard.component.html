@@ -1,0 +1,62 @@
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Reportes y Análisis</h1>
+    <p class="text-gray-600">Selecciona el tipo de reporte que deseas visualizar</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @for (report of reports; track report.route) {
+      <a
+        [routerLink]="report.route"
+        class="block bg-white rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 border-2 overflow-hidden group"
+        [ngClass]="getColorClasses(report.color).border">
+
+        <div class="p-6" [ngClass]="getColorClasses(report.color).bg">
+          <div class="flex items-center justify-between mb-4">
+            <div class="text-5xl">{{ report.icon }}</div>
+            <svg class="w-6 h-6 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+
+          <h3 class="text-xl font-bold mb-2" [ngClass]="getColorClasses(report.color).text">
+            {{ report.title }}
+          </h3>
+
+          <p class="text-gray-600 text-sm">
+            {{ report.description }}
+          </p>
+        </div>
+
+        <div class="px-6 py-3 bg-gray-50 border-t border-gray-100">
+          <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+            Ver reporte →
+          </span>
+        </div>
+      </a>
+    }
+  </div>
+
+  <!-- Quick Stats Section -->
+  <div class="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">💡 Consejos de Uso</h2>
+    <ul class="space-y-2 text-gray-700">
+      <li class="flex items-start">
+        <span class="text-blue-600 mr-2">•</span>
+        <span>Utiliza el selector de mes/fecha para analizar períodos específicos</span>
+      </li>
+      <li class="flex items-start">
+        <span class="text-blue-600 mr-2">•</span>
+        <span>Exporta los datos a Excel o PDF para compartir con tu equipo</span>
+      </li>
+      <li class="flex items-start">
+        <span class="text-blue-600 mr-2">•</span>
+        <span>Compara diferentes períodos para identificar tendencias</span>
+      </li>
+      <li class="flex items-start">
+        <span class="text-blue-600 mr-2">•</span>
+        <span>Los reportes se actualizan automáticamente con los datos más recientes</span>
+      </li>
+    </ul>
+  </div>
+</div>

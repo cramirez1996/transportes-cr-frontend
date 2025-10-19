@@ -1,0 +1,239 @@
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-800">
+        {{ isEditMode ? 'Editar Mantenimiento' : 'Nuevo Mantenimiento' }}
+      </h1>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p class="mt-2 text-gray-600">Cargando...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      {{ error }}
+    </div>
+
+    <!-- Formulario -->
+    <form *ngIf="!loading" [formGroup]="maintenanceForm" (ngSubmit)="onSubmit()">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Vehículo -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Vehículo <span class="text-red-500">*</span>
+          </label>
+          <select
+            formControlName="vehicleId"
+            class="w-full border rounded-lg px-3 py-2"
+            [class.border-red-500]="isFieldInvalid('vehicleId')"
+          >
+            <option value="">Seleccione un vehículo</option>
+            <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+              {{ vehicle.licensePlate }} - {{ vehicle.brand }} {{ vehicle.model }}
+            </option>
+          </select>
+          <p *ngIf="isFieldInvalid('vehicleId')" class="text-red-500 text-sm mt-1">
+            El vehículo es requerido
+          </p>
+        </div>
+
+        <!-- Tipo de Mantenimiento -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Tipo de Mantenimiento <span class="text-red-500">*</span>
+          </label>
+          <select
+            formControlName="maintenanceTypeId"
+            class="w-full border rounded-lg px-3 py-2"
+            [class.border-red-500]="isFieldInvalid('maintenanceTypeId')"
+          >
+            <option value="">Seleccione un tipo</option>
+            <option *ngFor="let type of maintenanceTypes" [value]="type.id">
+              {{ type.name }} ({{ type.category }})
+            </option>
+          </select>
+          <p *ngIf="isFieldInvalid('maintenanceTypeId')" class="text-red-500 text-sm mt-1">
+            El tipo de mantenimiento es requerido
+          </p>
+        </div>
+
+        <!-- Clase -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Clase <span class="text-red-500">*</span>
+          </label>
+          <select
+            formControlName="maintenanceClass"
+            class="w-full border rounded-lg px-3 py-2"
+            [class.border-red-500]="isFieldInvalid('maintenanceClass')"
+          >
+            <option *ngFor="let option of getClassOptions()" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Estado -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Estado <span class="text-red-500">*</span>
+          </label>
+          <select
+            formControlName="status"
+            class="w-full border rounded-lg px-3 py-2"
+            [class.border-red-500]="isFieldInvalid('status')"
+          >
+            <option *ngFor="let option of getStatusOptions()" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Fecha Programada -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Fecha Programada
+          </label>
+          <input
+            type="date"
+            formControlName="scheduledDate"
+            class="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
+
+        <!-- Fecha de Ejecución -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Fecha de Ejecución <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            formControlName="executedDate"
+            class="w-full border rounded-lg px-3 py-2"
+            [class.border-red-500]="isFieldInvalid('executedDate')"
+          />
+          <p *ngIf="isFieldInvalid('executedDate')" class="text-red-500 text-sm mt-1">
+            La fecha de ejecución es requerida
+          </p>
+        </div>
+
+        <!-- Kilómetros del Vehículo -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Kilómetros del Vehículo <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            formControlName="vehicleKmAtMaintenance"
+            class="w-full border rounded-lg px-3 py-2"
+            [class.border-red-500]="isFieldInvalid('vehicleKmAtMaintenance')"
+            min="0"
+          />
+          <p *ngIf="isFieldInvalid('vehicleKmAtMaintenance')" class="text-red-500 text-sm mt-1">
+            Los kilómetros son requeridos
+          </p>
+        </div>
+
+        <!-- Próximo Mantenimiento (KM) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Próximo Mantenimiento (KM)
+          </label>
+          <input
+            type="number"
+            formControlName="nextMaintenanceKm"
+            class="w-full border rounded-lg px-3 py-2"
+            min="0"
+          />
+        </div>
+
+        <!-- Próxima Fecha de Mantenimiento -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Próxima Fecha de Mantenimiento
+          </label>
+          <input
+            type="date"
+            formControlName="nextMaintenanceDate"
+            class="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
+
+        <!-- Costo -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Costo (CLP)
+          </label>
+          <input
+            type="number"
+            formControlName="cost"
+            class="w-full border rounded-lg px-3 py-2"
+            min="0"
+            step="100"
+          />
+        </div>
+
+        <!-- Realizado Por -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Realizado Por
+          </label>
+          <input
+            type="text"
+            formControlName="performedBy"
+            class="w-full border rounded-lg px-3 py-2"
+            placeholder="Nombre del mecánico o taller"
+          />
+        </div>
+
+        <!-- Descripción -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Descripción
+          </label>
+          <textarea
+            formControlName="description"
+            class="w-full border rounded-lg px-3 py-2"
+            rows="3"
+            placeholder="Descripción del mantenimiento realizado"
+          ></textarea>
+        </div>
+
+        <!-- Notas -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Notas
+          </label>
+          <textarea
+            formControlName="notes"
+            class="w-full border rounded-lg px-3 py-2"
+            rows="3"
+            placeholder="Notas adicionales"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex gap-4 mt-6">
+        <button
+          type="submit"
+          [disabled]="saving"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ saving ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Crear') }}
+        </button>
+        <button
+          type="button"
+          (click)="onCancel()"
+          [disabled]="saving"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

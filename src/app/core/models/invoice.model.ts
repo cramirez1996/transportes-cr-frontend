@@ -58,6 +58,7 @@ export interface Invoice {
   taxNoCredit: number;
   totalAmount: number;
   notes?: string;
+  tags?: Record<string, any>;
   xmlFile?: string;
   pdfFile?: string;
   status: InvoiceStatus;
@@ -91,6 +92,7 @@ export interface CreateInvoiceDto {
   taxNoCredit?: number;
   totalAmount: number;
   notes?: string;
+  tags?: Record<string, any>;
   xmlFile?: string;
   pdfFile?: string;
   status?: InvoiceStatus;
@@ -120,4 +122,38 @@ export interface InvoiceStatistics {
 export interface UploadXmlInvoiceDto {
   tripId?: string;
   notes?: string;
+}
+
+export interface UploadXmlBulkDto {
+  tripId?: string;
+  notes?: string;
+  skipDuplicates?: boolean;
+}
+
+export enum BulkUploadStatus {
+  SUCCESS = 'success',
+  FAILED = 'failed',
+  SKIPPED = 'skipped',
+}
+
+export interface BulkUploadFileResult {
+  filename: string;
+  status: BulkUploadStatus;
+  invoiceId?: string;
+  folioNumber?: string;
+  totalAmount?: number;
+  error?: string;
+  reason?: string;
+}
+
+export interface BulkUploadSummary {
+  total: number;
+  success: number;
+  failed: number;
+  skipped: number;
+}
+
+export interface BulkUploadResponse {
+  summary: BulkUploadSummary;
+  results: BulkUploadFileResult[];
 }

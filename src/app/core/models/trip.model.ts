@@ -74,6 +74,7 @@ export interface Trip {
 
   status: TripStatus;
   notes?: string;
+  tags?: Record<string, any>; // Tags personalizados en formato clave-valor
   createdAt: Date;
   updatedAt: Date;
 }
@@ -85,9 +86,12 @@ export interface CreateTripDto {
   origin: string;
   destination: string;
   departureDate: Date;
+  arrivalDate?: Date;
+  isArrivalManual?: boolean;
   agreedPrice: number;
   startKm?: number;
   notes?: string;
+  tags?: Record<string, any>;
 }
 
 export interface UpdateTripDto {
@@ -104,4 +108,5 @@ export interface UpdateTripDto {
   agreedPrice?: number;
   status?: TripStatus;
   notes?: string;
+  tags?: Record<string, any>;
 }

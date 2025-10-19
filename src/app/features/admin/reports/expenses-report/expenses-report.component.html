@@ -1,0 +1,204 @@
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+    <div>
+      <nav class="text-sm text-gray-500 mb-2">
+        <a routerLink="/admin/reports" class="hover:text-gray-700">Reportes</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900">Gastos por Categoría</span>
+      </nav>
+      <h1 class="text-3xl font-bold text-gray-800">Gastos por Categoría</h1>
+      @if (data) {
+        <p class="text-gray-600 mt-1">{{ data.period }}</p>
+      }
+    </div>
+    <div class="mt-4 md:mt-0 flex gap-3">
+      <app-month-picker
+        [selectedMonth]="selectedMonth"
+        (monthChange)="onMonthChange($event)">
+      </app-month-picker>
+      <button
+        (click)="exportToExcel()"
+        class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2">
+        <span>📥</span>
+        <span>Exportar</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  @if (error) {
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+      {{ error }}
+    </div>
+  }
+
+  @if (loading) {
+    <div class="flex items-center justify-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="ml-4 text-gray-600">Cargando datos...</p>
+    </div>
+  } @else if (data) {
+    <!-- Total Summary -->
+    <div class="bg-gradient-to-r from-red-500 to-pink-500 rounded-lg shadow-lg text-white p-8 mb-8">
+      <h2 class="text-lg font-semibold mb-2 opacity-90">Gastos Totales del Período</h2>
+      <p class="text-5xl font-bold">{{ formatCurrency(data.totalExpenses) }}</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <!-- Pie Chart -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Distribución de Gastos</h2>
+        @if (chartLabels.length > 0) {
+          <app-pie-chart
+            [labels]="chartLabels"
+            [data]="chartData"
+            height="400px">
+          </app-pie-chart>
+        } @else {
+          <div class="flex items-center justify-center h-64 text-gray-500">
+            No hay datos para mostrar
+          </div>
+        }
+      </div>
+
+      <!-- Top Categories -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Top Categorías</h2>
+        @if (data.categories.length > 0) {
+          <div class="space-y-4">
+            @for (category of data.categories.slice(0, 5); track category.categoryId; let i = $index) {
+              <div class="border-b border-gray-100 pb-4 last:border-0">
+                <div class="flex justify-between items-center mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-2xl font-bold text-gray-300">{{ i + 1 }}</span>
+                    <span class="font-semibold text-gray-800">{{ category.categoryName }}</span>
+                  </div>
+                  <span class="text-lg font-bold text-gray-900">{{ category.percentage }}%</span>
+                </div>
+                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                  <span>{{ category.transactionCount }} transacciones</span>
+                  <span class="font-semibold">{{ formatCurrency(category.totalAmount) }}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    class="h-2 rounded-full transition-all duration-300"
+                    [ngClass]="getPercentageColor(category.percentage)"
+                    [style.width]="getPercentageBarWidth(category.percentage)">
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="text-center py-8 text-gray-500">
+            No hay gastos registrados
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Detailed Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-800">Detalle por Categoría</h2>
+      </div>
+
+      @if (data.categories.length > 0) {
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  #
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Categoría
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Transacciones
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Monto Total
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  % del Total
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Distribución
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              @for (category of data.categories; track category.categoryId; let i = $index) {
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ i + 1 }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {{ category.categoryName }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">
+                    {{ category.transactionCount }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 text-right">
+                    {{ formatCurrency(category.totalAmount) }}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      {{ category.percentage }}%
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        class="h-2 rounded-full"
+                        [ngClass]="getPercentageColor(category.percentage)"
+                        [style.width]="getPercentageBarWidth(category.percentage)">
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot class="bg-gray-50">
+              <tr>
+                <td colspan="3" class="px-6 py-4 text-sm font-bold text-gray-900">
+                  TOTAL
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
+                  {{ formatCurrency(data.totalExpenses) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    100%
+                  </span>
+                </td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      } @else {
+        <div class="p-8 text-center text-gray-500">
+          <p>No hay gastos registrados en el período seleccionado</p>
+        </div>
+      }
+    </div>
+
+    <!-- Insights -->
+    @if (data.categories.length > 0) {
+      <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
+          <span>💡</span>
+          <span>Análisis Rápido</span>
+        </h3>
+        <div class="space-y-2 text-sm text-blue-800">
+          <p>• La categoría con mayor gasto es <strong>{{ data.categories[0].categoryName }}</strong> con {{ formatCurrency(data.categories[0].totalAmount) }} ({{ data.categories[0].percentage }}%)</p>
+          <p>• Se registraron un total de <strong>{{ totalTransactions }} transacciones</strong> de gastos</p>
+          <p>• El gasto promedio por transacción es de <strong>{{ formatCurrency(averageExpensePerTransaction) }}</strong></p>
+        </div>
+      </div>
+    }
+  }
+</div>

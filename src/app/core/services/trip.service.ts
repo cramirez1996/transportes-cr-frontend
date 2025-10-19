@@ -21,6 +21,7 @@ interface TripBackendResponse {
   agreedPrice: string;
   status: string;
   notes?: string;
+  tags?: Record<string, any>;
   createdAt: string;
   updatedAt: string;
 }
@@ -126,7 +127,8 @@ export class TripService {
       status: this.mapStatusFromBackend(trip.status),
       notes: trip.notes,
       createdAt: new Date(trip.createdAt),
-      updatedAt: new Date(trip.updatedAt)
+      updatedAt: new Date(trip.updatedAt),
+      tags: trip.tags
     };
   }
 
@@ -169,6 +171,10 @@ export class TripService {
     }
     if ('isArrivalManual' in tripData && (tripData as UpdateTripDto).isArrivalManual !== undefined) {
       payload.isArrivalManual = (tripData as UpdateTripDto).isArrivalManual;
+    }
+
+    if ('tags' in tripData) {
+      payload.tags = tripData.tags;
     }
 
     return payload;

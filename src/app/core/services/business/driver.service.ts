@@ -54,6 +54,7 @@ export class DriverService {
       licenseExpiry: driver.licenseExpiry ? new Date(driver.licenseExpiry) : undefined,
       status: driver.status?.toLowerCase() || 'active',
       hireDate: new Date(driver.hireDate),
+      tags: driver.tags || {},
       totalTrips: driver.totalTrips || 0
     };
   }
@@ -68,7 +69,8 @@ export class DriverService {
       licenseNumber: dto.licenseNumber,
       licenseType: dto.licenseType,
       licenseExpiry: dto.licenseExpiry,
-      hireDate: dto.hireDate
+      hireDate: dto.hireDate,
+      tags: dto.tags
     };
   }
 }

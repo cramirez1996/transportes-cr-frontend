@@ -1,244 +1,260 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8 px-4 sm:px-6 lg:px-8">
-  <div class="max-w-5xl mx-auto">
-    <!-- Loading State -->
-    <div *ngIf="loading" class="flex flex-col items-center justify-center py-20">
-      <div class="relative">
-        <div class="h-16 w-16 rounded-full border-4 border-slate-200"></div>
-        <div class="absolute top-0 left-0 h-16 w-16 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
-      </div>
-      <p class="mt-6 text-slate-600 font-medium">Cargando factura...</p>
-    </div>
-
-    <!-- Error Alert -->
-    <div *ngIf="error" class="mb-6 bg-red-50 border-l-4 border-red-500 rounded-lg p-4 shadow-sm">
-      <div class="flex items-center">
-        <svg class="h-5 w-5 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <button (click)="goBack()" class="text-gray-600 hover:text-gray-900 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
-        <p class="text-red-800 font-medium">{{ error }}</p>
+        Volver
+      </button>
+      <h1 class="text-2xl font-bold text-gray-900">Detalle de Factura</h1>
+    </div>
+    <span *ngIf="invoice" [class]="'px-3 py-1 rounded-full text-sm font-medium ' + getStatusClass(invoice.status)">
+      {{ getStatusLabel(invoice.status) }}
+    </span>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-12">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <p class="mt-2 text-gray-600">Cargando...</p>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="mb-6 bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
+    <p class="text-red-800 font-medium">{{ error }}</p>
+  </div>
+
+  <!-- Invoice Detail -->
+  <div *ngIf="!loading && invoice" class="space-y-6">
+    <!-- Invoice Information Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <!-- Header with Visual Indicator -->
+      <div class="flex items-center justify-between mb-6 pb-6 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">Información de Factura</h2>
+
+        <!-- Document Type Visual -->
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <svg class="w-6 h-6" [class]="invoice.type === InvoiceType.SALE ? 'text-green-500' : 'text-blue-500'"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path *ngIf="invoice.type === InvoiceType.SALE" stroke-linecap="round" stroke-linejoin="round"
+                stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path *ngIf="invoice.type === InvoiceType.PURCHASE" stroke-linecap="round" stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span class="text-sm font-medium text-gray-900">{{ invoice.type === InvoiceType.SALE ? 'Venta' : 'Compra'
+              }}</span>
+          </div>
+          <div class="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-md">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <span class="text-sm font-semibold text-gray-700">N° {{ invoice.folioNumber }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+        <!-- Left Column -->
+        <div class="space-y-4">
+          <!-- Emisor -->
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              </svg>
+              Emisor
+            </label>
+            <div *ngIf="invoice.type === InvoiceType.SALE && invoice.tenant">
+              <p class="mt-1 text-gray-900 font-medium">{{ invoice.tenant.businessName }}</p>
+              <p class="text-sm text-gray-600">{{ invoice.tenant.rut }}</p>
+            </div>
+            <div *ngIf="invoice.type === InvoiceType.PURCHASE && invoice.supplier">
+              <p class="mt-1 text-gray-900 font-medium">{{ invoice.supplier.businessName }}</p>
+              <p class="text-sm text-gray-600">{{ invoice.supplier.rut }}</p>
+            </div>
+          </div>
+
+          <!-- Receptor -->
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+              </svg>
+              Receptor
+            </label>
+            <div *ngIf="invoice.type === InvoiceType.SALE && invoice.customer">
+              <p class="mt-1 text-gray-900 font-medium">{{ invoice.customer.businessName }}</p>
+              <p class="text-sm text-gray-600">{{ invoice.customer.rut }}</p>
+            </div>
+            <div *ngIf="invoice.type === InvoiceType.PURCHASE && invoice.tenant">
+              <p class="mt-1 text-gray-900 font-medium">{{ invoice.tenant.businessName }}</p>
+              <p class="text-sm text-gray-600">{{ invoice.tenant.rut }}</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Tipo de Documento</label>
+            <p class="mt-1 text-gray-900 font-medium">{{ invoice.documentType }}</p>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="space-y-4">
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                  d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                  clip-rule="evenodd" />
+              </svg>
+              Fecha Emisión
+            </label>
+            <p class="mt-1 text-gray-900">{{ invoice.issueDate | date:'dd/MM/yyyy' }}</p>
+          </div>
+
+          <div *ngIf="invoice.receptionDate">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Fecha Recepción</label>
+            <p class="mt-1 text-gray-900">{{ invoice.receptionDate | date:'dd/MM/yyyy' }}</p>
+          </div>
+
+          <div>
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide flex items-center gap-1">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                <path fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                  clip-rule="evenodd" />
+              </svg>
+              Total Factura
+            </label>
+            <p class="mt-1 text-2xl font-bold text-blue-600">{{ invoice.totalAmount |
+              currency:'CLP':'symbol-narrow':'1.0-0' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div *ngIf="invoice.notes" class="mt-6 pt-6 border-t border-gray-200">
+        <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Notas</label>
+        <p class="mt-2 text-gray-900">{{ invoice.notes }}</p>
       </div>
     </div>
 
-    <!-- Invoice Document -->
-    <div *ngIf="invoice && !loading" class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+    <!-- Items Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6">Items de Factura</h2>
 
-      <!-- Document Header with Company Branding -->
-      <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-10">
-        <div class="flex justify-between items-start">
-          <div class="text-white">
-            <h1 class="text-3xl font-bold mb-2">FACTURA</h1>
-            <p class="text-blue-100 text-lg font-medium">N° {{ invoice.folioNumber }}</p>
-            <p class="text-blue-200 text-sm mt-1">{{ invoice.documentType }}</p>
-          </div>
-          <div class="text-right">
-            <span [class]="'inline-flex items-center px-4 py-2 rounded-full text-sm font-bold shadow-lg ' + getStatusClass(invoice.status)">
-              <span class="h-2 w-2 rounded-full mr-2" [class.bg-gray-500]="invoice.status === InvoiceStatus.DRAFT"
-                    [class.bg-blue-500]="invoice.status === InvoiceStatus.ISSUED"
-                    [class.bg-green-500]="invoice.status === InvoiceStatus.PAID"
-                    [class.bg-red-500]="invoice.status === InvoiceStatus.CANCELLED"></span>
-              {{ getStatusLabel(invoice.status) }}
-            </span>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción
+              </th>
+              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Cant.</th>
+              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">P. Unit.</th>
+              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Desc.</th>
+              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let item of invoice.items" class="hover:bg-gray-50">
+              <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 font-medium">{{ item.lineNumber }}</td>
+              <td class="px-4 py-3">
+                <p class="text-sm font-medium text-gray-900">{{ item.description }}</p>
+                <span *ngIf="item.isExempt"
+                  class="inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                  Exento IVA
+                </span>
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap text-center text-sm text-gray-700">{{ item.quantity }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-right text-sm text-gray-700">{{ item.unitPrice |
+                currency:'CLP':'symbol-narrow':'1.0-0' }}</td>
+              <td class="px-4 py-3 whitespace-nowrap text-right text-sm text-gray-600">
+                {{ item.discountPercent ? item.discountPercent + '%' : '-' }}
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-bold text-gray-900">
+                {{ item.subtotal | currency:'CLP':'symbol-narrow':'1.0-0' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Financial Summary Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6">Resumen Financiero</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="border-l-4 border-gray-400 pl-4">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Monto Exento</label>
+          <p class="mt-2 text-2xl font-bold text-gray-900">{{ invoice.amountExempt |
+            currency:'CLP':'symbol-narrow':'1.0-0' }}</p>
+        </div>
+
+        <div class="border-l-4 border-blue-500 pl-4">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Monto Neto</label>
+          <p class="mt-2 text-2xl font-bold text-gray-900">{{ invoice.amountNet | currency:'CLP':'symbol-narrow':'1.0-0'
+            }}</p>
+          <p class="text-xs text-gray-500 mt-1">Base imponible</p>
+        </div>
+
+        <div class="border-l-4 border-purple-500 pl-4">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">IVA (19%)</label>
+          <p class="mt-2 text-2xl font-bold text-gray-900">{{ invoice.ivaRecoverable |
+            currency:'CLP':'symbol-narrow':'1.0-0' }}</p>
+        </div>
+      </div>
+
+      <!-- Additional Taxes -->
+      <div *ngIf="invoice.taxes && invoice.taxes.length > 0" class="mt-6 pt-6 border-t border-gray-200">
+        <h3 class="text-sm font-semibold text-gray-900 mb-4">Impuestos Adicionales</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div *ngFor="let tax of invoice.taxes" class="border-l-4 border-orange-500 pl-4">
+            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ tax.taxName }}</label>
+            <p class="mt-2 text-xl font-bold text-gray-900">{{ tax.taxAmount | currency:'CLP':'symbol-narrow':'1.0-0' }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Código {{ tax.taxCode }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Business Information -->
-      <div class="px-8 py-8 bg-slate-50 border-b border-slate-200">
-        <div class="grid md:grid-cols-2 gap-8">
-          <!-- Issuer Info (Emisor) -->
-          <div>
-            <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Empresa Emisora</h3>
-            <!-- SALE: Tenant is issuer -->
-            <div class="text-slate-700" *ngIf="invoice.type === InvoiceType.SALE && invoice.tenant">
-              <p class="font-semibold text-lg">{{ invoice.tenant.businessName }}</p>
-              <p class="text-sm mt-1">RUT: {{ invoice.tenant.rut }}</p>
-              <p class="text-sm" *ngIf="invoice.tenant.address">{{ invoice.tenant.address }}</p>
-              <p class="text-sm" *ngIf="invoice.tenant.city || invoice.tenant.region">
-                {{ invoice.tenant.city }}<span *ngIf="invoice.tenant.city && invoice.tenant.region">, </span>{{ invoice.tenant.region }}
-              </p>
-              <p class="text-sm" *ngIf="invoice.tenant.email">{{ invoice.tenant.email }}</p>
-            </div>
-            <!-- PURCHASE: Supplier is issuer -->
-            <div class="text-slate-700" *ngIf="invoice.type === InvoiceType.PURCHASE && invoice.supplier">
-              <p class="font-semibold text-lg">{{ invoice.supplier.businessName }}</p>
-              <p class="text-sm mt-1">RUT: {{ invoice.supplier.rut }}</p>
-              <p class="text-sm" *ngIf="invoice.supplier.address">{{ invoice.supplier.address }}</p>
-              <p class="text-sm" *ngIf="invoice.supplier.city || invoice.supplier.region">
-                {{ invoice.supplier.city }}<span *ngIf="invoice.supplier.city && invoice.supplier.region">, </span>{{ invoice.supplier.region }}
-              </p>
-              <p class="text-sm" *ngIf="invoice.supplier.email">{{ invoice.supplier.email }}</p>
-            </div>
-          </div>
-
-          <!-- Recipient Info (Receptor) -->
-          <div class="text-right md:text-left">
-            <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Receptor</h3>
-            <!-- SALE: Customer is recipient -->
-            <div class="text-slate-700" *ngIf="invoice.type === InvoiceType.SALE && invoice.customer">
-              <p class="font-semibold text-lg">{{ invoice.customer.businessName }}</p>
-              <p class="text-sm mt-1">RUT: {{ invoice.customer.rut }}</p>
-              <p class="text-sm" *ngIf="invoice.customer.address">{{ invoice.customer.address }}</p>
-              <p class="text-sm" *ngIf="invoice.customer.city || invoice.customer.region">
-                {{ invoice.customer.city }}<span *ngIf="invoice.customer.city && invoice.customer.region">, </span>{{ invoice.customer.region }}
-              </p>
-              <p class="text-sm" *ngIf="invoice.customer.email">{{ invoice.customer.email }}</p>
-            </div>
-            <!-- PURCHASE: Tenant is recipient -->
-            <div class="text-slate-700" *ngIf="invoice.type === InvoiceType.PURCHASE && invoice.tenant">
-              <p class="font-semibold text-lg">{{ invoice.tenant.businessName }}</p>
-              <p class="text-sm mt-1">RUT: {{ invoice.tenant.rut }}</p>
-              <p class="text-sm" *ngIf="invoice.tenant.address">{{ invoice.tenant.address }}</p>
-              <p class="text-sm" *ngIf="invoice.tenant.city || invoice.tenant.region">
-                {{ invoice.tenant.city }}<span *ngIf="invoice.tenant.city && invoice.tenant.region">, </span>{{ invoice.tenant.region }}
-              </p>
-              <p class="text-sm" *ngIf="invoice.tenant.email">{{ invoice.tenant.email }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Invoice Metadata -->
-        <div class="mt-6 pt-6 border-t border-slate-200">
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div>
-              <p class="text-xs text-slate-500 font-medium uppercase tracking-wide">Tipo</p>
-              <p class="text-slate-800 font-semibold mt-1">{{ invoice.type === InvoiceType.SALE ? 'Venta' : 'Compra' }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 font-medium uppercase tracking-wide">Fecha Emisión</p>
-              <p class="text-slate-800 font-semibold mt-1">{{ invoice.issueDate | date:'dd/MM/yyyy' }}</p>
-            </div>
-            <div *ngIf="invoice.receptionDate">
-              <p class="text-xs text-slate-500 font-medium uppercase tracking-wide">Fecha Recepción</p>
-              <p class="text-slate-800 font-semibold mt-1">{{ invoice.receptionDate | date:'dd/MM/yyyy' }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Notes -->
-        <div *ngIf="invoice.notes" class="mt-6 p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-lg">
-          <p class="text-xs text-amber-700 font-semibold uppercase tracking-wide mb-1">Notas</p>
-          <p class="text-amber-900">{{ invoice.notes }}</p>
+      <!-- Total Amount -->
+      <div class="mt-6 pt-6 border-t-2 border-gray-200">
+        <div class="border-l-4 border-green-500 pl-4">
+          <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Factura</label>
+          <p class="mt-2 text-3xl font-bold text-green-600">{{ invoice.totalAmount |
+            currency:'CLP':'symbol-narrow':'1.0-0' }}</p>
         </div>
       </div>
+    </div>
 
-      <!-- Items Table -->
-      <div class="px-8 py-6">
-        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center">
-          <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-          </svg>
-          Detalle de Items
-        </h2>
-
-        <div class="overflow-x-auto rounded-lg border border-slate-200">
-          <table class="min-w-full divide-y divide-slate-200">
-            <thead class="bg-slate-100">
-              <tr>
-                <th class="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">#</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Descripción</th>
-                <th class="px-4 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">Cant.</th>
-                <th class="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">P. Unit.</th>
-                <th class="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Desc.</th>
-                <th class="px-4 py-3 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-slate-100">
-              <tr *ngFor="let item of invoice.items" class="hover:bg-slate-50 transition-colors">
-                <td class="px-4 py-4 text-sm text-slate-600 font-medium">{{ item.lineNumber }}</td>
-                <td class="px-4 py-4">
-                  <p class="text-sm font-medium text-slate-900">{{ item.description }}</p>
-                  <span *ngIf="item.isExempt" class="inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                    </svg>
-                    Exento IVA
-                  </span>
-                </td>
-                <td class="px-4 py-4 text-sm text-center text-slate-700 font-medium">{{ item.quantity }}</td>
-                <td class="px-4 py-4 text-sm text-right text-slate-700">{{ item.unitPrice | currency:'CLP':'symbol-narrow':'1.0-0' }}</td>
-                <td class="px-4 py-4 text-sm text-right text-slate-600">
-                  {{ item.discountPercent ? item.discountPercent + '%' : '-' }}
-                </td>
-                <td class="px-4 py-4 text-sm text-right font-bold text-slate-900">
-                  {{ item.subtotal | currency:'CLP':'symbol-narrow':'1.0-0' }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Totals Section -->
-      <div class="px-8 pb-8">
-        <div class="max-w-lg ml-auto bg-slate-50 rounded-xl p-6 border border-slate-200">
-          <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wide mb-4">Resumen de Totales</h3>
-
-          <div class="space-y-3">
-            <div class="flex justify-between items-center py-2">
-              <span class="text-slate-600 text-sm font-medium">Monto Exento:</span>
-              <span class="text-slate-800 font-semibold">{{ invoice.amountExempt | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
-            </div>
-            <div class="flex justify-between items-center py-2">
-              <span class="text-slate-600 text-sm font-medium">Monto Neto:</span>
-              <span class="text-slate-800 font-semibold">{{ invoice.amountNet | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
-            </div>
-            <div class="flex justify-between items-center py-2">
-              <span class="text-slate-600 text-sm font-medium">IVA (19%):</span>
-              <span class="text-slate-800 font-semibold">{{ invoice.ivaRecoverable | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
-            </div>
-
-            <!-- Additional Taxes -->
-            <div *ngIf="invoice.taxes && invoice.taxes.length > 0" class="border-t border-slate-200 pt-3 mt-3">
-              <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Impuestos Adicionales</h4>
-              <div *ngFor="let tax of invoice.taxes" class="flex justify-between items-center py-2">
-                <div class="flex flex-col">
-                  <span class="text-slate-600 text-sm font-medium">{{ tax.taxName }}</span>
-                  <span class="text-xs text-slate-500">Código {{ tax.taxCode }}</span>
-                </div>
-                <span class="text-slate-800 font-semibold">{{ tax.taxAmount | currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
-              </div>
-            </div>
-
-            <div class="flex justify-between items-center pt-3 border-t border-slate-200 mt-3">
-              <span class="text-xl font-bold text-slate-900">TOTAL:</span>
-              <span class="text-2xl font-bold text-blue-600">
-                {{ invoice.totalAmount | currency:'CLP':'symbol-narrow':'1.0-0' }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="px-8 pb-8 bg-slate-50 border-t border-slate-200">
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6">
-          <button (click)="goBack()"
-            class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 border-2 border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-100 hover:border-slate-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-            </svg>
-            Volver
-          </button>
-
-          <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <button class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-              </svg>
-              Descargar PDF
-            </button>
-
-            <a *ngIf="invoice.status === InvoiceStatus.DRAFT" [routerLink]="['/admin/invoices', invoice.id, 'edit']"
-              class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-              </svg>
-              Editar Factura
-            </a>
-          </div>
-        </div>
-      </div>
-
+    <!-- Action Buttons -->
+    <div class="flex gap-3 justify-end">
+      <button
+        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Descargar PDF
+      </button>
+      <a *ngIf="invoice.status === InvoiceStatus.DRAFT" [routerLink]="['/admin/invoicing', invoice.id, 'edit']"
+        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        Editar Factura
+      </a>
     </div>
   </div>
 </div>

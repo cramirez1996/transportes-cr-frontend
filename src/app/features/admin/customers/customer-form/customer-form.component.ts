@@ -5,10 +5,11 @@ import { Customer, CreateCustomerDto, CustomerStatus } from '../../../../core/mo
 import { ModalRef } from '../../../../core/services/modal.service';
 import { rutValidator, normalizeRut } from '../../../../shared/validators/rut.validator';
 import { RutFormatDirective } from '../../../../shared/directives/rut-format.directive';
+import { TagsEditorComponent } from '../../../../shared/components/tags-editor/tags-editor.component';
 
 @Component({
   selector: 'app-customer-form',
-  imports: [CommonModule, ReactiveFormsModule, RutFormatDirective],
+  imports: [CommonModule, ReactiveFormsModule, RutFormatDirective, TagsEditorComponent],
   templateUrl: './customer-form.component.html',
   styleUrl: './customer-form.component.scss'
 })
@@ -32,7 +33,8 @@ export class CustomerFormComponent implements OnInit {
       address: [this.customer?.address || '', Validators.required],
       city: [this.customer?.city || '', Validators.required],
       region: [this.customer?.region || '', Validators.required],
-      status: [this.customer?.status || CustomerStatus.ACTIVE, Validators.required]
+      status: [this.customer?.status || CustomerStatus.ACTIVE, Validators.required],
+      tags: [this.customer?.tags || {}]
     });
   }
 
@@ -51,6 +53,10 @@ export class CustomerFormComponent implements OnInit {
 
   onCancel(): void {
     this.modalRef.dismiss('cancelled');
+  }
+
+  onTagsChange(tags: Record<string, any>): void {
+    this.customerForm.patchValue({ tags });
   }
 
   getErrorMessage(field: string): string {

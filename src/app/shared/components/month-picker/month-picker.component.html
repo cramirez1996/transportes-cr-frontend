@@ -1,0 +1,11 @@
+<div class="flex items-center gap-3">
+  <label class="text-sm font-medium text-gray-700">{{ label }}:</label>
+  <select
+    [ngModel]="selectedMonth"
+    (change)="onMonthChange($event)"
+    class="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm px-3 py-2 border">
+    @for (month of months; track month.value) {
+      <option [value]="month.value">{{ month.label }}</option>
+    }
+  </select>
+</div>

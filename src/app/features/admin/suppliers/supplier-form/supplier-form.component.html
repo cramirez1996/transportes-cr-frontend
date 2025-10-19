@@ -1,0 +1,150 @@
+<form [formGroup]="supplierForm" (ngSubmit)="onSubmit()" class="space-y-4">
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">RUT *</label>
+      <input
+        type="text"
+        formControlName="rut"
+        appRutFormat
+        placeholder="12345678-9"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="supplierForm.get('rut')?.invalid && supplierForm.get('rut')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('rut') }}</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Razón Social *</label>
+      <input
+        type="text"
+        formControlName="businessName"
+        placeholder="Razón Social"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="supplierForm.get('businessName')?.invalid && supplierForm.get('businessName')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('businessName') }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Nombre de Contacto</label>
+      <input
+        type="text"
+        formControlName="contactName"
+        placeholder="Nombre de contacto"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Proveedor *</label>
+      <select
+        formControlName="supplierType"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="supplierForm.get('supplierType')?.invalid && supplierForm.get('supplierType')?.touched"
+      >
+        @for (type of supplierTypes; track type) {
+          <option [value]="type">{{ supplierTypeLabels[type] }}</option>
+        }
+      </select>
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('supplierType') }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+      <input
+        type="email"
+        formControlName="email"
+        placeholder="correo@ejemplo.com"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="supplierForm.get('email')?.invalid && supplierForm.get('email')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('email') }}</p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+      <input
+        type="text"
+        formControlName="phone"
+        placeholder="+56 9 1234 5678"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [class.border-red-500]="supplierForm.get('phone')?.invalid && supplierForm.get('phone')?.touched"
+      />
+      <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('phone') }}</p>
+    </div>
+  </div>
+
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
+    <input
+      type="text"
+      formControlName="address"
+      placeholder="Dirección completa"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  </div>
+
+  <div class="grid grid-cols-3 gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
+      <input
+        type="text"
+        formControlName="city"
+        placeholder="Ciudad"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Región</label>
+      <input
+        type="text"
+        formControlName="region"
+        placeholder="Región"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
+      <select
+        formControlName="status"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        @for (status of supplierStatuses; track status) {
+          <option [value]="status">{{ supplierStatusLabels[status] }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Tags Editor -->
+  <div class="mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
+    <app-tags-editor
+      [tags]="supplierForm.get('tags')?.value"
+      (tagsChange)="onTagsChange($event)"
+      placeholder="Tags personalizados del proveedor"
+    ></app-tags-editor>
+  </div>
+
+  <div class="flex justify-end gap-3 pt-4">
+    <button
+      type="button"
+      (click)="onCancel()"
+      class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+    >
+      Cancelar
+    </button>
+    <button
+      type="submit"
+      [disabled]="supplierForm.invalid"
+      class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+    >
+      {{ supplier ? 'Actualizar' : 'Crear' }} Proveedor
+    </button>
+  </div>
+</form>

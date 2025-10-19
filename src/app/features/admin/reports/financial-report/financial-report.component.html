@@ -1,0 +1,225 @@
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+    <div>
+      <nav class="text-sm text-gray-500 mb-2">
+        <a routerLink="/admin/reports" class="hover:text-gray-700">Reportes</a>
+        <span class="mx-2">/</span>
+        <span class="text-gray-900">Reporte Financiero</span>
+      </nav>
+      <h1 class="text-3xl font-bold text-gray-800">Reporte Financiero Mensual</h1>
+      @if (data) {
+        <p class="text-gray-600 mt-1">{{ selectedMonthDisplay }}</p>
+      }
+    </div>
+    <div class="mt-4 md:mt-0 flex gap-3">
+      <app-month-picker
+        [selectedMonth]="selectedMonth"
+        (monthChange)="onMonthChange($event)">
+      </app-month-picker>
+      <button
+        (click)="exportToPDF()"
+        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-2">
+        <span>📄</span>
+        <span>PDF</span>
+      </button>
+      <button
+        (click)="exportToExcel()"
+        class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2">
+        <span>📥</span>
+        <span>Excel</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  @if (error) {
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+      {{ error }}
+    </div>
+  }
+
+  @if (loading) {
+    <div class="flex items-center justify-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="ml-4 text-gray-600">Cargando reporte...</p>
+    </div>
+  } @else if (data) {
+    <!-- Main KPIs -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <app-kpi-card
+        title="Ganancia Neta"
+        [value]="data.netProfit"
+        format="currency"
+        icon="💰"
+        color="green">
+      </app-kpi-card>
+
+      <app-kpi-card
+        title="Margen de Rentabilidad"
+        [value]="data.profitMarginPercentage"
+        format="percentage"
+        icon="📈"
+        color="blue">
+      </app-kpi-card>
+
+      <app-kpi-card
+        title="IVA Balance"
+        [value]="Math.abs(data.iva.ivaAPagar)"
+        format="currency"
+        icon="🧾"
+        [color]="data.iva.ivaAPagar > 0 ? 'red' : 'green'">
+      </app-kpi-card>
+    </div>
+
+    <!-- Income Section -->
+    <div class="bg-white rounded-lg shadow mb-6">
+      <div class="px-6 py-4 bg-green-50 border-b border-green-200">
+        <h2 class="text-xl font-bold text-green-800 flex items-center gap-2">
+          <span>💰</span>
+          <span>Ingresos del Mes</span>
+        </h2>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200">
+              <span class="text-gray-600">Ingresos Brutos (con IVA):</span>
+              <span class="font-bold text-lg text-green-700">{{ formatCurrency(data.income.totalGross) }}</span>
+            </div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200">
+              <span class="text-gray-600">Ingresos Neto (sin IVA):</span>
+              <span class="font-semibold">{{ formatCurrency(data.income.totalNet) }}</span>
+            </div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200">
+              <span class="text-gray-600">IVA Débito:</span>
+              <span class="font-semibold">{{ formatCurrency(data.income.totalIvaDebito) }}</span>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200">
+              <span class="text-gray-600">Número de Facturas:</span>
+              <span class="font-semibold">{{ data.income.invoiceCount }}</span>
+            </div>
+            <div class="bg-green-50 rounded-lg p-4 mt-4">
+              <p class="text-sm text-gray-600 mb-1">Ingreso Promedio por Factura</p>
+              <p class="text-2xl font-bold text-green-700">
+                {{ formatCurrency(data.income.totalGross / (data.income.invoiceCount || 1)) }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expenses Section -->
+    <div class="bg-white rounded-lg shadow mb-6">
+      <div class="px-6 py-4 bg-red-50 border-b border-red-200">
+        <h2 class="text-xl font-bold text-red-800 flex items-center gap-2">
+          <span>💸</span>
+          <span>Gastos del Mes</span>
+        </h2>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200">
+              <span class="text-gray-600">Gastos con Factura (Bruto):</span>
+              <span class="font-semibold">{{ formatCurrency(data.expenses.expensesWithInvoice) }}</span>
+            </div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200">
+              <span class="text-gray-600">Gastos Neto (sin IVA):</span>
+              <span class="font-semibold">{{ formatCurrency(data.expenses.expensesNet) }}</span>
+            </div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200">
+              <span class="text-gray-600">IVA Crédito:</span>
+              <span class="font-semibold text-green-600">{{ formatCurrency(data.expenses.totalIvaCredito) }}</span>
+            </div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200">
+              <span class="text-gray-600">Gastos sin Factura:</span>
+              <span class="font-semibold">{{ formatCurrency(data.expenses.expensesWithoutInvoice) }}</span>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200">
+              <span class="text-gray-600">Facturas de Compra:</span>
+              <span class="font-semibold">{{ data.expenses.invoiceCount }}</span>
+            </div>
+            <div class="flex justify-between items-center py-3 border-b border-gray-200">
+              <span class="text-gray-600">Transacciones sin Factura:</span>
+              <span class="font-semibold">{{ data.expenses.transactionCount }}</span>
+            </div>
+            <div class="bg-red-50 rounded-lg p-4 mt-4">
+              <p class="text-sm text-gray-600 mb-1">Total Gastos</p>
+              <p class="text-2xl font-bold text-red-700">
+                {{ formatCurrency(data.expenses.totalExpenses) }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IVA Section -->
+    <div class="bg-white rounded-lg shadow mb-6">
+      <div class="px-6 py-4 bg-blue-50 border-b border-blue-200">
+        <h2 class="text-xl font-bold text-blue-800 flex items-center gap-2">
+          <span>🧾</span>
+          <span>Cálculo de IVA (Formulario 29)</span>
+        </h2>
+      </div>
+      <div class="p-6">
+        <div class="space-y-4">
+          <div class="flex justify-between items-center py-3 border-b border-gray-200">
+            <span class="text-gray-600">IVA Débito Fiscal (cobrado en ventas):</span>
+            <span class="font-semibold text-lg">{{ formatCurrency(data.iva.debitoFiscal) }}</span>
+          </div>
+          <div class="flex justify-between items-center py-3 border-b border-gray-200">
+            <span class="text-gray-600">IVA Crédito Fiscal (pagado en compras):</span>
+            <span class="font-semibold text-lg text-green-600">- {{ formatCurrency(data.iva.creditoFiscal) }}</span>
+          </div>
+          <div class="flex justify-between items-center py-4 bg-gray-50 rounded-lg px-4 mt-4">
+            <span class="text-lg font-bold text-gray-800">IVA {{ getIvaStatusText() }}:</span>
+            <span class="text-2xl font-bold" [ngClass]="getIvaStatusClass()">
+              {{ formatCurrency(Math.abs(data.iva.ivaAPagar)) }}
+            </span>
+          </div>
+          @if (data.iva.ivaAPagar < 0) {
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p class="text-sm text-green-800">
+                ✅ Tienes IVA a favor. Puedes usarlo como crédito en meses siguientes o solicitar devolución al SII.
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg text-white p-8">
+      <h2 class="text-2xl font-bold mb-6">Resumen Ejecutivo</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <p class="text-blue-100 mb-2">Ingresos Totales</p>
+          <p class="text-4xl font-bold">{{ formatCurrency(data.income.totalGross) }}</p>
+        </div>
+        <div>
+          <p class="text-blue-100 mb-2">Gastos Totales</p>
+          <p class="text-4xl font-bold">{{ formatCurrency(data.expenses.totalExpenses) }}</p>
+        </div>
+        <div>
+          <p class="text-blue-100 mb-2">IVA a Pagar</p>
+          <p class="text-4xl font-bold">{{ formatCurrency(data.iva.ivaAPagar) }}</p>
+        </div>
+        <div>
+          <p class="text-blue-100 mb-2">Ganancia Neta</p>
+          <p class="text-4xl font-bold">{{ formatCurrency(data.netProfit) }}</p>
+        </div>
+      </div>
+      <div class="mt-6 pt-6 border-t border-blue-400">
+        <p class="text-blue-100 mb-2">Margen de Rentabilidad</p>
+        <p class="text-5xl font-bold">{{ data.profitMarginPercentage }}%</p>
+      </div>
+    </div>
+  }
+</div>

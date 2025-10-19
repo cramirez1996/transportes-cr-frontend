@@ -9,11 +9,12 @@ import { CustomerService } from '../../../../core/services/business/customer.ser
 import { VehicleService } from '../../../../core/services/business/vehicle.service';
 import { DriverService } from '../../../../core/services/business/driver.service';
 import { ModalRef } from '../../../../core/services/modal.service';
+import { TagsEditorComponent } from '../../../../shared/components/tags-editor/tags-editor.component';
 
 @Component({
   selector: 'app-trip-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TagsEditorComponent],
   templateUrl: './trip-form.component.html',
   styleUrl: './trip-form.component.scss'
 })
@@ -34,9 +35,11 @@ export class TripFormComponent implements OnInit {
   drivers: Driver[] = [];
 
   loading = false;
+  tags: Record<string, any> = {};
 
   ngOnInit(): void {
     this.trip = this.data?.trip || null;
+    this.tags = this.trip?.tags || {};
     this.loadCatalogs();
     this.initForm();
   }
@@ -66,6 +69,10 @@ export class TripFormComponent implements OnInit {
       ? new Date(this.trip.departureDate).toISOString().slice(0, 16)
       : now.toISOString().slice(0, 16);
 
+    const arrivalDate = this.trip?.arrivalDate
+      ? new Date(this.trip.arrivalDate).toISOString().slice(0, 16)
+      : '';
+
     this.tripForm = this.fb.group({
       customerId: [this.trip?.customer?.id || '', [Validators.required]],
       vehicleId: [this.trip?.vehicle?.id || '', [Validators.required]],
@@ -75,6 +82,7 @@ export class TripFormComponent implements OnInit {
       startKm: [this.trip?.startKm || '', [Validators.min(0)]],
       agreedPrice: [this.trip?.agreedPrice || '', [Validators.required, Validators.min(0)]],
       departureDate: [departureDate, [Validators.required]],
+      arrivalDate: [arrivalDate],
       notes: [this.trip?.notes || '', [Validators.maxLength(500)]]
     });
   }
@@ -84,7 +92,7 @@ export class TripFormComponent implements OnInit {
       const formValue = this.tripForm.value;
 
       // Convertir la fecha de string a Date
-      const tripData: CreateTripDto = {
+      const tripData: any = {
         customerId: formValue.customerId,
         vehicleId: formValue.vehicleId,
         driverId: formValue.driverId,
@@ -93,8 +101,15 @@ export class TripFormComponent implements OnInit {
         departureDate: new Date(formValue.departureDate),
         agreedPrice: Number(formValue.agreedPrice),
         startKm: formValue.startKm ? Number(formValue.startKm) : undefined,
-        notes: formValue.notes || undefined
+        notes: formValue.notes ?? undefined,
+        tags: Object.keys(this.tags).length > 0 ? this.tags : undefined
       };
+
+      // Si se ingresó fecha de llegada, marcarla como manual
+      if (formValue.arrivalDate) {
+        tripData.arrivalDate = new Date(formValue.arrivalDate);
+        tripData.isArrivalManual = true;
+      }
 
       this.modalRef.close(tripData);
     } else {
@@ -107,6 +122,10 @@ export class TripFormComponent implements OnInit {
 
   onCancel(): void {
     this.modalRef.dismiss('cancelled');
+  }
+
+  onTagsChange(tags: Record<string, any>): void {
+    this.tags = tags;
   }
 
   // Helpers para mostrar errores
