@@ -8,11 +8,11 @@ import { UploadXmlModalComponent } from '../upload-xml-modal/upload-xml-modal.co
 import { ChangeStatusModalComponent } from '../change-status-modal/change-status-modal.component';
 import { EditFieldsModalComponent } from '../edit-fields-modal/edit-fields-modal.component';
 import { PaymentMethod } from '../../../../core/models/transaction.model';
-import { AgnosUIAngularModule } from '@agnos-ui/angular-headless';
+import { NgpMenu, NgpMenuTrigger, NgpMenuItem } from 'ng-primitives/menu';
 
 @Component({
   selector: 'app-invoice-list',
-  imports: [CommonModule, RouterModule, FormsModule, AgnosUIAngularModule, UploadXmlModalComponent, ChangeStatusModalComponent, EditFieldsModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, NgpMenu, NgpMenuTrigger, NgpMenuItem, UploadXmlModalComponent, ChangeStatusModalComponent, EditFieldsModalComponent],
   templateUrl: './invoice-list.component.html',
   styleUrl: './invoice-list.component.scss'
 })

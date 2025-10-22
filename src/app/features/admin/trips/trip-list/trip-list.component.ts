@@ -5,12 +5,12 @@ import { Trip, TripStatus } from '../../../../core/models/trip.model';
 import { TripService } from '../../../../core/services/trip.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import { TripFormComponent } from '../trip-form/trip-form.component';
-import { AgnosUIAngularModule } from '@agnos-ui/angular-headless';
+import { NgpMenu, NgpMenuTrigger, NgpMenuItem } from 'ng-primitives/menu';
 
 @Component({
   selector: 'app-trip-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, AgnosUIAngularModule],
+  imports: [CommonModule, RouterModule, NgpMenu, NgpMenuTrigger, NgpMenuItem],
   templateUrl: './trip-list.component.html',
   styleUrl: './trip-list.component.scss'
 })

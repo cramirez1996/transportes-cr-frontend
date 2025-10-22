@@ -164,9 +164,9 @@
                     </span>
                   </button>
 
-                  <!-- Dropdown Menu (AgnosUI) -->
-                  <div auDropdown class="relative inline-block">
-                    <button auDropdownButton type="button"
+                  <!-- Dropdown Menu (ng-primitives) -->
+                  <div class="relative inline-block">
+                    <button ngpMenuTrigger type="button"
                       class="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 focus:z-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all group">
                       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path
@@ -179,11 +179,11 @@
                     </button>
 
                     <!-- Dropdown Panel -->
-                    <div auDropdownMenu
+                    <div ngpMenu
                       class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white border border-gray-200 z-50">
                       <div class="py-1" role="menu">
                         <!-- Editar -->
-                        <button
+                        <button ngpMenuItem
                           (click)="openEditModal(trip)"
                           class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                           role="menuitem">
@@ -198,7 +198,7 @@
                         <div class="border-t border-gray-200 my-1"></div>
 
                         <!-- Cancelar -->
-                        <button
+                        <button ngpMenuItem
                           *ngIf="canCancel(trip)"
                           (click)="cancelTrip(trip)"
                           class="flex items-center w-full px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors"
@@ -211,7 +211,8 @@
                         </button>
 
                         <!-- Eliminar -->
-                        <button *ngIf="canDelete(trip)"
+                        <button ngpMenuItem
+                          *ngIf="canDelete(trip)"
                           (click)="deleteTrip(trip)"
                           class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
                           role="menuitem">

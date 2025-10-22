@@ -327,9 +327,9 @@
                   </span>
                 </button>
 
-                <!-- Dropdown Menu (AgnosUI) -->
-                <div auDropdown class="relative inline-block">
-                  <button auDropdownButton type="button"
+                <!-- Dropdown Menu (ng-primitives) -->
+                <div class="relative inline-block">
+                  <button ngpMenuTrigger type="button"
                     class="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 focus:z-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all group">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path
@@ -342,11 +342,12 @@
                   </button>
 
                   <!-- Dropdown Panel -->
-                  <div auDropdownMenu
+                  <div ngpMenu
                     class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white border border-gray-200 z-50">
                     <div class="py-1" role="menu">
                       <!-- Editar (DRAFT only) -->
-                      <a *ngIf="invoice.status === InvoiceStatus.DRAFT"
+                      <a ngpMenuItem
+                        *ngIf="invoice.status === InvoiceStatus.DRAFT"
                         [routerLink]="['/admin/invoicing', invoice.id, 'edit']"
                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                         role="menuitem">
@@ -358,7 +359,8 @@
                       </a>
 
                       <!-- Editar Campos (ISSUED/PAID) -->
-                      <button *ngIf="invoice.status === InvoiceStatus.ISSUED || invoice.status === InvoiceStatus.PAID"
+                      <button ngpMenuItem
+                        *ngIf="invoice.status === InvoiceStatus.ISSUED || invoice.status === InvoiceStatus.PAID"
                         (click)="openEditFieldsModal(invoice)"
                         class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                         role="menuitem">
@@ -373,7 +375,7 @@
                       <div class="border-t border-gray-200 my-1"></div>
 
                       <!-- Anular -->
-                      <button
+                      <button ngpMenuItem
                         *ngIf="invoice.status === InvoiceStatus.DRAFT || invoice.status === InvoiceStatus.ISSUED || invoice.status === InvoiceStatus.PAID"
                         (click)="openChangeStatusModal(invoice, InvoiceStatus.CANCELLED)"
                         class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
@@ -386,7 +388,8 @@
                       </button>
 
                       <!-- Eliminar (DRAFT only) -->
-                      <button *ngIf="invoice.status === InvoiceStatus.DRAFT"
+                      <button ngpMenuItem
+                        *ngIf="invoice.status === InvoiceStatus.DRAFT"
                         (click)="deleteInvoice(invoice)"
                         class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
                         role="menuitem">
