@@ -32,6 +32,7 @@ export class SupplierFormComponent implements OnInit {
     [SupplierType.PARTS]: 'Repuestos',
     [SupplierType.INSURANCE]: 'Seguros',
     [SupplierType.SERVICE]: 'Servicios',
+    [SupplierType.SUBCONTRACTOR]: 'Subcontratista',
     [SupplierType.OTHER]: 'Otro',
   };
 

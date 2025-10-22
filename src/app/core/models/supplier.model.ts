@@ -4,6 +4,7 @@ export enum SupplierType {
   PARTS = 'PARTS',
   INSURANCE = 'INSURANCE',
   SERVICE = 'SERVICE',
+  SUBCONTRACTOR = 'SUBCONTRACTOR',
   OTHER = 'OTHER',
 }
 

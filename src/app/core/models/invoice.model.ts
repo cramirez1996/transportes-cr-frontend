@@ -41,6 +41,7 @@ export interface Invoice {
   issueDate: Date;
   receptionDate?: Date;
   acknowledgeDate?: Date;
+  accountingPeriod: Date;
   tenant?: Tenant;
   customer?: any;
   supplier?: any;
@@ -76,6 +77,7 @@ export interface CreateInvoiceDto {
   issueDate: Date;
   receptionDate?: Date;
   acknowledgeDate?: Date;
+  accountingPeriod: Date;
   customerId?: string;
   supplierId?: string;
   tripId?: string;
@@ -103,12 +105,23 @@ export interface CreateInvoiceDto {
 export interface UpdateInvoiceDto extends Partial<CreateInvoiceDto> {}
 
 export interface InvoiceFilters {
+  // Basic filters
   type?: InvoiceType;
   status?: InvoiceStatus;
+  startDate?: Date | string;
+  endDate?: Date | string;
+
+  // Advanced filters
   customerId?: string;
   supplierId?: string;
-  startDate?: Date;
-  endDate?: Date;
+  folioNumber?: string;
+  minAmount?: number;
+  maxAmount?: number;
+  tripId?: string;
+  vehicleId?: string;
+  accountingPeriodStart?: Date | string;
+  accountingPeriodEnd?: Date | string;
+  search?: string; // Quick search across multiple fields
 }
 
 export interface InvoiceStatistics {
@@ -122,12 +135,14 @@ export interface InvoiceStatistics {
 export interface UploadXmlInvoiceDto {
   tripId?: string;
   notes?: string;
+  accountingPeriod?: Date;
 }
 
 export interface UploadXmlBulkDto {
   tripId?: string;
   notes?: string;
   skipDuplicates?: boolean;
+  accountingPeriod?: Date;
 }
 
 export enum BulkUploadStatus {

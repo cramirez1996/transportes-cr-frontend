@@ -5,11 +5,12 @@ import { Trip, TripStatus } from '../../../../core/models/trip.model';
 import { TripService } from '../../../../core/services/trip.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import { TripFormComponent } from '../trip-form/trip-form.component';
+import { AgnosUIAngularModule } from '@agnos-ui/angular-headless';
 
 @Component({
   selector: 'app-trip-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, AgnosUIAngularModule],
   templateUrl: './trip-list.component.html',
   styleUrl: './trip-list.component.scss'
 })
@@ -36,6 +37,9 @@ export class TripListComponent implements OnInit {
     [TripStatus.COMPLETED]: 'bg-green-100 text-green-800',
     [TripStatus.CANCELLED]: 'bg-red-100 text-red-800'
   };
+
+  // Expose TripStatus enum to template
+  TripStatus = TripStatus;
 
   ngOnInit(): void {
     this.loadTrips();

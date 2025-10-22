@@ -9,7 +9,7 @@
 
     <select
       id="tenant-select"
-      [value]="(currentTenant$ | async)?.id"
+      [(ngModel)]="selectedTenantId"
       (change)="onTenantChange($event)"
       [disabled]="isLoading"
       class="tenant-select"

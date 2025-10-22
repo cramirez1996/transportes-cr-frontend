@@ -37,6 +37,7 @@ export class BulkUploadXmlComponent implements OnInit {
     tripId: undefined,
     notes: undefined,
     skipDuplicates: true,
+    accountingPeriod: undefined,
   };
 
   ngOnInit(): void {

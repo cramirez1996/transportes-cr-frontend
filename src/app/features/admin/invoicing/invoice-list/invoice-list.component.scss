@@ -1,0 +1,28 @@
+// Smooth rotation for advanced filters icon
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+// Focus states for better UX
+input:focus,
+select:focus {
+  outline: none;
+}
+
+// Animation for advanced filters section
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+// Placeholder styling
+input::placeholder {
+  color: #9CA3AF;
+  font-size: 0.875rem;
+}

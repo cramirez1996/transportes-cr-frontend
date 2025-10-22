@@ -5,9 +5,11 @@ import { Trip, CreateTripDto } from '../../../../core/models/trip.model';
 import { Customer } from '../../../../core/models/business/customer.model';
 import { Vehicle } from '../../../../core/models/business/vehicle.model';
 import { Driver } from '../../../../core/models/business/driver.model';
+import { Supplier } from '../../../../core/models/supplier.model';
 import { CustomerService } from '../../../../core/services/business/customer.service';
 import { VehicleService } from '../../../../core/services/business/vehicle.service';
 import { DriverService } from '../../../../core/services/business/driver.service';
+import { SupplierService } from '../../../../core/services/supplier.service';
 import { ModalRef } from '../../../../core/services/modal.service';
 import { TagsEditorComponent } from '../../../../shared/components/tags-editor/tags-editor.component';
 
@@ -26,6 +28,7 @@ export class TripFormComponent implements OnInit {
   private customerService = inject(CustomerService);
   private vehicleService = inject(VehicleService);
   private driverService = inject(DriverService);
+  private supplierService = inject(SupplierService);
 
   tripForm!: FormGroup;
   trip: Trip | null = null;
@@ -33,6 +36,7 @@ export class TripFormComponent implements OnInit {
   customers: Customer[] = [];
   vehicles: Vehicle[] = [];
   drivers: Driver[] = [];
+  subcontractors: Supplier[] = [];
 
   loading = false;
   tags: Record<string, any> = {};
@@ -47,15 +51,18 @@ export class TripFormComponent implements OnInit {
   loadCatalogs(): void {
     this.loading = true;
 
-    // Cargar clientes, vehículos y conductores en paralelo
+    // Cargar clientes, vehículos, conductores y subcontratistas en paralelo
     Promise.all([
       this.customerService.getCustomers().toPromise(),
       this.vehicleService.getVehicles().toPromise(),
-      this.driverService.getDrivers().toPromise()
-    ]).then(([customers, vehicles, drivers]) => {
+      this.driverService.getDrivers().toPromise(),
+      this.supplierService.getSuppliers().toPromise()
+    ]).then(([customers, vehicles, drivers, suppliers]) => {
       this.customers = customers || [];
       this.vehicles = vehicles || [];
       this.drivers = drivers || [];
+      // Filtrar solo proveedores tipo SUBCONTRACTOR
+      this.subcontractors = (suppliers || []).filter(s => s.supplierType === 'SUBCONTRACTOR');
       this.loading = false;
     }).catch(err => {
       console.error('Error loading catalogs:', err);
@@ -75,8 +82,11 @@ export class TripFormComponent implements OnInit {
 
     this.tripForm = this.fb.group({
       customerId: [this.trip?.customer?.id || '', [Validators.required]],
-      vehicleId: [this.trip?.vehicle?.id || '', [Validators.required]],
-      driverId: [this.trip?.driver?.id || '', [Validators.required]],
+      isSubcontracted: [this.trip?.isSubcontracted || false],
+      vehicleId: [this.trip?.vehicle?.id || ''],
+      driverId: [this.trip?.driver?.id || ''],
+      subcontractorId: [this.trip?.subcontractor?.id || ''],
+      subcontractorCost: [this.trip?.subcontractorCost || ''],
       origin: [this.trip?.origin || '', [Validators.required, Validators.maxLength(200)]],
       destination: [this.trip?.destination || '', [Validators.required, Validators.maxLength(200)]],
       startKm: [this.trip?.startKm || '', [Validators.min(0)]],
@@ -85,17 +95,63 @@ export class TripFormComponent implements OnInit {
       arrivalDate: [arrivalDate],
       notes: [this.trip?.notes || '', [Validators.maxLength(500)]]
     });
+
+    // Setup dynamic validation based on isSubcontracted
+    this.setupDynamicValidation();
+  }
+
+  setupDynamicValidation(): void {
+    const isSubcontractedControl = this.tripForm.get('isSubcontracted');
+
+    // Listen to changes in isSubcontracted
+    isSubcontractedControl?.valueChanges.subscribe(isSubcontracted => {
+      const vehicleControl = this.tripForm.get('vehicleId');
+      const driverControl = this.tripForm.get('driverId');
+      const subcontractorControl = this.tripForm.get('subcontractorId');
+      const subcontractorCostControl = this.tripForm.get('subcontractorCost');
+
+      if (isSubcontracted) {
+        // Subcontracted: require subcontractor fields
+        vehicleControl?.clearValidators();
+        driverControl?.clearValidators();
+        subcontractorControl?.setValidators([Validators.required]);
+        subcontractorCostControl?.setValidators([Validators.required, Validators.min(0)]);
+
+        // Clear values
+        vehicleControl?.setValue('');
+        driverControl?.setValue('');
+      } else {
+        // Own trip: require vehicle and driver
+        vehicleControl?.setValidators([Validators.required]);
+        driverControl?.setValidators([Validators.required]);
+        subcontractorControl?.clearValidators();
+        subcontractorCostControl?.clearValidators();
+
+        // Clear values
+        subcontractorControl?.setValue('');
+        subcontractorCostControl?.setValue('');
+      }
+
+      // Update validation
+      vehicleControl?.updateValueAndValidity();
+      driverControl?.updateValueAndValidity();
+      subcontractorControl?.updateValueAndValidity();
+      subcontractorCostControl?.updateValueAndValidity();
+    });
+
+    // Trigger initial validation
+    isSubcontractedControl?.updateValueAndValidity();
   }
 
   onSubmit(): void {
     if (this.tripForm.valid) {
       const formValue = this.tripForm.value;
+      const isSubcontracted = formValue.isSubcontracted || false;
 
       // Convertir la fecha de string a Date
       const tripData: any = {
         customerId: formValue.customerId,
-        vehicleId: formValue.vehicleId,
-        driverId: formValue.driverId,
+        isSubcontracted,
         origin: formValue.origin,
         destination: formValue.destination,
         departureDate: new Date(formValue.departureDate),
@@ -104,6 +160,15 @@ export class TripFormComponent implements OnInit {
         notes: formValue.notes ?? undefined,
         tags: Object.keys(this.tags).length > 0 ? this.tags : undefined
       };
+
+      // Add conditional fields based on trip type
+      if (isSubcontracted) {
+        tripData.subcontractorId = formValue.subcontractorId;
+        tripData.subcontractorCost = Number(formValue.subcontractorCost);
+      } else {
+        tripData.vehicleId = formValue.vehicleId;
+        tripData.driverId = formValue.driverId;
+      }
 
       // Si se ingresó fecha de llegada, marcarla como manual
       if (formValue.arrivalDate) {
@@ -118,6 +183,13 @@ export class TripFormComponent implements OnInit {
         this.tripForm.get(key)?.markAsTouched();
       });
     }
+  }
+
+  // Helper to calculate commission in real-time
+  calculateCommission(): number {
+    const agreedPrice = Number(this.tripForm.get('agreedPrice')?.value) || 0;
+    const subcontractorCost = Number(this.tripForm.get('subcontractorCost')?.value) || 0;
+    return agreedPrice - subcontractorCost;
   }
 
   onCancel(): void {

@@ -66,6 +66,17 @@
             </label>
             <input type="date" formControlName="issueDate" class="w-full border border-gray-300 rounded-lg px-3 py-2" />
           </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Período Contable <span class="text-red-500">*</span>
+            </label>
+            <input type="month" formControlName="accountingPeriod" class="w-full border border-gray-300 rounded-lg px-3 py-2"
+              title="Mes y año al que pertenece contablemente esta factura" />
+            <p class="text-xs text-gray-500 mt-1">
+              Mes al que pertenece esta factura para cálculos contables
+            </p>
+          </div>
         </div>
 
         <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">

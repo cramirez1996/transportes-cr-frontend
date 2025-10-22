@@ -198,6 +198,21 @@
       font-weight: 500;
       color: #374151;
       margin-bottom: 0.5rem;
+
+      .info-tooltip {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+        text-align: center;
+        background-color: #3b82f6;
+        color: white;
+        border-radius: 50%;
+        font-size: 12px;
+        cursor: help;
+        margin-left: 4px;
+        vertical-align: middle;
+      }
     }
 
     .form-control {

@@ -49,11 +49,27 @@ export interface Driver {
   updatedAt: Date;
 }
 
+export interface Supplier {
+  id: string;
+  rut: string;
+  businessName: string;
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  region?: string;
+  supplierType: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Trip {
   id: string;
   customer: Customer;
-  vehicle: Vehicle;
-  driver: Driver;
+  vehicle?: Vehicle | null;
+  driver?: Driver | null;
   origin: string;
   destination: string;
 
@@ -72,6 +88,12 @@ export interface Trip {
   totalExpenses?: number; // Total de gastos (calculado desde Transactions)
   profit?: number; // Ganancia: agreedPrice - totalExpenses
 
+  // Subcontracting
+  isSubcontracted: boolean; // ¿Viaje subcontratado?
+  subcontractor?: Supplier | null; // Proveedor/subcontratista
+  subcontractorCost?: number | null; // Costo del subcontratista
+  commissionAmount?: number | null; // Comisión (calculado: agreedPrice - subcontractorCost)
+
   status: TripStatus;
   notes?: string;
   tags?: Record<string, any>; // Tags personalizados en formato clave-valor
@@ -81,8 +103,14 @@ export interface Trip {
 
 export interface CreateTripDto {
   customerId: string;
-  vehicleId: string;
-  driverId: string;
+  isSubcontracted?: boolean;
+  // Required when NOT subcontracted
+  vehicleId?: string;
+  driverId?: string;
+  // Required when subcontracted
+  subcontractorId?: string;
+  subcontractorCost?: number;
+  // Common fields
   origin: string;
   destination: string;
   departureDate: Date;
@@ -96,8 +124,11 @@ export interface CreateTripDto {
 
 export interface UpdateTripDto {
   customerId?: string;
+  isSubcontracted?: boolean;
   vehicleId?: string;
   driverId?: string;
+  subcontractorId?: string;
+  subcontractorCost?: number;
   origin?: string;
   destination?: string;
   departureDate?: Date;

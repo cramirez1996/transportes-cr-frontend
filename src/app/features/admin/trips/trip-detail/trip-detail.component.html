@@ -65,16 +65,22 @@
                 <p class="text-sm text-gray-600">{{ trip.customer.rut }}</p>
               </div>
 
-              <div>
+              <div *ngIf="trip.vehicle">
                 <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Vehículo</label>
                 <p class="mt-1 text-gray-900 font-medium">{{ trip.vehicle.brand }} {{ trip.vehicle.model }}</p>
                 <p class="text-sm text-gray-600">{{ trip.vehicle.licensePlate }}</p>
               </div>
 
-              <div>
+              <div *ngIf="trip.driver">
                 <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Conductor</label>
                 <p class="mt-1 text-gray-900 font-medium">{{ trip.driver.firstName }} {{ trip.driver.lastName }}</p>
                 <p class="text-sm text-gray-600">{{ trip.driver.rut }}</p>
+              </div>
+
+              <div *ngIf="trip.isSubcontracted && trip.subcontractor">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Subcontratista</label>
+                <p class="mt-1 text-gray-900 font-medium">{{ trip.subcontractor.businessName }}</p>
+                <p class="text-sm text-gray-600">{{ trip.subcontractor.rut }}</p>
               </div>
             </div>
 

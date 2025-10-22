@@ -155,10 +155,12 @@
                 {{ formatDate(trip.departureDate) }}
               </td>
               <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                {{ trip.vehicle.brand }} {{ trip.vehicle.model }}
+                <span *ngIf="trip.vehicle">{{ trip.vehicle.brand }} {{ trip.vehicle.model }}</span>
+                <span *ngIf="trip.isSubcontracted" class="text-yellow-600">Subcontratado</span>
               </td>
               <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                {{ trip.driver.firstName }} {{ trip.driver.lastName }}
+                <span *ngIf="trip.driver">{{ trip.driver.firstName }} {{ trip.driver.lastName }}</span>
+                <span *ngIf="trip.isSubcontracted && trip.subcontractor" class="text-gray-600">{{ trip.subcontractor.businessName }}</span>
               </td>
               <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                 {{ formatCurrency(trip.agreedPrice) }}

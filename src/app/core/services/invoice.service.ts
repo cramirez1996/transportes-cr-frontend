@@ -27,12 +27,49 @@ export class InvoiceService {
     let params = new HttpParams();
 
     if (filters) {
+      // Basic filters
       if (filters.type) params = params.set('type', filters.type);
       if (filters.status) params = params.set('status', filters.status);
       if (filters.customerId) params = params.set('customerId', filters.customerId);
       if (filters.supplierId) params = params.set('supplierId', filters.supplierId);
-      if (filters.startDate) params = params.set('startDate', filters.startDate.toISOString());
-      if (filters.endDate) params = params.set('endDate', filters.endDate.toISOString());
+      if (filters.startDate) {
+        const dateStr = filters.startDate instanceof Date
+          ? filters.startDate.toISOString()
+          : new Date(filters.startDate).toISOString();
+        params = params.set('startDate', dateStr);
+      }
+      if (filters.endDate) {
+        const dateStr = filters.endDate instanceof Date
+          ? filters.endDate.toISOString()
+          : new Date(filters.endDate).toISOString();
+        params = params.set('endDate', dateStr);
+      }
+
+      // Advanced filters
+      if (filters.folioNumber) params = params.set('folioNumber', filters.folioNumber);
+      if (filters.minAmount !== undefined && filters.minAmount !== null) {
+        params = params.set('minAmount', filters.minAmount.toString());
+      }
+      if (filters.maxAmount !== undefined && filters.maxAmount !== null) {
+        params = params.set('maxAmount', filters.maxAmount.toString());
+      }
+      if (filters.tripId) params = params.set('tripId', filters.tripId);
+      if (filters.vehicleId) params = params.set('vehicleId', filters.vehicleId);
+      if (filters.accountingPeriodStart) {
+        const dateStr = filters.accountingPeriodStart instanceof Date
+          ? filters.accountingPeriodStart.toISOString()
+          : new Date(filters.accountingPeriodStart).toISOString();
+        params = params.set('accountingPeriodStart', dateStr);
+      }
+      if (filters.accountingPeriodEnd) {
+        const dateStr = filters.accountingPeriodEnd instanceof Date
+          ? filters.accountingPeriodEnd.toISOString()
+          : new Date(filters.accountingPeriodEnd).toISOString();
+        params = params.set('accountingPeriodEnd', dateStr);
+      }
+
+      // Quick search
+      if (filters.search) params = params.set('search', filters.search);
     }
 
     return this.http.get<any[]>(this.apiUrl, { params }).pipe(
@@ -71,6 +108,7 @@ export class InvoiceService {
     options?: {
       categoryId?: string;
       paymentMethod?: string;
+      accountingPeriod?: string;
     }
   ): Observable<Invoice> {
     const payload: any = { status };
@@ -83,7 +121,24 @@ export class InvoiceService {
       payload.paymentMethod = options.paymentMethod;
     }
 
+    if (options?.accountingPeriod) {
+      payload.accountingPeriod = options.accountingPeriod;
+    }
+
     return this.http.patch<any>(`${this.apiUrl}/${id}/status`, payload).pipe(
+      map(invoice => this.mapInvoiceFromBackend(invoice))
+    );
+  }
+
+  // Actualizar campos específicos (para facturas emitidas/pagadas)
+  updateInvoiceFields(
+    id: string,
+    fields: {
+      accountingPeriod?: string;
+      notes?: string;
+    }
+  ): Observable<Invoice> {
+    return this.http.patch<any>(`${this.apiUrl}/${id}/fields`, fields).pipe(
       map(invoice => this.mapInvoiceFromBackend(invoice))
     );
   }
@@ -116,6 +171,13 @@ export class InvoiceService {
     if (uploadData.notes) {
       formData.append('notes', uploadData.notes);
     }
+    if (uploadData.accountingPeriod) {
+      // Convert YYYY-MM to YYYY-MM-01 format
+      const periodStr = typeof uploadData.accountingPeriod === 'string'
+        ? uploadData.accountingPeriod
+        : uploadData.accountingPeriod.toISOString().substring(0, 7); // Extract YYYY-MM
+      formData.append('accountingPeriod', `${periodStr}-01`);
+    }
 
     return this.http.post<any>(`${this.apiUrl}/upload-xml`, formData).pipe(
       map(invoice => this.mapInvoiceFromBackend(invoice))
@@ -140,6 +202,13 @@ export class InvoiceService {
     if (uploadData.skipDuplicates !== undefined) {
       formData.append('skipDuplicates', uploadData.skipDuplicates.toString());
     }
+    if (uploadData.accountingPeriod) {
+      // Convert YYYY-MM to YYYY-MM-01 format
+      const periodStr = typeof uploadData.accountingPeriod === 'string'
+        ? uploadData.accountingPeriod
+        : uploadData.accountingPeriod.toISOString().substring(0, 7); // Extract YYYY-MM
+      formData.append('accountingPeriod', `${periodStr}-01`);
+    }
 
     return this.http.post<BulkUploadResponse>(`${this.apiUrl}/upload-xml-bulk`, formData);
   }
@@ -154,6 +223,7 @@ export class InvoiceService {
       issueDate: new Date(invoice.issueDate),
       receptionDate: invoice.receptionDate ? new Date(invoice.receptionDate) : undefined,
       acknowledgeDate: invoice.acknowledgeDate ? new Date(invoice.acknowledgeDate) : undefined,
+      accountingPeriod: new Date(invoice.accountingPeriod),
       customer: invoice.customer,
       supplier: invoice.supplier,
       trip: invoice.trip,

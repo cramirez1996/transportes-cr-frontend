@@ -64,6 +64,13 @@ export class InvoiceFormComponent implements OnInit {
     this.invoiceForm.get('type')?.valueChanges.subscribe((type) => {
       this.updateCustomerSupplierValidation(type);
     });
+
+    // Listen to issue date changes to auto-update accounting period
+    this.invoiceForm.get('issueDate')?.valueChanges.subscribe((issueDate) => {
+      if (issueDate) {
+        this.updateAccountingPeriodFromIssueDate(issueDate);
+      }
+    });
   }
 
   loadCustomers(): void {
@@ -108,12 +115,25 @@ export class InvoiceFormComponent implements OnInit {
     supplierIdControl?.updateValueAndValidity();
   }
 
+  updateAccountingPeriodFromIssueDate(issueDate: string): void {
+    const date = new Date(issueDate);
+    const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    this.invoiceForm.patchValue(
+      { accountingPeriod: yearMonth },
+      { emitEvent: false }
+    );
+  }
+
   initForm(): void {
+    const today = new Date();
+    const currentYearMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
     this.invoiceForm = this.fb.group({
       type: [InvoiceType.SALE, Validators.required],
       documentType: [33, Validators.required],
       folioNumber: ['', Validators.required],
       issueDate: [new Date().toISOString().split('T')[0], Validators.required],
+      accountingPeriod: [currentYearMonth, Validators.required], // YYYY-MM format for month input
       customerId: ['', Validators.required], // Required by default (SALE)
       supplierId: [''],
       tripId: [''],
@@ -150,11 +170,15 @@ export class InvoiceFormComponent implements OnInit {
   }
 
   patchFormValues(invoice: Invoice): void {
+    const accountingDate = new Date(invoice.accountingPeriod);
+    const accountingYearMonth = `${accountingDate.getFullYear()}-${String(accountingDate.getMonth() + 1).padStart(2, '0')}`;
+
     this.invoiceForm.patchValue({
       type: invoice.type,
       documentType: invoice.documentType,
       folioNumber: invoice.folioNumber,
       issueDate: new Date(invoice.issueDate).toISOString().split('T')[0],
+      accountingPeriod: accountingYearMonth,
       customerId: invoice.customer?.id,
       supplierId: invoice.supplier?.id,
       tripId: invoice.trip?.id,
@@ -294,8 +318,16 @@ export class InvoiceFormComponent implements OnInit {
     this.error = null;
 
     const formValue = this.invoiceForm.getRawValue();
+
+    // Convert YYYY-MM to first day of month (YYYY-MM-01)
+    const accountingPeriodDate = formValue.accountingPeriod
+      ? `${formValue.accountingPeriod}-01`
+      : null;
+
     const invoiceData = {
       ...formValue,
+      // Convert YYYY-MM to date
+      accountingPeriod: accountingPeriodDate,
       // Convert empty strings to null for optional UUID fields
       customerId: formValue.customerId || null,
       supplierId: formValue.supplierId || null,

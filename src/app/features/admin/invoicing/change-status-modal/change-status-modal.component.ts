@@ -19,6 +19,7 @@ export class ChangeStatusModalComponent implements OnInit {
     status: InvoiceStatus;
     categoryId?: string;
     paymentMethod?: PaymentMethod;
+    accountingPeriod?: string;
   }>();
 
   isOpen = false;
@@ -48,11 +49,12 @@ export class ChangeStatusModalComponent implements OnInit {
   initForm(): void {
     this.changeStatusForm = this.fb.group({
       categoryId: ['', Validators.required],
-      paymentMethod: ['', Validators.required]
+      paymentMethod: ['', Validators.required],
+      accountingPeriod: ['', Validators.required]
     });
   }
 
-  open(invoiceType: InvoiceType, currentStatus: InvoiceStatus, targetStatus: InvoiceStatus): void {
+  open(invoiceType: InvoiceType, currentStatus: InvoiceStatus, targetStatus: InvoiceStatus, currentAccountingPeriod?: string): void {
     this.invoiceType = invoiceType;
     this.currentStatus = currentStatus;
     this.targetStatus = targetStatus;
@@ -68,15 +70,27 @@ export class ChangeStatusModalComponent implements OnInit {
       // Hacer campos requeridos
       this.changeStatusForm.get('categoryId')?.setValidators([Validators.required]);
       this.changeStatusForm.get('paymentMethod')?.setValidators([Validators.required]);
+      this.changeStatusForm.get('accountingPeriod')?.setValidators([Validators.required]);
     } else {
       // Remover validaciones si no se necesitan
       this.changeStatusForm.get('categoryId')?.clearValidators();
       this.changeStatusForm.get('paymentMethod')?.clearValidators();
+      this.changeStatusForm.get('accountingPeriod')?.clearValidators();
     }
 
     this.changeStatusForm.get('categoryId')?.updateValueAndValidity();
     this.changeStatusForm.get('paymentMethod')?.updateValueAndValidity();
+    this.changeStatusForm.get('accountingPeriod')?.updateValueAndValidity();
+
+    // Reset y establecer valor inicial del periodo contable si existe
     this.changeStatusForm.reset();
+    if (currentAccountingPeriod) {
+      // Convert to YYYY-MM format for month input
+      const accountingPeriodMonth = currentAccountingPeriod.substring(0, 7); // Get YYYY-MM from YYYY-MM-DD
+      this.changeStatusForm.patchValue({
+        accountingPeriod: accountingPeriodMonth
+      });
+    }
   }
 
   close(): void {
@@ -135,10 +149,17 @@ export class ChangeStatusModalComponent implements OnInit {
       }
 
       const formValue = this.changeStatusForm.value;
+
+      // Convert YYYY-MM to YYYY-MM-01 (first day of month)
+      const accountingPeriodDate = formValue.accountingPeriod
+        ? `${formValue.accountingPeriod}-01`
+        : undefined;
+
       this.statusChanged.emit({
         status: this.targetStatus,
         categoryId: formValue.categoryId,
-        paymentMethod: formValue.paymentMethod
+        paymentMethod: formValue.paymentMethod,
+        accountingPeriod: accountingPeriodDate
       });
     } else {
       // No se necesitan datos adicionales, solo enviar el estado

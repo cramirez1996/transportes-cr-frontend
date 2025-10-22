@@ -18,9 +18,23 @@ export class TenantSwitcherComponent implements OnInit {
 
   tenants$ = this.authService.userTenants$;
   currentTenant$ = this.authService.currentTenant$;
+  selectedTenantId: string | null = null;
   isLoading = false;
 
   ngOnInit(): void {
+    // Initialize selected tenant ID from current tenant
+    const currentTenant = this.authService.getCurrentTenant();
+    if (currentTenant) {
+      this.selectedTenantId = currentTenant.id;
+    }
+
+    // Subscribe to current tenant changes to keep selector in sync
+    this.currentTenant$.subscribe(tenant => {
+      if (tenant) {
+        this.selectedTenantId = tenant.id;
+      }
+    });
+
     this.loadTenants();
   }
 

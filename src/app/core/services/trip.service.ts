@@ -19,6 +19,10 @@ interface TripBackendResponse {
   arrivalDate?: string | null;
   isArrivalManual: boolean;
   agreedPrice: string;
+  isSubcontracted?: boolean;
+  subcontractor?: any;
+  subcontractorCost?: number | null;
+  commissionAmount?: number | null;
   status: string;
   notes?: string;
   tags?: Record<string, any>;
@@ -124,6 +128,10 @@ export class TripService {
       agreedPrice: trip.agreedPrice,
       totalExpenses: undefined,
       profit: undefined,
+      isSubcontracted: trip.isSubcontracted || false,
+      subcontractor: trip.subcontractor,
+      subcontractorCost: trip.subcontractorCost,
+      commissionAmount: trip.commissionAmount,
       status: this.mapStatusFromBackend(trip.status),
       notes: trip.notes,
       createdAt: new Date(trip.createdAt),

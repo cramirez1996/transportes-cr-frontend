@@ -25,6 +25,7 @@ export class UploadXmlModalComponent implements OnInit {
   uploadData: UploadXmlInvoiceDto = {
     tripId: undefined,
     notes: undefined,
+    accountingPeriod: undefined,
   };
 
   ngOnInit(): void {
@@ -106,6 +107,7 @@ export class UploadXmlModalComponent implements OnInit {
     this.uploadData = {
       tripId: undefined,
       notes: undefined,
+      accountingPeriod: undefined,
     };
     this.errorMessage = '';
     this.isLoading = false;

@@ -68,6 +68,25 @@
       </div>
 
       <div class="form-group">
+        <label for="accountingPeriod">
+          Período Contable (opcional)
+          <span class="info-tooltip" title="Por defecto se usa el mes de la fecha de emisión de cada XML. Especifica un período solo si todas las facturas deben pertenecer al mismo mes contable (ej: facturas con acuse de recibo en mes diferente).">
+            ⓘ
+          </span>
+        </label>
+        <input
+          type="month"
+          id="accountingPeriod"
+          [(ngModel)]="uploadData.accountingPeriod"
+          class="form-control"
+          title="Si no se especifica, cada factura usará el mes de su fecha de emisión"
+        />
+        <p class="help-text">
+          Si no se especifica, cada factura usará automáticamente el mes de su fecha de emisión
+        </p>
+      </div>
+
+      <div class="form-group">
         <label for="notes">Notas (opcional)</label>
         <textarea
           id="notes"
