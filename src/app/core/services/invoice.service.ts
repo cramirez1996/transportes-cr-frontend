@@ -39,6 +39,7 @@ export class InvoiceService {
       // Basic filters
       if (filters.type) params = params.set('type', filters.type);
       if (filters.status) params = params.set('status', filters.status);
+      if (filters.documentType) params = params.set('documentType', filters.documentType.toString());
       if (filters.customerId) params = params.set('customerId', filters.customerId);
       if (filters.supplierId) params = params.set('supplierId', filters.supplierId);
       if (filters.startDate) {
@@ -79,6 +80,10 @@ export class InvoiceService {
 
       // Quick search
       if (filters.search) params = params.set('search', filters.search);
+      
+      // Sorting
+      if (filters.sortBy) params = params.set('sortBy', filters.sortBy);
+      if (filters.sortOrder) params = params.set('sortOrder', filters.sortOrder);
     }
 
     return this.http.get<PaginatedResponse<any>>(this.apiUrl, { params }).pipe(

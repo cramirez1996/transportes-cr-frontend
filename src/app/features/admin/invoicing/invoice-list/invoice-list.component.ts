@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { InvoiceService } from '../../../../core/services/invoice.service';
-import { Invoice, InvoiceType, InvoiceStatus, InvoiceFilters } from '../../../../core/models/invoice.model';
+import { Invoice, InvoiceType, InvoiceStatus, InvoiceFilters, SII_DOCUMENT_TYPES } from '../../../../core/models/invoice.model';
 import { PaginationParams } from '../../../../core/models/pagination.model';
 import { UploadXmlModalComponent } from '../upload-xml-modal/upload-xml-modal.component';
 import { ChangeStatusModalComponent } from '../change-status-modal/change-status-modal.component';
@@ -51,9 +51,13 @@ export class InvoiceListComponent implements OnInit {
   totalPages: number = 0;
 
   // Filtros
-  filters: InvoiceFilters = {};
+  filters: InvoiceFilters = {
+    sortBy: 'issueDate',
+    sortOrder: 'DESC'
+  };
   InvoiceType = InvoiceType;
   InvoiceStatus = InvoiceStatus;
+  SiiDocumentTypes = SII_DOCUMENT_TYPES;
 
   // Auxiliary properties for date inputs (format: yyyy-MM-dd)
   startDateInput: string = '';
@@ -75,6 +79,7 @@ export class InvoiceListComponent implements OnInit {
     let count = 0;
     if (this.filters.type) count++;
     if (this.filters.status) count++;
+    if (this.filters.documentType) count++;
     if (this.filters.startDate) count++;
     if (this.filters.endDate) count++;
     if (this.filters.customerId) count++;
@@ -135,9 +140,12 @@ export class InvoiceListComponent implements OnInit {
       next: (trips) => {
         this.tripOptions = trips.map(t => ({
           value: t.id,
-          label: `Viaje ${t.origin} → ${t.destination}`,
+          label: `${t.origin} → ${t.destination}`,
           data: {
-            status: t.status
+            id: t.id,
+            origin: t.origin,
+            destination: t.destination,
+            departureDate: t.departureDate
           }
         }));
       },

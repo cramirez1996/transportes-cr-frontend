@@ -3,16 +3,19 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { InvoiceService } from '../../../../core/services/invoice.service';
-import { Invoice, InvoiceType, InvoiceStatus, InvoiceItem, InvoiceTax } from '../../../../core/models/invoice.model';
+import { Invoice, InvoiceType, InvoiceStatus, InvoiceItem, InvoiceTax, SII_DOCUMENT_TYPES } from '../../../../core/models/invoice.model';
 import { CustomerService } from '../../../../core/services/business/customer.service';
 import { Customer } from '../../../../core/models/business/customer.model';
+import { SupplierService } from '../../../../core/services/supplier.service';
+import { Supplier } from '../../../../core/models/trip.model';
 import { TripService } from '../../../../core/services/trip.service';
 import { Trip } from '../../../../core/models/trip.model';
 import { TagsEditorComponent } from '../../../../shared/components/tags-editor/tags-editor.component';
+import { CustomSelectComponent, CustomSelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-invoice-form',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, TagsEditorComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TagsEditorComponent, CustomSelectComponent],
   templateUrl: './invoice-form.component.html',
   styleUrl: './invoice-form.component.scss'
 })
@@ -22,6 +25,7 @@ export class InvoiceFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private invoiceService = inject(InvoiceService);
   private customerService = inject(CustomerService);
+  private supplierService = inject(SupplierService);
   private tripService = inject(TripService);
 
   invoiceForm!: FormGroup;
@@ -36,8 +40,21 @@ export class InvoiceFormComponent implements OnInit {
 
   // Listas de datos
   customers: Customer[] = [];
-  suppliers: any[] = []; // TODO: create supplier model and service
+  suppliers: Supplier[] = [];
   trips: Trip[] = [];
+
+  // Options for custom-select components
+  typeOptions: CustomSelectOption[] = [
+    { value: InvoiceType.SALE, label: 'Venta' },
+    { value: InvoiceType.PURCHASE, label: 'Compra' }
+  ];
+  documentTypeOptions: CustomSelectOption[] = SII_DOCUMENT_TYPES.map(dt => ({
+    value: dt.code,
+    label: `${dt.code} - ${dt.name}`
+  }));
+  customerOptions: CustomSelectOption[] = [];
+  supplierOptions: CustomSelectOption[] = [];
+  tripOptions: CustomSelectOption[] = [];
 
   // Códigos de impuestos SII
   taxCodes = [
@@ -49,8 +66,8 @@ export class InvoiceFormComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadCustomers();
+    this.loadSuppliers();
     this.loadTrips();
-    // TODO: Load suppliers when service is created
 
     this.invoiceId = this.route.snapshot.paramMap.get('id');
     if (this.invoiceId) {
@@ -77,9 +94,36 @@ export class InvoiceFormComponent implements OnInit {
     this.customerService.getCustomers().subscribe({
       next: (customers) => {
         this.customers = customers;
+        this.customerOptions = customers.map(c => ({
+          value: c.id,
+          label: c.businessName,
+          data: {
+            rut: c.rut,
+            avatar: this.getInitials(c.businessName)
+          }
+        }));
       },
       error: (err) => {
         console.error('Error loading customers:', err);
+      }
+    });
+  }
+
+  loadSuppliers(): void {
+    this.supplierService.getSuppliers().subscribe({
+      next: (suppliers) => {
+        this.suppliers = suppliers;
+        this.supplierOptions = suppliers.map(s => ({
+          value: s.id,
+          label: s.businessName,
+          data: {
+            rut: s.rut,
+            avatar: this.getInitials(s.businessName)
+          }
+        }));
+      },
+      error: (err) => {
+        console.error('Error loading suppliers:', err);
       }
     });
   }
@@ -88,11 +132,30 @@ export class InvoiceFormComponent implements OnInit {
     this.tripService.getTrips().subscribe({
       next: (trips) => {
         this.trips = trips;
+        this.tripOptions = trips.map(t => ({
+          value: t.id,
+          label: `${t.origin} → ${t.destination}`,
+          data: {
+            id: t.id,
+            origin: t.origin,
+            destination: t.destination,
+            departureDate: t.departureDate
+          }
+        }));
       },
       error: (err) => {
         console.error('Error loading trips:', err);
       }
     });
+  }
+
+  getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   }
 
   updateCustomerSupplierValidation(type: InvoiceType): void {

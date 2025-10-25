@@ -14,6 +14,19 @@ export enum InvoiceStatus {
   FULLY_CREDITED = 'FULLY_CREDITED',
 }
 
+// Tipos de documento SII Chile
+export const SII_DOCUMENT_TYPES = [
+  { code: 33, name: 'Factura Electrónica' },
+  { code: 34, name: 'Factura No Afecta o Exenta Electrónica' },
+  { code: 46, name: 'Factura de Compra Electrónica' },
+  { code: 52, name: 'Guía de Despacho Electrónica' },
+  { code: 56, name: 'Nota de Débito Electrónica' },
+  { code: 61, name: 'Nota de Crédito Electrónica' },
+  { code: 110, name: 'Factura de Exportación Electrónica' },
+  { code: 111, name: 'Nota de Débito de Exportación Electrónica' },
+  { code: 112, name: 'Nota de Crédito de Exportación Electrónica' },
+];
+
 export interface InvoiceItem {
   id?: string;
   lineNumber: number;
@@ -115,6 +128,7 @@ export interface InvoiceFilters {
   // Basic filters
   type?: InvoiceType;
   status?: InvoiceStatus;
+  documentType?: number;
   startDate?: Date | string;
   endDate?: Date | string;
 
@@ -129,6 +143,10 @@ export interface InvoiceFilters {
   accountingPeriodStart?: Date | string;
   accountingPeriodEnd?: Date | string;
   search?: string; // Quick search across multiple fields
+  
+  // Sorting
+  sortBy?: 'issueDate' | 'totalAmount';
+  sortOrder?: 'ASC' | 'DESC';
 }
 
 export interface InvoiceStatistics {
