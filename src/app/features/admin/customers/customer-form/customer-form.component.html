@@ -1,4 +1,20 @@
 <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="space-y-4">
+  <!-- API Error Alert -->
+  <div *ngIf="apiError" class="p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-3">
+    <svg class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+    </svg>
+    <div class="flex-1">
+      <h3 class="text-sm font-medium text-red-800">Error al guardar</h3>
+      <p class="text-sm text-red-700 mt-1">{{ apiError }}</p>
+    </div>
+    <button type="button" (click)="apiError = null" class="text-red-400 hover:text-red-600">
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+      </svg>
+    </button>
+  </div>
+
   <div class="grid grid-cols-2 gap-4">
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1">RUT *</label>
@@ -139,16 +155,29 @@
     <button
       type="button"
       (click)="onCancel()"
-      class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+      [disabled]="isSubmitting"
+      class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
       Cancelar
     </button>
     <button
       type="submit"
-      [disabled]="customerForm.invalid"
-      class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+      [disabled]="customerForm.invalid || isSubmitting"
+      class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
     >
-      {{ customer ? 'Actualizar' : 'Crear' }} Cliente
+      <!-- Loading Spinner -->
+      <svg *ngIf="isSubmitting" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span>
+        <ng-container *ngIf="isSubmitting">
+          {{ customer ? 'Actualizando...' : 'Creando...' }}
+        </ng-container>
+        <ng-container *ngIf="!isSubmitting">
+          {{ customer ? 'Actualizar' : 'Crear' }} Cliente
+        </ng-container>
+      </span>
     </button>
   </div>
 </form>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Customer, CreateCustomerDto, CustomerStatus } from '../../../../core/models/business/customer.model';
 import { ModalRef } from '../../../../core/services/modal.service';
+import { CustomerService } from '../../../../core/services/business/customer.service';
 import { rutValidator, normalizeRut } from '../../../../shared/validators/rut.validator';
 import { RutFormatDirective } from '../../../../shared/directives/rut-format.directive';
 import { TagsEditorComponent } from '../../../../shared/components/tags-editor/tags-editor.component';
@@ -15,11 +16,17 @@ import { TagsEditorComponent } from '../../../../shared/components/tags-editor/t
 })
 export class CustomerFormComponent implements OnInit {
   @Input() data?: { customer?: Customer };
-  modalRef!: ModalRef<CreateCustomerDto>;
+  modalRef!: ModalRef<boolean>;
 
   private fb = inject(FormBuilder);
+  private customerService = inject(CustomerService);
+
   customerForm!: FormGroup;
   customer: Customer | null = null;
+
+  // Loading and error states
+  isSubmitting = false;
+  apiError: string | null = null;
 
   ngOnInit(): void {
     this.customer = this.data?.customer || null;
@@ -39,16 +46,56 @@ export class CustomerFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.customerForm.valid) {
-      const formValue = { ...this.customerForm.value };
-
-      // Normalize RUT before sending to backend
-      if (formValue.rut) {
-        formValue.rut = normalizeRut(formValue.rut);
-      }
-
-      this.modalRef.close(formValue);
+    if (this.customerForm.invalid || this.isSubmitting) {
+      return;
     }
+
+    this.isSubmitting = true;
+    this.apiError = null;
+
+    const formValue = { ...this.customerForm.value };
+
+    // Normalize RUT before sending to backend
+    if (formValue.rut) {
+      formValue.rut = normalizeRut(formValue.rut);
+    }
+
+    const request = this.customer
+      ? this.customerService.updateCustomer(this.customer.id, formValue)
+      : this.customerService.createCustomer(formValue);
+
+    request.subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.modalRef.close(true); // Return true to indicate success
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+
+        // Handle different error types
+        if (error.status === 400) {
+          // Validation errors from backend
+          if (error.error?.message) {
+            this.apiError = Array.isArray(error.error.message)
+              ? error.error.message.join(', ')
+              : error.error.message;
+          } else {
+            this.apiError = 'Error de validación. Por favor, revise los datos ingresados.';
+          }
+        } else if (error.status === 409) {
+          // Conflict (e.g., duplicate RUT)
+          this.apiError = error.error?.message || 'Ya existe un cliente con ese RUT.';
+        } else if (error.status === 0) {
+          // Network error
+          this.apiError = 'Error de conexión. Por favor, verifique su conexión a internet.';
+        } else {
+          // Generic error
+          this.apiError = error.error?.message || 'Error al guardar el cliente. Por favor, intente nuevamente.';
+        }
+
+        console.error('Error saving customer:', error);
+      }
+    });
   }
 
   onCancel(): void {

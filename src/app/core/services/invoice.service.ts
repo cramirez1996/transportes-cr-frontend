@@ -177,11 +177,18 @@ export class InvoiceService {
       formData.append('notes', uploadData.notes);
     }
     if (uploadData.accountingPeriod) {
-      // Convert YYYY-MM to YYYY-MM-01 format
-      const periodStr = typeof uploadData.accountingPeriod === 'string'
-        ? uploadData.accountingPeriod
-        : uploadData.accountingPeriod.toISOString().substring(0, 7); // Extract YYYY-MM
-      formData.append('accountingPeriod', `${periodStr}-01`);
+      // Convert YYYY-MM to Date object and then to ISO string with timezone
+      let dateStr: string;
+      if (typeof uploadData.accountingPeriod === 'string') {
+        // Si es string "YYYY-MM", convertir a Date en UTC
+        const [year, month] = uploadData.accountingPeriod.split('-');
+        const dateObj = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, 1, 0, 0, 0, 0));
+        dateStr = dateObj.toISOString();
+      } else {
+        // Si ya es Date, convertir a ISO
+        dateStr = uploadData.accountingPeriod.toISOString();
+      }
+      formData.append('accountingPeriod', dateStr);
     }
 
     return this.http.post<any>(`${this.apiUrl}/upload-xml`, formData).pipe(
@@ -208,11 +215,18 @@ export class InvoiceService {
       formData.append('skipDuplicates', uploadData.skipDuplicates.toString());
     }
     if (uploadData.accountingPeriod) {
-      // Convert YYYY-MM to YYYY-MM-01 format
-      const periodStr = typeof uploadData.accountingPeriod === 'string'
-        ? uploadData.accountingPeriod
-        : uploadData.accountingPeriod.toISOString().substring(0, 7); // Extract YYYY-MM
-      formData.append('accountingPeriod', `${periodStr}-01`);
+      // Convert YYYY-MM to Date object and then to ISO string with timezone
+      let dateStr: string;
+      if (typeof uploadData.accountingPeriod === 'string') {
+        // Si es string "YYYY-MM", convertir a Date en UTC
+        const [year, month] = uploadData.accountingPeriod.split('-');
+        const dateObj = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, 1, 0, 0, 0, 0));
+        dateStr = dateObj.toISOString();
+      } else {
+        // Si ya es Date, convertir a ISO
+        dateStr = uploadData.accountingPeriod.toISOString();
+      }
+      formData.append('accountingPeriod', dateStr);
     }
 
     return this.http.post<BulkUploadResponse>(`${this.apiUrl}/upload-xml-bulk`, formData);

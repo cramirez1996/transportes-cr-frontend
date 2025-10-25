@@ -63,10 +63,15 @@ export class EditFieldsModalComponent implements OnInit {
 
     const formValue = this.editFieldsForm.value;
 
-    // Convert YYYY-MM to YYYY-MM-01 (first day of month)
-    const accountingPeriodDate = formValue.accountingPeriod
-      ? `${formValue.accountingPeriod}-01`
-      : undefined;
+    // Convert YYYY-MM to Date object (first day of month at midnight UTC)
+    // El input type="month" devuelve "YYYY-MM", necesitamos crear un Date object
+    let accountingPeriodDate: string | undefined = undefined;
+    if (formValue.accountingPeriod) {
+      const [year, month] = formValue.accountingPeriod.split('-');
+      // Crear fecha en UTC (medianoche del primer día del mes)
+      const dateObj = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, 1, 0, 0, 0, 0));
+      accountingPeriodDate = dateObj.toISOString(); // Enviar como ISO string con timezone
+    }
 
     this.fieldsUpdated.emit({
       accountingPeriod: accountingPeriodDate!,

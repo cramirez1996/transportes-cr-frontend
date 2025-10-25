@@ -134,14 +134,14 @@ export class CustomerListComponent implements OnInit {
     });
 
     modalRef.result
-      .then((customerData) => {
-        this.customerService.createCustomer(customerData).subscribe({
-          next: () => this.loadCustomers(),
-          error: (err) => console.error('Error creating customer:', err)
-        });
+      .then((success) => {
+        // Modal handles API call, only reload if successful
+        if (success) {
+          this.loadCustomers();
+        }
       })
       .catch(() => {
-        // Modal dismissed
+        // Modal dismissed without saving
       });
   }
 
@@ -152,14 +152,14 @@ export class CustomerListComponent implements OnInit {
     });
 
     modalRef.result
-      .then((customerData) => {
-        this.customerService.updateCustomer(customer.id, customerData).subscribe({
-          next: () => this.loadCustomers(),
-          error: (err) => console.error('Error updating customer:', err)
-        });
+      .then((success) => {
+        // Modal handles API call, only reload if successful
+        if (success) {
+          this.loadCustomers();
+        }
       })
       .catch(() => {
-        // Modal dismissed
+        // Modal dismissed without saving
       });
   }
 
