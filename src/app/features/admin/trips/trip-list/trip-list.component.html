@@ -140,6 +140,9 @@
                   <p class="text-sm font-medium text-gray-900 truncate">
                     {{ option.label }}
                   </p>
+                  <p class="text-xs text-gray-500">
+                    {{ option.data.rut }}
+                  </p>
                 </div>
               </div>
             </ng-template>
@@ -179,6 +182,9 @@
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-medium text-gray-900 truncate">
                     {{ option.label }}
+                  </p>
+                  <p class="text-xs text-gray-500">
+                    {{ option.data.rut }}
                   </p>
                 </div>
               </div>
@@ -318,11 +324,33 @@
   </div>
 
   <!-- Tabla de viajes -->
-  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+  <div *ngIf="!loading" class="bg-white rounded-lg shadow-md overflow-hidden">
+    <!-- Barra de ordenamiento -->
+    <div class="bg-gray-50 px-6 py-3 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <span class="text-sm text-gray-700">
+          Mostrando {{ trips.length }} de {{ total }} viajes
+        </span>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-700">Ordenar por:</label>
+          <select [(ngModel)]="filters.sortBy" (change)="onFilterChange()"
+            class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="departureDate">Fecha de Salida</option>
+            <option value="arrivalDate">Fecha de Llegada</option>
+            <option value="agreedPrice">Precio</option>
+            <option value="status">Estado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              ID
+            </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Fecha Programada
             </th>
@@ -333,13 +361,7 @@
               Origen - Destino
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Conductor
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Vehículo
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Distancia
+              Conductor / Vehículo
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Costo
@@ -353,17 +375,26 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          <tr *ngIf="loading">
-            <td colspan="9" class="px-6 py-8 text-center text-gray-500">
-              Cargando viajes...
-            </td>
-          </tr>
-          <tr *ngIf="!loading && filteredTrips.length === 0">
-            <td colspan="9" class="px-6 py-8 text-center text-gray-500">
+          <tr *ngIf="trips.length === 0">
+            <td colspan="8" class="px-6 py-8 text-center text-gray-500">
               No se encontraron viajes
             </td>
           </tr>
-          <tr *ngFor="let trip of filteredTrips" class="hover:bg-gray-50">
+          <tr *ngFor="let trip of trips" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <div class="flex items-center gap-2">
+                <span class="font-mono">#{{ trip.id.substring(0, 8) }}</span>
+                <button
+                  (click)="copyToClipboard(trip.id)"
+                  class="text-gray-400 hover:text-gray-600 transition-colors"
+                  type="button"
+                  title="Copiar ID completo">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
               {{ formatDate(trip.departureDate) }}
             </td>
@@ -382,21 +413,25 @@
               </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <div *ngIf="!trip.isSubcontracted" class="text-sm text-gray-900">
-                {{ trip.driver ? (trip.driver.firstName + ' ' + trip.driver.lastName) : 'N/A' }}
+              <div *ngIf="!trip.isSubcontracted && trip.driver" class="text-sm">
+                <div class="font-medium text-gray-900">
+                  {{ trip.driver.firstName + ' ' + trip.driver.lastName }}
+                </div>
+                <div class="text-gray-500">
+                  {{ trip.vehicle?.licensePlate || 'Sin vehículo' }}
+                </div>
               </div>
-              <div *ngIf="trip.isSubcontracted" class="flex flex-col">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 mb-1">
-                  Subcontratado
-                </span>
-                <span class="text-sm text-gray-600">{{ trip.subcontractor?.businessName || 'N/A' }}</span>
+              <div *ngIf="trip.isSubcontracted" class="text-sm">
+                <div class="flex items-center gap-1">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                    Subcontratado
+                  </span>
+                </div>
+                <div class="text-gray-600 mt-1">{{ trip.subcontractor?.businessName || 'N/A' }}</div>
               </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {{ trip.vehicle?.licensePlate || (trip.isSubcontracted ? 'Tercero' : 'N/A') }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {{ trip.totalKm || '-' }} km
+              <div *ngIf="!trip.isSubcontracted && !trip.driver" class="text-sm text-gray-500">
+                Sin asignar
+              </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
               {{ formatCurrency(trip.agreedPrice) }}
@@ -516,6 +551,69 @@
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+      <div class="flex items-center justify-between">
+        <!-- Resultados por página -->
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-700">Mostrar:</label>
+          <select [(ngModel)]="limit" (change)="onLimitChange(limit)"
+            class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+            <option [value]="100">100</option>
+          </select>
+          <span class="text-sm text-gray-700">viajes por página</span>
+        </div>
+
+        <!-- Controles de paginación -->
+        <div class="flex items-center gap-2">
+          <!-- Botón anterior -->
+          <button
+            (click)="onPageChange(page - 1)"
+            [disabled]="page === 1"
+            [class]="page === 1 
+              ? 'px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed'
+              : 'px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50'"
+            type="button">
+            Anterior
+          </button>
+
+          <!-- Números de página -->
+          <div class="flex gap-1">
+            <ng-container *ngFor="let p of visiblePages">
+              <!-- Ellipsis -->
+              <span *ngIf="p === '...'" class="px-3 py-1.5 text-sm text-gray-500">
+                {{ p }}
+              </span>
+              <!-- Page button -->
+              <button
+                *ngIf="p !== '...'"
+                (click)="onPageChange($any(p))"
+                [class]="p === page
+                  ? 'px-3 py-1.5 text-sm border border-blue-500 rounded-lg bg-blue-500 text-white'
+                  : 'px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50'"
+                type="button">
+                {{ p }}
+              </button>
+            </ng-container>
+          </div>
+
+          <!-- Botón siguiente -->
+          <button
+            (click)="onPageChange(page + 1)"
+            [disabled]="page === totalPages"
+            [class]="page === totalPages 
+              ? 'px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed'
+              : 'px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50'"
+            type="button">
+            Siguiente
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

@@ -97,7 +97,7 @@ export class TransactionFormComponent implements OnInit {
       customers: this.customerService.getCustomers(),
       vehicles: this.vehicleService.getVehicles(),
       drivers: this.driverService.getDrivers(),
-      trips: this.tripService.getTrips(),
+      trips: this.tripService.getTrips({ page: 1, limit: 1000 }),
       invoices: this.invoiceService.getInvoices()
     }).subscribe({
       next: (data) => {
@@ -105,7 +105,7 @@ export class TransactionFormComponent implements OnInit {
         this.customers = data.customers;
         this.vehicles = data.vehicles;
         this.drivers = data.drivers;
-        this.trips = data.trips;
+        this.trips = data.trips.data; // Extract data from paginated response
         this.invoices = data.invoices.data; // Extract data from paginated response
         this.isLoading = false;
       },

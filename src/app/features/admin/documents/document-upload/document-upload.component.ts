@@ -141,9 +141,9 @@ export class DocumentUploadComponent implements OnInit {
         break;
 
       case DocumentEntityType.TRIP:
-        this.tripService.getTrips().subscribe({
-          next: (trips) => {
-            this.availableEntities = trips.map(t => ({
+        this.tripService.getTrips({ page: 1, limit: 1000 }).subscribe({
+          next: (response) => {
+            this.availableEntities = response.data.map(t => ({
               id: t.id,
               label: `${t.origin} → ${t.destination} - ${t.departureDate.toLocaleDateString()}`
             }));

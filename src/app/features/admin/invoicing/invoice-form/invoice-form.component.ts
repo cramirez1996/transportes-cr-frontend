@@ -129,12 +129,14 @@ export class InvoiceFormComponent implements OnInit {
   }
 
   loadTrips(): void {
-    this.tripService.getTrips().subscribe({
-      next: (trips) => {
-        this.trips = trips;
-        this.tripOptions = trips.map(t => ({
+    // Load trips for custom-select (high limit for dropdown)
+    this.tripService.getTrips({ page: 1, limit: 1000 }).subscribe({
+      next: (response) => {
+        this.trips = response.data;
+        this.tripOptions = response.data.map(t => ({
           value: t.id,
           label: `${t.origin} → ${t.destination}`,
+          searchableText: `${t.id} ${t.origin} ${t.destination}`, // Include ID in search
           data: {
             id: t.id,
             origin: t.origin,

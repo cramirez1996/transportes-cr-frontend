@@ -18,6 +18,7 @@ export interface CustomSelectOption {
   label: string;
   disabled?: boolean;
   data?: any; // Additional data for custom rendering
+  searchableText?: string; // Optional searchable text (e.g., to include IDs)
 }
 
 @Component({
@@ -139,9 +140,17 @@ export class CustomSelectComponent implements ControlValueAccessor {
     }
 
     const term = this.searchTerm.toLowerCase();
-    return this.options.filter((opt) =>
-      opt.label.toLowerCase().includes(term)
-    );
+    return this.options.filter((opt) => {
+      // Search in label first
+      if (opt.label.toLowerCase().includes(term)) {
+        return true;
+      }
+      // If searchableText is provided, search there too
+      if (opt.searchableText && opt.searchableText.toLowerCase().includes(term)) {
+        return true;
+      }
+      return false;
+    });
   }
 
   // Keyboard navigation

@@ -141,3 +141,21 @@ export interface UpdateTripDto {
   notes?: string;
   tags?: Record<string, any>;
 }
+
+export interface TripFilters {
+  search?: string;
+  status?: TripStatus;
+  isSubcontracted?: boolean;
+  startDate?: Date | string;
+  endDate?: Date | string;
+  customerId?: string;
+  driverId?: string;
+  vehicleId?: string;
+  subcontractorId?: string;
+  origin?: string;
+  destination?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: 'departureDate' | 'arrivalDate' | 'agreedPrice' | 'status';
+  sortOrder?: 'ASC' | 'DESC';
+}

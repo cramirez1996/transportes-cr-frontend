@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Trip, CreateTripDto, UpdateTripDto, TripStatus } from '../models/trip.model';
+import { Trip, CreateTripDto, UpdateTripDto, TripStatus, TripFilters } from '../models/trip.model';
+import { PaginatedResponse, PaginationParams } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
 interface TripBackendResponse {
@@ -37,10 +38,66 @@ export class TripService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/trips`;
 
-  // CRUD de Viajes
-  getTrips(): Observable<Trip[]> {
-    return this.http.get<TripBackendResponse[]>(this.apiUrl).pipe(
-      map(trips => trips.map(trip => this.mapTripFromBackend(trip)))
+  // CRUD de Viajes con paginación
+  getTrips(pagination: PaginationParams = { page: 1, limit: 10 }, filters?: TripFilters): Observable<PaginatedResponse<Trip>> {
+    const page = pagination.page || 1;
+    const limit = pagination.limit || 10;
+    
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    if (filters) {
+      // Basic filters
+      if (filters.status) params = params.set('status', filters.status);
+      if (filters.isSubcontracted !== undefined) params = params.set('isSubcontracted', filters.isSubcontracted.toString());
+      if (filters.customerId) params = params.set('customerId', filters.customerId);
+      if (filters.driverId) params = params.set('driverId', filters.driverId);
+      if (filters.vehicleId) params = params.set('vehicleId', filters.vehicleId);
+      if (filters.subcontractorId) params = params.set('subcontractorId', filters.subcontractorId);
+      
+      // Date filters
+      if (filters.startDate) {
+        const dateStr = filters.startDate instanceof Date
+          ? filters.startDate.toISOString()
+          : new Date(filters.startDate).toISOString();
+        params = params.set('startDate', dateStr);
+      }
+      if (filters.endDate) {
+        const dateStr = filters.endDate instanceof Date
+          ? filters.endDate.toISOString()
+          : new Date(filters.endDate).toISOString();
+        params = params.set('endDate', dateStr);
+      }
+
+      // Location filters
+      if (filters.origin) params = params.set('origin', filters.origin);
+      if (filters.destination) params = params.set('destination', filters.destination);
+
+      // Price filters
+      if (filters.minPrice !== undefined && filters.minPrice !== null) {
+        params = params.set('minPrice', filters.minPrice.toString());
+      }
+      if (filters.maxPrice !== undefined && filters.maxPrice !== null) {
+        params = params.set('maxPrice', filters.maxPrice.toString());
+      }
+
+      // Quick search
+      if (filters.search) params = params.set('search', filters.search);
+
+      // Sorting
+      if (filters.sortBy) params = params.set('sortBy', filters.sortBy);
+      if (filters.sortOrder) params = params.set('sortOrder', filters.sortOrder);
+    }
+
+    return this.http.get<PaginatedResponse<any>>(this.apiUrl, { params }).pipe(
+      map(response => ({
+        data: response.data.map(trip => this.mapTripFromBackend(trip)),
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        totalPages: response.totalPages
+      }))
     );
   }
 

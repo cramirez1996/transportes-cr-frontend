@@ -43,9 +43,9 @@ export class UploadXmlModalComponent implements OnInit {
   }
 
   loadTrips(): void {
-    this.tripService.getTrips().subscribe({
-      next: (trips) => {
-        this.trips = trips;
+    this.tripService.getTrips({ page: 1, limit: 1000 }).subscribe({
+      next: (response) => {
+        this.trips = response.data;
       },
       error: (error) => {
         console.error('Error loading trips:', error);
