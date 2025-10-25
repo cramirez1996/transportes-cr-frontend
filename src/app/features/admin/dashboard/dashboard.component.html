@@ -1,7 +1,7 @@
-<div class="max-w-7xl mx-auto px-4 py-6">
-  <!-- Header with Month Selector -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-    <h1 class="text-3xl font-bold text-gray-800 mb-4 md:mb-0">Dashboard Administrativo</h1>
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Dashboard</h1>
     <app-month-picker
       [selectedMonth]="selectedMonth"
       (monthChange)="onMonthChange($event)">
@@ -10,166 +10,203 @@
 
   <!-- Error Message -->
   @if (error) {
-    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+    <div class="error-message">
       {{ error }}
     </div>
   }
 
-  <!-- KPI Cards Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-    <app-kpi-card
-      title="Ingresos"
-      [value]="kpis?.totalIncome || 0"
-      format="currency"
-      icon="💰"
-      color="green"
-      [loading]="loading">
-    </app-kpi-card>
-
-    <app-kpi-card
-      title="Gastos"
-      [value]="kpis?.totalExpenses || 0"
-      format="currency"
-      icon="💸"
-      color="red"
-      [loading]="loading">
-    </app-kpi-card>
-
-    <app-kpi-card
-      title="Ganancia Neta"
-      [value]="kpis?.netProfit || 0"
-      format="currency"
-      icon="📈"
-      color="blue"
-      [loading]="loading">
-    </app-kpi-card>
-
-    <app-kpi-card
-      title="Margen"
-      [value]="kpis?.profitMarginPercentage || 0"
-      format="percentage"
-      icon="📊"
-      color="purple"
-      [loading]="loading">
-    </app-kpi-card>
-
-    <app-kpi-card
-      title="Viajes Completados"
-      [value]="kpis?.completedTrips || 0"
-      format="number"
-      icon="✅"
-      color="yellow"
-      [loading]="loading">
-    </app-kpi-card>
-  </div>
-
-  <!-- Secondary KPIs Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-    <app-kpi-card
-      title="Viajes En Curso"
-      [value]="kpis?.tripsInProgress || 0"
-      format="number"
-      icon="🚛"
-      color="blue"
-      [loading]="loading">
-    </app-kpi-card>
-
-    <app-kpi-card
-      title="Clientes Activos"
-      [value]="kpis?.activeCustomers || 0"
-      format="number"
-      icon="👥"
-      color="purple"
-      [loading]="loading">
-    </app-kpi-card>
-
-    <app-kpi-card
-      title="Vehículos Disponibles"
-      [value]="kpis?.activeVehicles || 0"
-      format="number"
-      icon="🚗"
-      color="green"
-      [loading]="loading">
-    </app-kpi-card>
-
-    <app-kpi-card
-      title="IVA a Pagar"
-      [value]="kpis?.ivaBalance || 0"
-      format="currency"
-      icon="🧾"
-      color="yellow"
-      [loading]="loading">
-    </app-kpi-card>
-  </div>
-
-  <!-- Chart Section -->
-  <div class="bg-white rounded-lg shadow p-6 mb-8">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Tendencias (Últimos 6 Meses)</h2>
-    @if (trends && chartLabels.length > 0) {
-      <app-line-chart
-        [labels]="chartLabels"
-        [datasets]="chartDatasets"
-        height="400px">
-      </app-line-chart>
-    } @else {
-      <div class="flex items-center justify-center h-64">
-        <p class="text-gray-500">Cargando gráfico...</p>
-      </div>
-    }
-  </div>
-
-  <!-- Additional Stats -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- Trip Stats -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Estadísticas de Viajes</h3>
-      @if (kpis && !loading) {
-        <div class="space-y-3">
-          <div class="flex justify-between items-center">
-            <span class="text-gray-600">Kilómetros Totales:</span>
-            <span class="font-semibold">{{ kpis.totalKilometers | number: '1.0-0':'es-CL' }} km</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-gray-600">Rentabilidad Promedio:</span>
-            <span class="font-semibold text-green-600">{{ kpis.avgTripProfitability }}%</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-gray-600">Viajes Pendientes:</span>
-            <span class="font-semibold">{{ kpis.pendingTrips }}</span>
-          </div>
-        </div>
+  <!-- Main Section: Chart + KPIs -->
+  <div class="main-section">
+    <!-- Main Chart - 9 columns -->
+    <div class="chart-card main-chart">
+      <h2 class="chart-title">Tendencias Financieras</h2>
+      @if (trends && mainChartLabels.length > 0) {
+        <app-line-chart
+          [labels]="mainChartLabels"
+          [datasets]="mainChartDatasets"
+          height="400px">
+        </app-line-chart>
       } @else {
-        <div class="animate-pulse space-y-3">
-          <div class="h-4 bg-gray-200 rounded w-full"></div>
-          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+        <div class="chart-loading">
+          <p>Cargando gráfico...</p>
         </div>
       }
     </div>
 
-    <!-- Invoice Stats -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Facturación</h3>
+    <!-- KPI Sidebar - Enhanced -->
+    <div class="kpi-sidebar">
       @if (kpis && !loading) {
-        <div class="space-y-3">
-          <div class="flex justify-between items-center">
-            <span class="text-gray-600">Facturas Emitidas:</span>
-            <span class="font-semibold text-green-600">{{ kpis.issuedSaleInvoices }}</span>
+        <!-- Income KPI -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrapper income">
+              <svg class="kpi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Ingresos Totales</span>
+              <span class="kpi-value positive">{{ kpis.totalIncome | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</span>
+            </div>
           </div>
-          <div class="flex justify-between items-center">
-            <span class="text-gray-600">Facturas Pendientes:</span>
-            <span class="font-semibold text-yellow-600">{{ kpis.pendingSaleInvoices }}</span>
+        </div>
+
+        <!-- Expenses KPI -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrapper expense">
+              <svg class="kpi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>
+              </svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Gastos Totales</span>
+              <span class="kpi-value negative">{{ kpis.totalExpenses | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</span>
+            </div>
           </div>
-          <div class="flex justify-between items-center">
-            <span class="text-gray-600">Conductores Activos:</span>
-            <span class="font-semibold">{{ kpis.activeDrivers }}</span>
+        </div>
+
+        <!-- Net Profit KPI -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrapper profit" [class.profit-positive]="(kpis.netProfit || 0) > 0" [class.profit-negative]="(kpis.netProfit || 0) < 0">
+              <svg class="kpi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Ganancia Neta</span>
+              <span class="kpi-value" [class.positive]="(kpis.netProfit || 0) > 0" [class.negative]="(kpis.netProfit || 0) < 0">
+                {{ kpis.netProfit | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profit Margin KPI -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrapper margin">
+              <svg class="kpi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Margen de Ganancia</span>
+              <span class="kpi-value">{{ kpis.profitMarginPercentage | number:'1.1-1':'es-CL' }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trips KPI -->
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrapper trips">
+              <svg class="kpi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Viajes Completados</span>
+              <span class="kpi-value">{{ kpis.completedTrips | number:'1.0-0':'es-CL' }}</span>
+            </div>
           </div>
         </div>
       } @else {
-        <div class="animate-pulse space-y-3">
-          <div class="h-4 bg-gray-200 rounded w-full"></div>
-          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+        <div class="kpi-mini-loading">
+          <div class="loading-spinner"></div>
+          <p>Cargando KPIs...</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Charts Grid - 2 Columns -->
+  <div class="charts-grid">
+    <!-- Trips Chart -->
+    <div class="chart-card">
+      <h2 class="chart-title">Viajes por Mes</h2>
+      @if (trends && tripsChartLabels.length > 0) {
+        <app-bar-chart
+          [labels]="tripsChartLabels"
+          [datasets]="tripsChartDatasets"
+          [format]="'number'"
+          height="300px">
+        </app-bar-chart>
+      } @else {
+        <div class="chart-loading">
+          <p>Cargando...</p>
+        </div>
+      }
+    </div>
+
+    <!-- IVA Chart -->
+    <div class="chart-card">
+      <h2 class="chart-title">IVA a Pagar por Mes</h2>
+      @if (ivaTrends && ivaChartLabels.length > 0) {
+        <app-bar-chart
+          [labels]="ivaChartLabels"
+          [datasets]="ivaChartDatasets"
+          height="300px">
+        </app-bar-chart>
+      } @else {
+        <div class="chart-loading">
+          <p>Cargando...</p>
+        </div>
+      }
+    </div>
+
+    <!-- Invoice Trends Chart -->
+    <div class="chart-card">
+      <h2 class="chart-title">Facturas por Mes</h2>
+      @if (invoiceTrends && invoiceChartLabels.length > 0) {
+        <app-bar-chart
+          [labels]="invoiceChartLabels"
+          [datasets]="invoiceChartDatasets"
+          [format]="'number'"
+          height="300px">
+        </app-bar-chart>
+      } @else {
+        <div class="chart-loading">
+          <p>Cargando...</p>
+        </div>
+      }
+    </div>
+
+    <!-- Expenses by Category Chart -->
+    <div class="chart-card">
+      <h2 class="chart-title">Gastos por Categoría</h2>
+      @if (expensesByCategory && expensesCategoryChartLabels.length > 0) {
+        <app-line-chart
+          [labels]="expensesCategoryChartLabels"
+          [datasets]="expensesCategoryChartDatasets"
+          height="300px">
+        </app-line-chart>
+      } @else {
+        <div class="chart-loading">
+          <p>Cargando...</p>
+        </div>
+      }
+    </div>
+
+    <!-- Vehicle Performance Chart -->
+    <div class="chart-card">
+      <h2 class="chart-title">Ingresos y Gastos por Vehículo</h2>
+      @if (vehiclePerformance && vehicleChartLabels.length > 0) {
+        <app-bar-chart
+          [labels]="vehicleChartLabels"
+          [datasets]="vehicleChartDatasets"
+          [horizontal]="true"
+          height="300px">
+        </app-bar-chart>
+      } @else {
+        <div class="chart-loading">
+          <p>Cargando...</p>
         </div>
       }
     </div>

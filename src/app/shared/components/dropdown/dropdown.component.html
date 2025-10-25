@@ -1,0 +1,21 @@
+<div class="relative inline-block h-full" #dropdownContainer>
+  <!-- Trigger Button -->
+  <div (click)="toggleDropdown()" class="h-full">
+    <ng-container *ngTemplateOutlet="triggerTemplate"></ng-container>
+  </div>
+
+  <!-- Dropdown Menu with fixed positioning to avoid overflow issues -->
+  <div
+    *ngIf="isOpen"
+    [ngStyle]="{
+      width: menuWidth,
+      position: 'fixed',
+      top: menuPosition.top + 'px',
+      left: menuPosition.left + 'px'
+    }"
+    class="z-50 rounded-md shadow-lg bg-white border border-gray-200 focus:outline-none"
+    role="menu"
+    aria-orientation="vertical">
+    <ng-container *ngTemplateOutlet="menuTemplate; context: { $implicit: this }"></ng-container>
+  </div>
+</div>

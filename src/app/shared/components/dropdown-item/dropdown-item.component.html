@@ -1,0 +1,21 @@
+<ng-template #projected>
+  <ng-content></ng-content>
+</ng-template>
+
+<button
+  *ngIf="type === 'button'"
+  (click)="onClick()"
+  [disabled]="disabled"
+  [class]="itemClass"
+  type="button"
+  role="menuitem">
+  <ng-container *ngTemplateOutlet="projected"></ng-container>
+</button>
+
+<a
+  *ngIf="type === 'link'"
+  [routerLink]="routerLink"
+  [class]="itemClass"
+  role="menuitem">
+  <ng-container *ngTemplateOutlet="projected"></ng-container>
+</a>

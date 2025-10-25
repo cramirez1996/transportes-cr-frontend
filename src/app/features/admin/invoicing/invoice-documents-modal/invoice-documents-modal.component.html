@@ -1,0 +1,212 @@
+<!-- Modal Content (no backdrop, managed by ModalService) -->
+<div class="space-y-4">
+  <!-- Invoice Info Header -->
+  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+    <div class="flex items-center gap-3">
+      <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <div>
+        <p class="text-sm font-medium text-blue-900">Factura N°</p>
+        <p class="text-lg font-bold text-blue-700">{{ invoiceFolio }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+    <div class="flex items-center">
+      <svg class="w-5 h-5 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+          clip-rule="evenodd" />
+      </svg>
+      <p class="text-sm font-medium text-red-800">{{ error }}</p>
+    </div>
+  </div>
+
+  <!-- Documents List -->
+  <div class="bg-white rounded-lg border border-gray-200">
+    <div class="px-5 py-4 border-b border-gray-200">
+      <h4 class="text-md font-semibold text-gray-900 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Documentos Asociados
+        <span class="ml-auto text-sm font-normal text-gray-500">({{ documents.length }})</span>
+      </h4>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="p-12 text-center">
+      <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+        </path>
+      </svg>
+      <p class="text-gray-500 text-sm">Cargando documentos...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && documents.length === 0" class="p-12 text-center">
+      <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <p class="text-gray-500 font-medium mb-1">No hay documentos</p>
+      <p class="text-sm text-gray-400">Esta factura no tiene documentos adjuntos</p>
+    </div>
+
+    <!-- Documents List -->
+    <div *ngIf="!loading && documents.length > 0" class="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
+      <div *ngFor="let document of documents"
+        class="p-4 hover:bg-gray-50 transition-colors">
+        <div class="flex items-start gap-3">
+          <!-- File Icon -->
+          <div class="flex-shrink-0">
+            <svg [class]="'w-10 h-10 ' + getFileIconColor(document.mimeType)" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                [attr.d]="getFileIcon(document.mimeType)" />
+            </svg>
+          </div>
+
+          <!-- File Info -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex-1 min-w-0">
+                <h5 class="text-sm font-medium text-gray-900 truncate">{{ document.originalName }}</h5>
+                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 font-medium">
+                    {{ documentTypeLabels[document.documentType] }}
+                  </span>
+                  <span>{{ formatFileSize(document.fileSize) }}</span>
+                  <span *ngIf="isDocumentExpired(document)"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-semibold">
+                    Vencido
+                  </span>
+                  <span *ngIf="!isDocumentExpired(document) && isDocumentExpiringSoon(document)"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 font-semibold">
+                    Por vencer
+                  </span>
+                </div>
+                <p *ngIf="document.description" class="mt-1 text-xs text-gray-600">{{ document.description }}</p>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="mt-3 flex items-center gap-2">
+              <button
+                *ngIf="canPreview(document.mimeType)"
+                (click)="viewDocument(document)"
+                class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded hover:bg-blue-100 transition-colors">
+                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Ver
+              </button>
+              <button
+                (click)="downloadDocument(document)"
+                class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Descargar
+              </button>
+              <button
+                (click)="deleteDocument(document)"
+                class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded hover:bg-red-100 transition-colors">
+                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal (separate overlay for preview) -->
+<div *ngIf="showPreview && selectedDocument"
+  class="fixed inset-0 z-[60] overflow-y-auto"
+  (click)="closePreview()">
+  <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
+    <!-- Background overlay -->
+    <div class="fixed inset-0 transition-opacity bg-black bg-opacity-90"></div>
+
+    <!-- Preview panel -->
+    <div
+      (click)="$event.stopPropagation()"
+      class="relative w-full max-w-6xl max-h-[90vh] bg-white rounded-lg shadow-2xl overflow-hidden">
+
+      <!-- Preview Header -->
+      <div class="px-6 py-4 bg-gray-900 border-b border-gray-700 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <h3 class="text-lg font-semibold text-white">{{ selectedDocument.originalName }}</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            (click)="downloadDocument(selectedDocument); $event.stopPropagation()"
+            class="p-2 text-white hover:bg-gray-800 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </button>
+          <button
+            (click)="closePreview(); $event.stopPropagation()"
+            class="p-2 text-white hover:bg-gray-800 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview Content -->
+      <div class="bg-gray-100 flex items-center justify-center overflow-auto" style="max-height: calc(90vh - 80px);">
+        <div *ngIf="!previewUrl" class="p-12 text-center">
+          <svg class="animate-spin h-12 w-12 text-gray-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+          <p class="text-gray-600">Cargando vista previa...</p>
+        </div>
+
+        <!-- PDF Preview -->
+        <iframe
+          *ngIf="previewUrl && selectedDocument.mimeType === 'application/pdf'"
+          [src]="previewUrl"
+          class="w-full h-full min-h-[600px]"
+          frameborder="0">
+        </iframe>
+
+        <!-- Image Preview -->
+        <img
+          *ngIf="previewUrl && selectedDocument.mimeType.startsWith('image/')"
+          [src]="previewUrl"
+          [alt]="selectedDocument.originalName"
+          class="max-w-full max-h-full object-contain" />
+      </div>
+    </div>
+  </div>
+</div>

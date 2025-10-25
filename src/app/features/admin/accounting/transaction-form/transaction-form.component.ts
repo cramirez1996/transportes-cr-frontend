@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { TransactionService } from '../../../../core/services/transaction.service';
 import { TransactionType, PaymentMethod, TransactionCategory } from '../../../../core/models/transaction.model';
@@ -17,7 +17,7 @@ import { Driver } from '../../../../core/models/business/driver.model';
 @Component({
   selector: 'app-transaction-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './transaction-form.component.html',
   styleUrl: './transaction-form.component.scss'
 })
@@ -49,6 +49,11 @@ export class TransactionFormComponent implements OnInit {
   // Enums para template
   TransactionType = TransactionType;
   PaymentMethod = PaymentMethod;
+
+  // Tags management
+  tags: { key: string; value: string }[] = [];
+  newTagKey = '';
+  newTagValue = '';
 
   ngOnInit(): void {
     this.initForm();
@@ -130,6 +135,15 @@ export class TransactionFormComponent implements OnInit {
           customerId: transaction.customer?.id || '',
           supplierId: transaction.supplier?.id || ''
         });
+
+        // Load tags if they exist
+        if (transaction.tags) {
+          this.tags = Object.entries(transaction.tags).map(([key, value]) => ({
+            key,
+            value: String(value)
+          }));
+        }
+
         this.isLoading = false;
       },
       error: (error) => {
@@ -196,6 +210,29 @@ export class TransactionFormComponent implements OnInit {
     return this.customers.filter(c => c.status === 'ACTIVE');
   }
 
+  addTag(): void {
+    if (this.newTagKey.trim() && this.newTagValue.trim()) {
+      // Check if key already exists
+      const existingTagIndex = this.tags.findIndex(t => t.key === this.newTagKey.trim());
+      if (existingTagIndex >= 0) {
+        // Update existing tag
+        this.tags[existingTagIndex].value = this.newTagValue.trim();
+      } else {
+        // Add new tag
+        this.tags.push({
+          key: this.newTagKey.trim(),
+          value: this.newTagValue.trim()
+        });
+      }
+      this.newTagKey = '';
+      this.newTagValue = '';
+    }
+  }
+
+  removeTag(index: number): void {
+    this.tags.splice(index, 1);
+  }
+
   onSubmit(): void {
     if (this.transactionForm.invalid) {
       this.transactionForm.markAllAsTouched();
@@ -207,6 +244,14 @@ export class TransactionFormComponent implements OnInit {
 
     // Convertir fecha string a Date
     formValue.date = new Date(formValue.date);
+
+    // Convert tags array to object
+    if (this.tags.length > 0) {
+      formValue.tags = this.tags.reduce((acc, tag) => {
+        acc[tag.key] = tag.value;
+        return acc;
+      }, {} as Record<string, any>);
+    }
 
     // Limpiar campos opcionales vac�os
     Object.keys(formValue).forEach(key => {

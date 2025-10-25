@@ -1,186 +1,285 @@
-<div class="p-6 max-w-7xl mx-auto">
-  <!-- Header -->
-  <div class="mb-6 flex items-center justify-between">
-    <div class="flex items-center gap-4">
-      <button
-        (click)="goBack()"
-        class="text-gray-600 hover:text-gray-900 flex items-center gap-2"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-        Volver
-      </button>
-      <h1 class="text-2xl font-bold text-gray-900">Detalle del Cliente</h1>
+<div class="min-h-screen bg-gray-50">
+  <!-- Header with Back Button -->
+  <div class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <button
+            (click)="goBack()"
+            class="text-gray-600 hover:text-gray-900 transition-colors"
+            type="button"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ customer?.businessName }}</h1>
+            <p class="text-sm text-gray-500 mt-1">{{ customer?.rut }}</p>
+          </div>
+        </div>
+        <span
+          *ngIf="customer"
+          [class]="'px-4 py-2 rounded-full text-sm font-medium ' + statusColors[customer.status]"
+        >
+          {{ statusLabels[customer.status] }}
+        </span>
+      </div>
     </div>
-    <span *ngIf="customer" [class]="'px-3 py-1 rounded-full text-sm font-medium ' + statusColors[customer.status]">
-      {{ statusLabels[customer.status] }}
-    </span>
   </div>
 
-  <!-- Loading -->
-  <div *ngIf="loading" class="text-center py-12">
-    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-    <p class="mt-2 text-gray-600">Cargando...</p>
+  <!-- Loading State -->
+  <div *ngIf="loading" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600">Cargando información del cliente...</p>
+    </div>
   </div>
 
-  <!-- Customer Detail -->
-  <div *ngIf="!loading && customer" class="space-y-6">
-    <!-- Customer Information Card -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-6 pb-6 border-b border-gray-200">Información del Cliente</h2>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-        <!-- Left Column -->
-        <div class="space-y-4">
+  <!-- Content -->
+  <div *ngIf="!loading && customer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- General Information Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+      <div class="px-6 py-5 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">Información General</h2>
+      </div>
+      <div class="px-6 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Contact Name -->
           <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Razón Social</label>
-            <p class="mt-1 text-gray-900 font-medium">{{ customer.businessName }}</p>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Contacto
+            </label>
+            <p class="text-sm text-gray-900 font-medium">{{ customer.contactName }}</p>
           </div>
 
+          <!-- Email -->
           <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">RUT</label>
-            <p class="mt-1 text-gray-900">{{ customer.rut }}</p>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Email
+            </label>
+            <p class="text-sm text-gray-900">
+              <a [href]="'mailto:' + customer.email" class="text-blue-600 hover:text-blue-800 transition-colors">
+                {{ customer.email }}
+              </a>
+            </p>
           </div>
 
+          <!-- Phone -->
           <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Nombre Contacto</label>
-            <p class="mt-1 text-gray-900">{{ customer.contactName }}</p>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Teléfono
+            </label>
+            <p class="text-sm text-gray-900">
+              <a [href]="'tel:' + customer.phone" class="text-blue-600 hover:text-blue-800 transition-colors">
+                {{ customer.phone }}
+              </a>
+            </p>
           </div>
 
+          <!-- Created At -->
           <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</label>
-            <p class="mt-1 text-gray-900">{{ customer.email }}</p>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Cliente Desde
+            </label>
+            <p class="text-sm text-gray-900">{{ formatDate(customer.createdAt) }}</p>
+          </div>
+
+          <!-- Address -->
+          <div class="md:col-span-2">
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Dirección
+            </label>
+            <p class="text-sm text-gray-900">{{ customer.address }}</p>
+          </div>
+
+          <!-- City -->
+          <div>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Ciudad
+            </label>
+            <p class="text-sm text-gray-900">{{ customer.city }}</p>
+          </div>
+
+          <!-- Region -->
+          <div>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Región
+            </label>
+            <p class="text-sm text-gray-900">{{ customer.region }}</p>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- Right Column -->
-        <div class="space-y-4">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <!-- Total Trips -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
           <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Teléfono</label>
-            <p class="mt-1 text-gray-900">{{ customer.phone }}</p>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Viajes</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2">{{ trips.length }}</p>
+            <p class="text-sm text-gray-500 mt-1">{{ getCompletedTripsCount() }} completados</p>
           </div>
-
-          <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Dirección</label>
-            <p class="mt-1 text-gray-900">{{ customer.address }}</p>
+          <div class="p-3 bg-blue-50 rounded-full">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
           </div>
+        </div>
+      </div>
 
+      <!-- Total Revenue -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
           <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Ciudad</label>
-            <p class="mt-1 text-gray-900">{{ customer.city }}</p>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Facturación Total</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2">{{ formatCurrency(calculateTotalRevenue()) }}</p>
+            <p class="text-sm text-gray-500 mt-1">Viajes completados</p>
           </div>
+          <div class="p-3 bg-green-50 rounded-full">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
 
+      <!-- Total Profit -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
           <div>
-            <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Región</label>
-            <p class="mt-1 text-gray-900">{{ customer.region }}</p>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Ganancia Total</p>
+            <p class="text-3xl font-bold text-green-600 mt-2">{{ formatCurrency(calculateTotalProfit()) }}</p>
+            <p class="text-sm text-gray-500 mt-1">Ingresos - Gastos</p>
+          </div>
+          <div class="p-3 bg-purple-50 rounded-full">
+            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Statistics Card -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-6">Estadísticas</h2>
+    <!-- Tabs Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <!-- Tabs Navigation -->
+      <div class="px-6">
+        <app-tabs
+          [tabs]="tabs"
+          [activeTabId]="activeTab"
+          (tabChange)="onTabChange($event)"
+        ></app-tabs>
+      </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="border-l-4 border-blue-500 pl-4">
-          <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Viajes</label>
-          <p class="mt-2 text-2xl font-bold text-gray-900">{{ trips.length }}</p>
-          <p class="text-xs text-gray-500 mt-1">{{ getCompletedTripsCount() }} completados</p>
+      <!-- Tab Content -->
+      <div class="px-6 py-6">
+        <!-- Trips Tab -->
+        <div *ngIf="activeTab === 'trips'">
+          <div *ngIf="loadingTrips" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-3 text-gray-600">Cargando viajes...</p>
+          </div>
+
+          <div *ngIf="!loadingTrips && trips.length === 0" class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <p class="mt-3 text-gray-500">No hay viajes registrados</p>
+          </div>
+
+          <div *ngIf="!loadingTrips && trips.length > 0" class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ruta</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehículo</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conductor</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                  <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let trip of trips" class="hover:bg-gray-50 transition-colors">
+                  <td class="px-4 py-4">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span class="text-sm font-medium text-gray-900">{{ trip.origin }}</span>
+                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                      <span class="text-sm font-medium text-gray-900">{{ trip.destination }}</span>
+                      <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                    </div>
+                  </td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ formatDate(trip.departureDate) }}
+                  </td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <span *ngIf="trip.vehicle">{{ trip.vehicle.brand }} {{ trip.vehicle.model }}</span>
+                    <span *ngIf="trip.isSubcontracted" class="text-yellow-600 font-medium">Subcontratado</span>
+                  </td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <span *ngIf="trip.driver">{{ trip.driver.firstName }} {{ trip.driver.lastName }}</span>
+                    <span *ngIf="trip.isSubcontracted && trip.subcontractor" class="text-gray-600">
+                      {{ trip.subcontractor.businessName }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                    {{ formatCurrency(trip.agreedPrice) }}
+                  </td>
+                  <td class="px-4 py-4 whitespace-nowrap">
+                    <span [class]="'px-3 py-1 text-xs font-medium rounded-full ' + tripStatusColors[trip.status]">
+                      {{ tripStatusLabels[trip.status] }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-4 whitespace-nowrap text-center">
+                    <a
+                      [routerLink]="['/admin/trips', trip.id]"
+                      class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+                    >
+                      Ver detalle
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div class="border-l-4 border-green-500 pl-4">
-          <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Facturación Total</label>
-          <p class="mt-2 text-2xl font-bold text-gray-900">{{ formatCurrency(calculateTotalRevenue()) }}</p>
-          <p class="text-xs text-gray-500 mt-1">De viajes completados</p>
+        <!-- Invoices Tab -->
+        <div *ngIf="activeTab === 'invoices'">
+          <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="mt-3 text-gray-500">No hay facturas registradas</p>
+          </div>
         </div>
 
-        <div class="border-l-4 border-purple-500 pl-4">
-          <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Ganancia Total</label>
-          <p class="mt-2 text-2xl font-bold text-green-600">{{ formatCurrency(calculateTotalProfit()) }}</p>
-          <p class="text-xs text-gray-500 mt-1">Ingresos menos gastos</p>
+        <!-- Documents Tab -->
+        <div *ngIf="activeTab === 'documents'">
+          <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <p class="mt-3 text-gray-500">No hay documentos registrados</p>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Trips Section -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-lg font-semibold text-gray-900">Historial de Viajes</h2>
-        <span class="text-sm text-gray-500">{{ trips.length }} viaje(s)</span>
-      </div>
-
-      <!-- Loading Trips -->
-      <div *ngIf="loadingTrips" class="text-center py-8">
-        <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-        <p class="mt-2 text-sm text-gray-600">Cargando viajes...</p>
-      </div>
-
-      <!-- Trips List -->
-      <div *ngIf="!loadingTrips && trips.length === 0" class="text-center py-8 text-gray-500">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-        <p class="mt-2">No hay viajes registrados para este cliente</p>
-      </div>
-
-      <div *ngIf="!loadingTrips && trips.length > 0" class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ruta</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehículo</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conductor</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr *ngFor="let trip of trips" class="hover:bg-gray-50">
-              <td class="px-4 py-3">
-                <div class="flex items-center gap-2">
-                  <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span class="text-sm text-gray-900">{{ trip.origin }}</span>
-                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                  <span class="text-sm text-gray-900">{{ trip.destination }}</span>
-                  <div class="w-2 h-2 bg-red-500 rounded-full"></div>
-                </div>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                {{ formatDate(trip.departureDate) }}
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                <span *ngIf="trip.vehicle">{{ trip.vehicle.brand }} {{ trip.vehicle.model }}</span>
-                <span *ngIf="trip.isSubcontracted" class="text-yellow-600">Subcontratado</span>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                <span *ngIf="trip.driver">{{ trip.driver.firstName }} {{ trip.driver.lastName }}</span>
-                <span *ngIf="trip.isSubcontracted && trip.subcontractor" class="text-gray-600">{{ trip.subcontractor.businessName }}</span>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                {{ formatCurrency(trip.agreedPrice) }}
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + tripStatusColors[trip.status]">
-                  {{ tripStatusLabels[trip.status] }}
-                </span>
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap text-right text-sm">
-                <a
-                  [routerLink]="['/admin/trips', trip.id]"
-                  class="text-blue-600 hover:text-blue-900"
-                >
-                  Ver detalles
-                </a>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- Transactions Tab -->
+        <div *ngIf="activeTab === 'transactions'">
+          <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <p class="mt-3 text-gray-500">No hay transacciones registradas</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

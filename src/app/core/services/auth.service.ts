@@ -154,6 +154,16 @@ export class AuthService {
   }
 
   /**
+   * Validar token de recuperación de contraseña
+   */
+  validateResetToken(token: string): Observable<{ valid: boolean; expiresAt: Date }> {
+    return this.http.post<{ valid: boolean; expiresAt: Date }>(
+      `${this.API_URL}/validate-reset-token`,
+      { token }
+    );
+  }
+
+  /**
    * Restablecer contraseña
    */
   resetPassword(data: ResetPasswordRequest): Observable<any> {

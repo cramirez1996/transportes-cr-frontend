@@ -7,17 +7,22 @@ import { Invoice, InvoiceType, InvoiceStatus, InvoiceFilters } from '../../../..
 import { UploadXmlModalComponent } from '../upload-xml-modal/upload-xml-modal.component';
 import { ChangeStatusModalComponent } from '../change-status-modal/change-status-modal.component';
 import { EditFieldsModalComponent } from '../edit-fields-modal/edit-fields-modal.component';
+import { InvoiceDocumentsModalComponent } from '../invoice-documents-modal/invoice-documents-modal.component';
 import { PaymentMethod } from '../../../../core/models/transaction.model';
-import { NgpMenu, NgpMenuTrigger, NgpMenuItem } from 'ng-primitives/menu';
+import { DropdownComponent } from '../../../../shared/components/dropdown/dropdown.component';
+import { DropdownItemComponent } from '../../../../shared/components/dropdown-item/dropdown-item.component';
+import { DropdownDividerComponent } from '../../../../shared/components/dropdown-divider/dropdown-divider.component';
+import { ModalService } from '../../../../core/services/modal.service';
 
 @Component({
   selector: 'app-invoice-list',
-  imports: [CommonModule, RouterModule, FormsModule, NgpMenu, NgpMenuTrigger, NgpMenuItem, UploadXmlModalComponent, ChangeStatusModalComponent, EditFieldsModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, DropdownComponent, DropdownItemComponent, DropdownDividerComponent, UploadXmlModalComponent, ChangeStatusModalComponent, EditFieldsModalComponent],
   templateUrl: './invoice-list.component.html',
-  styleUrl: './invoice-list.component.scss'
+  styleUrls: ['./invoice-list.component.scss']
 })
 export class InvoiceListComponent implements OnInit {
   private invoiceService = inject(InvoiceService);
+  private modalService = inject(ModalService);
 
   @ViewChild(UploadXmlModalComponent) uploadXmlModal!: UploadXmlModalComponent;
   @ViewChild(ChangeStatusModalComponent) changeStatusModal!: ChangeStatusModalComponent;
@@ -147,10 +152,16 @@ export class InvoiceListComponent implements OnInit {
     const accountingPeriodStr = invoice.accountingPeriod
       ? new Date(invoice.accountingPeriod).toISOString().split('T')[0]
       : undefined;
-    this.changeStatusModal.open(invoice.type, invoice.status, newStatus, accountingPeriodStr);
+    this.changeStatusModal.open(invoice.type, invoice.status, newStatus, accountingPeriodStr, invoice.items);
   }
 
-  onStatusChanged(data: { status: InvoiceStatus; categoryId?: string; paymentMethod?: PaymentMethod; accountingPeriod?: string }): void {
+  onStatusChanged(data: {
+    status: InvoiceStatus;
+    categoryId?: string;
+    itemCategories?: Array<{ invoiceItemId: string; categoryId: string }>;
+    paymentMethod?: PaymentMethod;
+    accountingPeriod?: string;
+  }): void {
     if (!this.currentInvoice) {
       return;
     }
@@ -160,6 +171,7 @@ export class InvoiceListComponent implements OnInit {
       data.status,
       {
         categoryId: data.categoryId,
+        itemCategories: data.itemCategories,
         paymentMethod: data.paymentMethod,
         accountingPeriod: data.accountingPeriod
       }
@@ -270,5 +282,24 @@ export class InvoiceListComponent implements OnInit {
 
   openUploadXmlModal(): void {
     this.uploadXmlModal.open();
+  }
+
+  openDocumentsModal(invoice: Invoice): void {
+    const modalRef = this.modalService.open(InvoiceDocumentsModalComponent, {
+      title: 'Documentos de Factura',
+      data: {
+        invoiceId: invoice.id,
+        invoiceFolio: invoice.folioNumber
+      }
+    });
+
+    modalRef.result
+      .then(() => {
+        // Modal closed successfully, reload invoices if needed
+        this.loadInvoices();
+      })
+      .catch(() => {
+        // Modal dismissed, no action needed
+      });
   }
 }

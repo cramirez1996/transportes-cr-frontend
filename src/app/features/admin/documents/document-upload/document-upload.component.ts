@@ -274,12 +274,14 @@ export class DocumentUploadComponent implements OnInit {
     // Usar el servicio de upload
     this.documentService.uploadDocument(
       this.selectedFile,
-      this.entityType,
-      this.entityId.trim(),
-      this.documentType,
-      this.description.trim() || undefined,
-      this.issueDate || undefined,
-      this.expiryDate || undefined
+      {
+        entityType: this.entityType,
+        entityId: this.entityId.trim(),
+        documentType: this.documentType,
+        description: this.description.trim() || undefined,
+        issueDate: this.issueDate || undefined,
+        expiryDate: this.expiryDate || undefined
+      }
     ).subscribe({
       next: () => {
         alert('Documento subido exitosamente');

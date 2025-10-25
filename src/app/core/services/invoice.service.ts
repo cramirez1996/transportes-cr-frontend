@@ -106,7 +106,8 @@ export class InvoiceService {
     id: string,
     status: InvoiceStatus,
     options?: {
-      categoryId?: string;
+      categoryId?: string; // DEPRECATED - solo para facturas sin items
+      itemCategories?: Array<{ invoiceItemId: string; categoryId: string }>; // NUEVO - para facturas con items
       paymentMethod?: string;
       accountingPeriod?: string;
     }
@@ -115,6 +116,10 @@ export class InvoiceService {
 
     if (options?.categoryId) {
       payload.categoryId = options.categoryId;
+    }
+
+    if (options?.itemCategories) {
+      payload.itemCategories = options.itemCategories;
     }
 
     if (options?.paymentMethod) {

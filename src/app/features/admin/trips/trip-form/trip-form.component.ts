@@ -12,11 +12,12 @@ import { DriverService } from '../../../../core/services/business/driver.service
 import { SupplierService } from '../../../../core/services/supplier.service';
 import { ModalRef } from '../../../../core/services/modal.service';
 import { TagsEditorComponent } from '../../../../shared/components/tags-editor/tags-editor.component';
+import { CustomSelectComponent, CustomSelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-trip-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TagsEditorComponent],
+  imports: [CommonModule, ReactiveFormsModule, TagsEditorComponent, CustomSelectComponent],
   templateUrl: './trip-form.component.html',
   styleUrl: './trip-form.component.scss'
 })
@@ -37,6 +38,12 @@ export class TripFormComponent implements OnInit {
   vehicles: Vehicle[] = [];
   drivers: Driver[] = [];
   subcontractors: Supplier[] = [];
+
+  // Custom select options
+  customerOptions: CustomSelectOption[] = [];
+  vehicleOptions: CustomSelectOption[] = [];
+  driverOptions: CustomSelectOption[] = [];
+  subcontractorOptions: CustomSelectOption[] = [];
 
   loading = false;
   tags: Record<string, any> = {};
@@ -63,11 +70,97 @@ export class TripFormComponent implements OnInit {
       this.drivers = drivers || [];
       // Filtrar solo proveedores tipo SUBCONTRACTOR
       this.subcontractors = (suppliers || []).filter(s => s.supplierType === 'SUBCONTRACTOR');
+
+      // Prepare custom select options
+      this.prepareSelectOptions();
+
       this.loading = false;
     }).catch(err => {
       console.error('Error loading catalogs:', err);
       this.loading = false;
     });
+  }
+
+  prepareSelectOptions(): void {
+    // Customer options with avatar
+    this.customerOptions = this.customers.map(customer => ({
+      value: customer.id,
+      label: customer.businessName,
+      data: {
+        rut: customer.rut,
+        email: customer.email,
+        avatar: this.getInitials(customer.businessName),
+        color: this.getColorFromName(customer.businessName)
+      }
+    }));
+
+    // Vehicle options with details
+    this.vehicleOptions = this.vehicles.map(vehicle => ({
+      value: vehicle.id,
+      label: `${vehicle.brand} ${vehicle.model}`,
+      data: {
+        plate: vehicle.licensePlate,
+        year: vehicle.year,
+        type: vehicle.type,
+        status: vehicle.status
+      }
+    }));
+
+    // Driver options with details
+    this.driverOptions = this.drivers.map(driver => {
+      const fullName = `${driver.firstName} ${driver.lastName}`;
+      return {
+        value: driver.id,
+        label: fullName,
+        data: {
+          rut: driver.rut,
+          licenseNumber: driver.licenseNumber,
+          avatar: this.getInitials(fullName),
+          color: this.getColorFromName(fullName)
+        }
+      };
+    });
+
+    // Subcontractor options with avatar
+    this.subcontractorOptions = this.subcontractors.map(subcontractor => ({
+      value: subcontractor.id,
+      label: subcontractor.businessName,
+      data: {
+        rut: subcontractor.rut,
+        contactName: subcontractor.contactName,
+        avatar: this.getInitials(subcontractor.businessName),
+        color: this.getColorFromName(subcontractor.businessName)
+      }
+    }));
+  }
+
+  getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  }
+
+  getColorFromName(name: string): string {
+    // Same color generation logic as app-avatar component
+    const colors = [
+      '#3B82F6', // blue-500
+      '#10B981', // green-500
+      '#F59E0B', // amber-500
+      '#EF4444', // red-500
+      '#8B5CF6', // violet-500
+      '#EC4899', // pink-500
+      '#06B6D4', // cyan-500
+      '#F97316', // orange-500
+    ];
+
+    const hash = name.split('').reduce((acc, char) => {
+      return char.charCodeAt(0) + ((acc << 5) - acc);
+    }, 0);
+
+    return colors[Math.abs(hash) % colors.length];
   }
 
   initForm(): void {

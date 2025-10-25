@@ -156,27 +156,29 @@ export class DocumentService {
    */
   uploadDocument(
     file: File,
-    entityType: DocumentEntityType,
-    entityId: string,
-    documentType: string,
-    description?: string,
-    issueDate?: string,
-    expiryDate?: string
+    uploadData: {
+      entityType: DocumentEntityType;
+      entityId: string;
+      documentType: string;
+      description?: string;
+      issueDate?: string;
+      expiryDate?: string;
+    }
   ): Observable<Document> {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('entityType', entityType);
-    formData.append('entityId', entityId);
-    formData.append('documentType', documentType);
+    formData.append('entityType', uploadData.entityType);
+    formData.append('entityId', uploadData.entityId);
+    formData.append('documentType', uploadData.documentType);
 
-    if (description) {
-      formData.append('description', description);
+    if (uploadData.description) {
+      formData.append('description', uploadData.description);
     }
-    if (issueDate) {
-      formData.append('issueDate', issueDate);
+    if (uploadData.issueDate) {
+      formData.append('issueDate', uploadData.issueDate);
     }
-    if (expiryDate) {
-      formData.append('expiryDate', expiryDate);
+    if (uploadData.expiryDate) {
+      formData.append('expiryDate', uploadData.expiryDate);
     }
 
     // TODO: Update this endpoint when file upload is implemented on backend

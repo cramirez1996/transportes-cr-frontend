@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -19,7 +20,6 @@
     "@angular/router": "^20.3.6",
     "@tailwindcss/postcss": "^4.1.14",
     "chart.js": "^4.5.1",
-    "ng-primitives": "^0.85.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

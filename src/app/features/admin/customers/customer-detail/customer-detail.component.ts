@@ -5,11 +5,12 @@ import { CustomerService } from '../../../../core/services/business/customer.ser
 import { TripService } from '../../../../core/services/trip.service';
 import { Customer, CustomerStatus } from '../../../../core/models/business/customer.model';
 import { Trip, TripStatus } from '../../../../core/models/trip.model';
+import { TabsComponent, Tab } from '../../../../shared/components/tabs/tabs.component';
 
 @Component({
   selector: 'app-customer-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TabsComponent],
   templateUrl: './customer-detail.component.html',
   styleUrl: './customer-detail.component.scss'
 })
@@ -23,6 +24,15 @@ export class CustomerDetailComponent implements OnInit {
   trips: Trip[] = [];
   loading = false;
   loadingTrips = false;
+
+  // Tabs configuration
+  activeTab = 'trips';
+  tabs: Tab[] = [
+    { id: 'trips', label: 'Viajes', count: 0 },
+    { id: 'invoices', label: 'Facturas', count: 0 },
+    { id: 'documents', label: 'Documentos', count: 0 },
+    { id: 'transactions', label: 'Transacciones', count: 0 }
+  ];
 
   // Status configuration
   statusLabels = {
@@ -81,6 +91,7 @@ export class CustomerDetailComponent implements OnInit {
     this.tripService.getTripsByCustomer(customerId).subscribe({
       next: (trips) => {
         this.trips = trips;
+        this.updateTabCounts();
         this.loadingTrips = false;
       },
       error: (err) => {
@@ -88,6 +99,19 @@ export class CustomerDetailComponent implements OnInit {
         this.loadingTrips = false;
       }
     });
+  }
+
+  updateTabCounts(): void {
+    const tripsTab = this.tabs.find(t => t.id === 'trips');
+    if (tripsTab) {
+      tripsTab.count = this.trips.length;
+    }
+    // Update other tab counts when data is loaded
+  }
+
+  onTabChange(tabId: string): void {
+    this.activeTab = tabId;
+    // Load data for the selected tab if needed
   }
 
   goBack(): void {

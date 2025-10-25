@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Role, CreateRoleDto, UpdateRoleDto, AssignPermissionsDto } from '../models/role.model';
 import { Permission } from '../models/permission.model';
+import { User } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -69,5 +70,12 @@ export class RoleService {
     return this.http.delete<void>(`${this.apiUrl}/${id}/permissions`, {
       body: { permissionIds }
     });
+  }
+
+  /**
+   * Get all users assigned to a specific role
+   */
+  getRoleUsers(id: string): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/${id}/users`);
   }
 }

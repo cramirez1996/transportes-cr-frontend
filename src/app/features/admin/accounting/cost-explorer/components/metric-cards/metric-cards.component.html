@@ -1,0 +1,97 @@
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <!-- Loading state -->
+  <ng-container *ngIf="loading">
+    <div *ngFor="let i of [1, 2, 3]" class="bg-white rounded-lg shadow p-6 animate-pulse">
+      <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+      <div class="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
+      <div class="h-3 bg-gray-200 rounded w-1/3"></div>
+    </div>
+  </ng-container>
+
+  <!-- Metric cards -->
+  <ng-container *ngIf="!loading">
+    <div
+      *ngFor="let card of cards"
+      class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6"
+    >
+      <!-- Header with icon -->
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-medium text-gray-600">{{ card.label }}</h3>
+        <div
+          class="w-10 h-10 rounded-full flex items-center justify-center"
+          [style.background-color]="card.color + '20'"
+        >
+          <svg
+            class="w-6 h-6"
+            [style.color]="card.color"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              [attr.d]="getIconPath(card.icon)"
+            ></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Value -->
+      <div class="mb-2">
+        <p class="text-3xl font-bold text-gray-900">
+          {{ formatCurrency(card.value) }}
+        </p>
+      </div>
+
+      <!-- Change indicator -->
+      <div *ngIf="card.change" class="flex items-center gap-1">
+        <!-- Arrow icon -->
+        <svg
+          *ngIf="card.change.isPositive"
+          class="w-4 h-4 text-green-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 10l7-7m0 0l7 7m-7-7v18"
+          ></path>
+        </svg>
+        <svg
+          *ngIf="!card.change.isPositive"
+          class="w-4 h-4 text-red-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 14l-7 7m0 0l-7-7m7 7V3"
+          ></path>
+        </svg>
+
+        <!-- Percentage and amount -->
+        <span
+          class="text-sm font-medium"
+          [class.text-green-600]="card.change.isPositive"
+          [class.text-red-600]="!card.change.isPositive"
+        >
+          {{ card.change.percentage >= 0 ? '+' : '' }}{{ card.change.percentage | number: '1.1-1' }}%
+        </span>
+        <span class="text-sm text-gray-500">vs período anterior</span>
+      </div>
+
+      <!-- No change message -->
+      <div *ngIf="!card.change" class="text-sm text-gray-500">
+        Sin comparación
+      </div>
+    </div>
+  </ng-container>
+</div>

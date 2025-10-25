@@ -1,0 +1,231 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">
+        Custom Select Component - Demo
+      </h1>
+      <p class="text-gray-600">
+        Ejemplos de uso del componente custom-select con diferentes configuraciones y templates
+      </p>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="demoForm" (ngSubmit)="onSubmit()" class="space-y-8">
+
+      <!-- Example 1: Simple Select -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">1. Select Simple (Solo Texto)</h2>
+
+        <div class="max-w-md">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Estado <span class="text-red-500">*</span>
+          </label>
+          <app-custom-select
+            formControlName="status"
+            [options]="statusOptions"
+            placeholder="Seleccione un estado"
+          >
+          </app-custom-select>
+
+          <p *ngIf="demoForm.get('status')?.invalid && demoForm.get('status')?.touched"
+            class="text-red-500 text-sm mt-1">
+            El estado es requerido
+          </p>
+        </div>
+      </div>
+
+      <!-- Example 2: Customer with Avatar -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">2. Cliente con Avatar y RUT</h2>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Cliente <span class="text-red-500">*</span>
+          </label>
+          <app-custom-select
+            formControlName="customer"
+            [options]="customerOptions"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Seleccione un cliente"
+          >
+            <!-- Custom template for dropdown options -->
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3 w-full">
+                <!-- Avatar -->
+                <div class="flex-shrink-0">
+                  <div
+                    class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-semibold text-sm shadow-sm"
+                  >
+                    {{ option.data.avatar }}
+                  </div>
+                </div>
+
+                <!-- Customer info -->
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">
+                    {{ option.label }}
+                  </p>
+                  <p class="text-xs text-gray-500 truncate">
+                    RUT: {{ option.data.rut }}
+                  </p>
+                </div>
+              </div>
+            </ng-template>
+
+            <!-- Custom template for selected value (shown in trigger) -->
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <!-- Avatar -->
+                <div
+                  class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-semibold text-xs"
+                >
+                  {{ option.data.avatar }}
+                </div>
+
+                <!-- Customer name and RUT -->
+                <div class="flex items-center gap-2 min-w-0 flex-1">
+                  <span class="text-sm font-medium text-gray-900 truncate">
+                    {{ option.label }}
+                  </span>
+                  <span class="text-xs text-gray-500 whitespace-nowrap">
+                    ({{ option.data.rut }})
+                  </span>
+                </div>
+              </div>
+            </ng-template>
+          </app-custom-select>
+
+          <p *ngIf="demoForm.get('customer')?.invalid && demoForm.get('customer')?.touched"
+            class="text-red-500 text-sm mt-1">
+            El cliente es requerido
+          </p>
+        </div>
+      </div>
+
+      <!-- Example 3: Vehicle with Icon -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">3. Vehículo con Icono y Detalles</h2>
+
+        <div class="max-w-md">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Vehículo
+          </label>
+          <app-custom-select
+            formControlName="vehicle"
+            [options]="vehicleOptions"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Seleccione un vehículo"
+          >
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3 w-full">
+                <!-- Icon -->
+                <div class="flex-shrink-0 text-gray-400">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    />
+                  </svg>
+                </div>
+
+                <!-- Vehicle info -->
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900">
+                    {{ option.label }}
+                  </p>
+                  <p class="text-xs text-gray-500">
+                    {{ option.data.plate }} • {{ option.data.year }}
+                  </p>
+                </div>
+              </div>
+            </ng-template>
+
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium">{{ option.label }}</span>
+                <span class="text-xs text-gray-500">({{ option.data.plate }})</span>
+              </div>
+            </ng-template>
+          </app-custom-select>
+        </div>
+      </div>
+
+      <!-- Example 4: Status with Badge -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">4. Estado con Badge de Color</h2>
+
+        <div class="max-w-md">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Estado del Viaje
+          </label>
+          <app-custom-select
+            formControlName="tripStatus"
+            [options]="tripStatusOptions"
+            placeholder="Seleccione un estado"
+          >
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center">
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium"
+                  [ngClass]="{
+                    'bg-green-100 text-green-800': option.data.color === 'green',
+                    'bg-blue-100 text-blue-800': option.data.color === 'blue',
+                    'bg-yellow-100 text-yellow-800': option.data.color === 'yellow',
+                    'bg-red-100 text-red-800': option.data.color === 'red'
+                  }"
+                >
+                  <span class="mr-1">{{ option.data.icon }}</span>
+                  {{ option.label }}
+                </span>
+              </div>
+            </ng-template>
+
+            <ng-template #selectedTemplate let-option>
+              <span
+                class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium"
+                [ngClass]="{
+                  'bg-green-100 text-green-800': option.data.color === 'green',
+                  'bg-blue-100 text-blue-800': option.data.color === 'blue',
+                  'bg-yellow-100 text-yellow-800': option.data.color === 'yellow',
+                  'bg-red-100 text-red-800': option.data.color === 'red'
+                }"
+              >
+                <span class="mr-1">{{ option.data.icon }}</span>
+                {{ option.label }}
+              </span>
+            </ng-template>
+          </app-custom-select>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex items-center gap-4">
+        <button
+          type="submit"
+          class="bg-blue-600 text-white px-6 py-2.5 rounded-md hover:bg-blue-700 transition-colors font-medium"
+        >
+          Enviar Formulario
+        </button>
+
+        <button
+          type="button"
+          (click)="resetForm()"
+          class="bg-gray-200 text-gray-700 px-6 py-2.5 rounded-md hover:bg-gray-300 transition-colors font-medium"
+        >
+          Limpiar
+        </button>
+      </div>
+
+      <!-- Form Values (Debug) -->
+      <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <h3 class="text-sm font-semibold text-gray-700 mb-2">Valores del Formulario:</h3>
+        <pre class="text-xs text-gray-600 overflow-x-auto">{{ demoForm.value | json }}</pre>
+      </div>
+    </form>
+  </div>
+</div>

@@ -104,3 +104,51 @@ export interface DateRangeQuery {
   endDate?: string;
   month?: string;
 }
+
+// Monthly Invoice Trends
+export interface MonthlyInvoiceTrend {
+  month: string;
+  saleInvoices: number;
+  purchaseInvoices: number;
+}
+
+export interface MonthlyInvoiceTrends {
+  monthlyInvoiceTrends: MonthlyInvoiceTrend[];
+}
+
+// Monthly IVA Trends
+export interface MonthlyIvaTrend {
+  month: string;
+  debitoFiscal: number;
+  creditoFiscal: number;
+  ivaAPagar: number;
+}
+
+export interface MonthlyIvaTrends {
+  monthlyIvaTrends: MonthlyIvaTrend[];
+}
+
+// Monthly Expenses By Category
+export interface CategoryExpenseTrend {
+  categoryId: string;
+  categoryName: string;
+  data: number[];
+}
+
+export interface MonthlyExpensesByCategory {
+  months: string[];
+  categories: CategoryExpenseTrend[];
+}
+
+// Vehicle Performance
+export interface VehiclePerformance {
+  vehicleId: string;
+  vehicleName: string;
+  income: number;
+  expenses: number;
+}
+
+export interface VehiclePerformanceReport {
+  month: string;
+  vehicles: VehiclePerformance[];
+}

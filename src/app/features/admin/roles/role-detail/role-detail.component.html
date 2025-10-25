@@ -10,7 +10,7 @@
     <!-- Header -->
     <div class="mb-6">
       <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
-        <a [routerLink]="['/admin/roles']" class="hover:text-blue-600">Roles</a>
+        <a [routerLink]="['/admin/roles']" class="hover:text-blue-600 transition-colors">Roles</a>
         <span>/</span>
         <span class="text-gray-900">{{ role()!.displayName }}</span>
       </div>
@@ -32,98 +32,288 @@
           </div>
         </div>
 
-        <a
-          [routerLink]="['/admin/roles']"
-          class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-        >
-          Volver
-        </a>
-      </div>
-    </div>
-
-    <!-- Role Info Card -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Información del Rol</h2>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Nombre Técnico</label>
-          <p class="text-gray-900 font-mono">{{ role()!.name }}</p>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Nombre para Mostrar</label>
-          <p class="text-gray-900">{{ role()!.displayName }}</p>
-        </div>
-
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-500 mb-1">Descripción</label>
-          <p class="text-gray-900">{{ role()!.description || 'Sin descripción' }}</p>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Tipo</label>
-          @if (role()!.isSystem) {
-            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-              Sistema (No modificable)
-            </span>
-          } @else {
-            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-              Personalizado
-            </span>
+        <div class="flex gap-3">
+          @if (!role()!.isSystem) {
+            <button
+              (click)="navigateToEdit()"
+              class="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar
+            </button>
           }
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Permisos Totales</label>
-          <p class="text-gray-900 font-semibold">{{ permissions().length }}</p>
+          <a
+            [routerLink]="['/admin/roles']"
+            class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            Volver
+          </a>
         </div>
       </div>
     </div>
 
-    <!-- Permissions Card -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">
-        Permisos Asignados ({{ permissions().length }})
-      </h2>
+    <!-- Tabs Navigation -->
+    <div class="border-b border-gray-200 mb-6">
+      <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        @for (tab of tabs; track tab.key) {
+          <button
+            (click)="setActiveTab(tab.key)"
+            [class]="activeTab() === tab.key
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="tab.icon" />
+            </svg>
+            {{ tab.label }}
+            @if (tab.key === 'permissions') {
+              <span
+                [class]="activeTab() === tab.key
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'bg-gray-100 text-gray-600'"
+                class="ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium"
+              >
+                {{ permissions().length }}
+              </span>
+            }
+            @if (tab.key === 'users' && users().length > 0) {
+              <span
+                [class]="activeTab() === tab.key
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'bg-gray-100 text-gray-600'"
+                class="ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium"
+              >
+                {{ users().length }}
+              </span>
+            }
+          </button>
+        }
+      </nav>
+    </div>
 
-      @if (permissions().length === 0) {
-        <div class="text-center py-8">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-          </svg>
-          <p class="mt-2 text-sm text-gray-500">Este rol no tiene permisos asignados</p>
+    <!-- Tab Content -->
+    <div class="bg-white rounded-lg shadow">
+      <!-- Info Tab -->
+      @if (activeTab() === 'info') {
+        <div class="p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-6">Información del Rol</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-1">Nombre Técnico</label>
+              <p class="text-gray-900 font-mono bg-gray-50 px-3 py-2 rounded">{{ role()!.name }}</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-1">Nombre para Mostrar</label>
+              <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded">{{ role()!.displayName }}</p>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-500 mb-1">Descripción</label>
+              <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded min-h-[60px]">
+                {{ role()!.description || 'Sin descripción' }}
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-2">Tipo de Rol</label>
+              @if (role()!.isSystem) {
+                <div class="flex items-center gap-2">
+                  <span class="px-3 py-1 text-sm font-semibold rounded-full bg-purple-100 text-purple-800">
+                    Sistema
+                  </span>
+                  <span class="text-xs text-gray-500">(No modificable)</span>
+                </div>
+              } @else {
+                <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                  Personalizado
+                </span>
+              }
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-500 mb-2">Permisos Totales</label>
+              <div class="flex items-center gap-2">
+                <span class="text-2xl font-bold text-blue-600">{{ permissions().length }}</span>
+                <span class="text-sm text-gray-500">permisos asignados</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Audit Info -->
+          <div class="mt-8 pt-6 border-t border-gray-200">
+            <h3 class="text-sm font-medium text-gray-500 mb-3">Información de Auditoría</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span class="text-gray-500">Fecha de creación:</span>
+                <span class="ml-2 text-gray-900">{{ role()!.createdAt | date:'medium' }}</span>
+              </div>
+              <div>
+                <span class="text-gray-500">Última actualización:</span>
+                <span class="ml-2 text-gray-900">{{ role()!.updatedAt | date:'medium' }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       }
 
-      @if (permissions().length > 0) {
-        <div class="space-y-6">
-          @for (resource of getResourceKeys(); track resource) {
-            <div class="border border-gray-200 rounded-lg p-4">
-              <h3 class="text-sm font-semibold text-gray-900 mb-3">
-                {{ getResourceDisplayName(resource) }}
-              </h3>
+      <!-- Permissions Tab -->
+      @if (activeTab() === 'permissions') {
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-semibold text-gray-900">
+              Permisos Asignados ({{ permissions().length }})
+            </h2>
+            @if (!role()!.isSystem) {
+              <button
+                (click)="navigateToEdit()"
+                class="px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors"
+              >
+                Modificar Permisos
+              </button>
+            }
+          </div>
 
-              <div class="flex flex-wrap gap-2">
-                @for (permission of groupedPermissions()[resource]; track permission.id) {
-                  <span
-                    [class]="'px-3 py-1 text-xs font-medium rounded-full ' + getActionBadgeColor(permission.action)"
-                    [title]="permission.description || permission.displayName"
-                  >
-                    {{ getActionDisplayName(permission.action) }}
-                  </span>
-                }
-              </div>
+          @if (permissions().length === 0) {
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              <p class="mt-2 text-sm text-gray-500">Este rol no tiene permisos asignados</p>
+            </div>
+          }
+
+          @if (permissions().length > 0) {
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              @for (resource of getResourceKeys(); track resource) {
+                <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                  <div class="flex items-center gap-2 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 class="text-sm font-semibold text-gray-900">
+                      {{ getResourceDisplayName(resource) }}
+                    </h3>
+                    <span class="ml-auto text-xs text-gray-500">
+                      {{ groupedPermissions()[resource].length }} permisos
+                    </span>
+                  </div>
+
+                  <div class="flex flex-wrap gap-2">
+                    @for (permission of groupedPermissions()[resource]; track permission.id) {
+                      <span
+                        [class]="'px-3 py-1.5 text-xs font-medium rounded-lg ' + getActionBadgeColor(permission.action)"
+                        [title]="permission.description || permission.displayName"
+                      >
+                        {{ getActionDisplayName(permission.action) }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
             </div>
           }
         </div>
       }
-    </div>
 
-    <!-- Audit Info -->
-    <div class="mt-6 text-xs text-gray-500">
-      <p>Creado: {{ role()!.createdAt | date:'medium' }}</p>
-      <p>Última actualización: {{ role()!.updatedAt | date:'medium' }}</p>
+      <!-- Users Tab -->
+      @if (activeTab() === 'users') {
+        <div class="p-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-6">
+            Usuarios Asignados a este Rol
+          </h2>
+
+          @if (loadingUsers()) {
+            <div class="flex justify-center items-center py-12">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          }
+
+          @if (!loadingUsers() && users().length === 0) {
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+              <p class="mt-2 text-sm text-gray-500">No hay usuarios asignados a este rol</p>
+            </div>
+          }
+
+          @if (!loadingUsers() && users().length > 0) {
+            <div class="overflow-hidden">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  @for (user of users(); track user.id) {
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <div class="flex-shrink-0 h-10 w-10">
+                            @if (user.avatar) {
+                              <img [src]="user.avatar" [alt]="getUserFullName(user)"
+                                class="h-10 w-10 rounded-full object-cover">
+                            } @else {
+                              <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
+                                {{ getUserInitials(user) }}
+                              </div>
+                            }
+                          </div>
+                          <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">{{ getUserFullName(user) }}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ user.email }}</div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-500">{{ user.phone || '-' }}</div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        @if (user.status === 'ACTIVE') {
+                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Activo
+                          </span>
+                        } @else if (user.status === 'INACTIVE') {
+                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                            Inactivo
+                          </span>
+                        } @else {
+                          <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            Suspendido
+                          </span>
+                        }
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a [routerLink]="['/admin/users', user.id]"
+                          class="text-blue-600 hover:text-blue-900 transition-colors">
+                          Ver detalle
+                        </a>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
     </div>
   }
 </div>

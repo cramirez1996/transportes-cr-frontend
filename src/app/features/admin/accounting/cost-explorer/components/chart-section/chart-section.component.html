@@ -1,0 +1,57 @@
+<!-- Loading state -->
+<div *ngIf="loading" class="flex items-center justify-center h-96">
+  <div class="text-center">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <p class="mt-4 text-gray-600">Cargando datos...</p>
+  </div>
+</div>
+
+<!-- Empty state -->
+<div *ngIf="!loading && !timeSeriesData" class="flex items-center justify-center h-96">
+  <div class="text-center">
+    <svg
+      class="mx-auto h-12 w-12 text-gray-400"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+      ></path>
+    </svg>
+    <p class="mt-4 text-gray-600">No hay datos para mostrar</p>
+  </div>
+</div>
+
+<!-- Chart canvas -->
+<div *ngIf="!loading && timeSeriesData">
+  <!-- Chart type selector -->
+  <div class="flex justify-end mb-4">
+    <div class="inline-flex rounded-md shadow-sm" role="group">
+      <button
+        *ngFor="let option of chartTypeOptions; let i = index"
+        type="button"
+        (click)="changeChartType(option.value)"
+        [class]="selectedChartType === option.value
+          ? 'relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 hover:bg-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-500'
+          : 'relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:z-10 focus:ring-2 focus:ring-blue-500'"
+        [class.rounded-l-md]="i === 0"
+        [class.rounded-r-md]="i === chartTypeOptions.length - 1"
+        [class.-ml-px]="i > 0"
+      >
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="option.icon" />
+        </svg>
+        {{ option.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="relative h-96">
+    <canvas #chartCanvas></canvas>
+  </div>
+</div>

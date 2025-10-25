@@ -1,0 +1,19 @@
+header {
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.95);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+// Loading state for tenant selector
+:host ::ng-deep {
+  .custom-select-wrapper {
+    &.disabled {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  }
+}

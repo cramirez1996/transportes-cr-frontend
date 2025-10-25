@@ -25,8 +25,8 @@
     <form [formGroup]="changeStatusForm" (ngSubmit)="onSubmit()">
       <!-- Campos adicionales solo si se necesitan -->
       <div *ngIf="showAdditionalFields">
-        <!-- Categoría de Transacción -->
-        <div class="mb-4">
+        <!-- Categoría Global (solo si NO hay items) -->
+        <div *ngIf="invoiceItems.length === 0" class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">
             Categoría de Transacción <span class="text-red-500">*</span>
           </label>
@@ -51,6 +51,58 @@
 
           <p class="text-xs text-gray-500 mt-1">
             La transacción se clasificará en esta categoría
+          </p>
+        </div>
+
+        <!-- Categorías por Item (si hay items) -->
+        <div *ngIf="invoiceItems.length > 0" class="mb-4">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3">
+            Categorizar Items ({{ invoiceItems.length }})
+          </h4>
+
+          <div *ngIf="loadingCategories" class="text-sm text-gray-500 mb-3">
+            Cargando categorías...
+          </div>
+
+          <div *ngIf="!loadingCategories" formArrayName="itemCategories" class="space-y-3">
+            <div *ngFor="let itemCtrl of itemCategories.controls; let i = index"
+                 [formGroupName]="i"
+                 class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+
+              <!-- Info del item -->
+              <div class="mb-2">
+                <p class="text-sm font-medium text-gray-800">
+                  {{ itemCtrl.get('description')?.value }}
+                </p>
+                <p class="text-xs text-gray-600">
+                  Cantidad: {{ itemCtrl.get('quantity')?.value }} ×
+                  ${{ itemCtrl.get('unitPrice')?.value | number:'1.0-0' }} =
+                  <span class="font-semibold">${{ itemCtrl.get('subtotal')?.value | number:'1.0-0' }}</span>
+                </p>
+              </div>
+
+              <!-- Selector de categoría -->
+              <select formControlName="categoryId"
+                class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
+                [class.border-red-500]="itemCtrl.get('categoryId')?.invalid && itemCtrl.get('categoryId')?.touched">
+                <option value="">Seleccione categoría para este ítem</option>
+                <option *ngFor="let category of categories" [value]="category.id">
+                  {{ category.name }}
+                </option>
+              </select>
+
+              <!-- Error si no selecciona -->
+              <div *ngIf="itemCtrl.get('categoryId')?.invalid && itemCtrl.get('categoryId')?.touched"
+                   class="text-xs text-red-600 mt-1">
+                Debe seleccionar una categoría
+              </div>
+            </div>
+          </div>
+
+          <!-- Ayuda visual -->
+          <p class="text-xs text-gray-500 mt-2">
+            💡 Se creará una transacción por cada ítem con su categoría correspondiente.
+            Los impuestos se distribuirán proporcionalmente.
           </p>
         </div>
 

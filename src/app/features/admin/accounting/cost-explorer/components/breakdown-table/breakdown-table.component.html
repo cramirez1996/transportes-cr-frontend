@@ -1,0 +1,152 @@
+<!-- Loading state -->
+<div *ngIf="loading" class="p-6">
+  <div class="animate-pulse space-y-4">
+    <div *ngFor="let i of [1, 2, 3, 4, 5]" class="flex items-center gap-4">
+      <div class="h-4 bg-gray-200 rounded w-1/4"></div>
+      <div class="h-4 bg-gray-200 rounded flex-1"></div>
+      <div class="h-4 bg-gray-200 rounded w-20"></div>
+      <div class="h-4 bg-gray-200 rounded w-16"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Empty state -->
+<div *ngIf="!loading && (!data || data.groups.length === 0)" class="p-12 text-center">
+  <svg
+    class="mx-auto h-12 w-12 text-gray-400"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+    ></path>
+  </svg>
+  <p class="mt-4 text-gray-600">No hay datos para mostrar</p>
+  <p class="mt-2 text-sm text-gray-500">Ajusta los filtros para ver resultados</p>
+</div>
+
+<!-- Table -->
+<div *ngIf="!loading && data && data.groups.length > 0" class="overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th
+          scope="col"
+          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          Nombre
+        </th>
+        <th
+          scope="col"
+          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          Transacciones
+        </th>
+        <th
+          scope="col"
+          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          Monto
+        </th>
+        <th
+          scope="col"
+          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          Porcentaje
+        </th>
+        <th
+          scope="col"
+          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+        >
+          Gráfico
+        </th>
+        <th scope="col" class="relative px-6 py-3">
+          <span class="sr-only">Acciones</span>
+        </th>
+      </tr>
+    </thead>
+    <tbody class="bg-white divide-y divide-gray-200">
+      <tr
+        *ngFor="let group of data.groups"
+        class="hover:bg-gray-50 transition-colors cursor-pointer"
+        (click)="drillDown(group)"
+      >
+        <!-- Name -->
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="text-sm font-medium text-gray-900">
+            {{ group.label }}
+          </div>
+        </td>
+
+        <!-- Count -->
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="text-sm text-gray-900">{{ group.count }}</div>
+        </td>
+
+        <!-- Amount -->
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="text-sm font-semibold text-gray-900">
+            {{ formatCurrency(group.value) }}
+          </div>
+        </td>
+
+        <!-- Percentage -->
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="text-sm text-gray-900">
+            {{ group.percentage | number: '1.1-1' }}%
+          </div>
+        </td>
+
+        <!-- Visual bar -->
+        <td class="px-6 py-4 whitespace-nowrap">
+          <div class="w-32 bg-gray-200 rounded-full h-2">
+            <div
+              [class]="getBarColor(group.percentage)"
+              class="h-2 rounded-full transition-all duration-300"
+              [style.width]="getBarWidth(group.percentage)"
+            ></div>
+          </div>
+        </td>
+
+        <!-- Drill-down button -->
+        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+          <button
+            (click)="drillDown(group); $event.stopPropagation()"
+            class="text-blue-600 hover:text-blue-900 focus:outline-none focus:underline"
+          >
+            Ver detalle →
+          </button>
+        </td>
+      </tr>
+
+      <!-- Total row -->
+      <tr class="bg-gray-50 font-semibold">
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          TOTAL
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          {{ data.count }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          {{ formatCurrency(data.total) }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          100.0%
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap"></td>
+        <td class="px-6 py-4 whitespace-nowrap"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Period info -->
+<div *ngIf="!loading && data" class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+  <p class="text-sm text-gray-600">
+    Período: <span class="font-medium">{{ data.period }}</span>
+  </p>
+</div>

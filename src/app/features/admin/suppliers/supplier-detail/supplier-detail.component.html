@@ -1,0 +1,221 @@
+<div class="min-h-screen bg-gray-50">
+  <!-- Header with Back Button -->
+  <div class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <button
+            (click)="goBack()"
+            class="text-gray-600 hover:text-gray-900 transition-colors"
+            type="button"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">{{ supplier?.businessName }}</h1>
+            <p class="text-sm text-gray-500 mt-1">{{ supplier?.rut }}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span
+            *ngIf="supplier"
+            [class]="'px-4 py-2 rounded-full text-sm font-medium ' + typeColors[supplier.supplierType]"
+          >
+            {{ typeLabels[supplier.supplierType] }}
+          </span>
+          <span
+            *ngIf="supplier"
+            [class]="'px-4 py-2 rounded-full text-sm font-medium ' + statusColors[supplier.status]"
+          >
+            {{ statusLabels[supplier.status] }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600">Cargando información del proveedor...</p>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && supplier" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- General Information Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+      <div class="px-6 py-5 border-b border-gray-200">
+        <h2 class="text-lg font-semibold text-gray-900">Información General</h2>
+      </div>
+      <div class="px-6 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Contact Name -->
+          <div>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Contacto
+            </label>
+            <p class="text-sm text-gray-900 font-medium">{{ supplier.contactName || '-' }}</p>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Email
+            </label>
+            <p class="text-sm text-gray-900" *ngIf="supplier.email">
+              <a [href]="'mailto:' + supplier.email" class="text-blue-600 hover:text-blue-800 transition-colors">
+                {{ supplier.email }}
+              </a>
+            </p>
+            <p class="text-sm text-gray-500" *ngIf="!supplier.email">-</p>
+          </div>
+
+          <!-- Phone -->
+          <div>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Teléfono
+            </label>
+            <p class="text-sm text-gray-900" *ngIf="supplier.phone">
+              <a [href]="'tel:' + supplier.phone" class="text-blue-600 hover:text-blue-800 transition-colors">
+                {{ supplier.phone }}
+              </a>
+            </p>
+            <p class="text-sm text-gray-500" *ngIf="!supplier.phone">-</p>
+          </div>
+
+          <!-- Created At -->
+          <div>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Proveedor Desde
+            </label>
+            <p class="text-sm text-gray-900">{{ formatDate(supplier.createdAt) }}</p>
+          </div>
+
+          <!-- Address -->
+          <div class="md:col-span-2">
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Dirección
+            </label>
+            <p class="text-sm text-gray-900">{{ supplier.address || '-' }}</p>
+          </div>
+
+          <!-- City -->
+          <div>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Ciudad
+            </label>
+            <p class="text-sm text-gray-900">{{ supplier.city || '-' }}</p>
+          </div>
+
+          <!-- Region -->
+          <div>
+            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              Región
+            </label>
+            <p class="text-sm text-gray-900">{{ supplier.region || '-' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <!-- Total Invoices -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Facturas</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2">0</p>
+            <p class="text-sm text-gray-500 mt-1">Registradas</p>
+          </div>
+          <div class="p-3 bg-blue-50 rounded-full">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Spent -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Pagado</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2">$0</p>
+            <p class="text-sm text-gray-500 mt-1">Historial completo</p>
+          </div>
+          <div class="p-3 bg-red-50 rounded-full">
+            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Payments -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Por Pagar</p>
+            <p class="text-3xl font-bold text-orange-600 mt-2">$0</p>
+            <p class="text-sm text-gray-500 mt-1">Pendientes</p>
+          </div>
+          <div class="p-3 bg-orange-50 rounded-full">
+            <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <!-- Tabs Navigation -->
+      <div class="px-6">
+        <app-tabs
+          [tabs]="tabs"
+          [activeTabId]="activeTab"
+          (tabChange)="onTabChange($event)"
+        ></app-tabs>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="px-6 py-6">
+        <!-- Invoices Tab -->
+        <div *ngIf="activeTab === 'invoices'">
+          <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="mt-3 text-gray-500">No hay facturas registradas</p>
+          </div>
+        </div>
+
+        <!-- Documents Tab -->
+        <div *ngIf="activeTab === 'documents'">
+          <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <p class="mt-3 text-gray-500">No hay documentos registrados</p>
+          </div>
+        </div>
+
+        <!-- Transactions Tab -->
+        <div *ngIf="activeTab === 'transactions'">
+          <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <p class="mt-3 text-gray-500">No hay transacciones registradas</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { RoleService } from '../../../../core/services/role.service';
 import { Role } from '../../../../core/models/role.model';
-import { ModalService } from '../../../../core/services/modal.service';
-import { RoleFormComponent } from '../role-form/role-form.component';
 
 @Component({
   selector: 'app-role-list',
@@ -17,7 +15,6 @@ export class RoleListComponent implements OnInit {
   loading = signal(false);
 
   private roleService = inject(RoleService);
-  private modalService = inject(ModalService);
 
   ngOnInit(): void {
     this.loadRoles();
@@ -37,47 +34,6 @@ export class RoleListComponent implements OnInit {
     });
   }
 
-  openCreateModal(): void {
-    const modalRef = this.modalService.open(RoleFormComponent, {
-      title: 'Nuevo Rol'
-    });
-
-    modalRef.result
-      .then((roleData) => {
-        this.roleService.create(roleData).subscribe({
-          next: () => this.loadRoles(),
-          error: (err) => console.error('Error creating role:', err)
-        });
-      })
-      .catch(() => {
-        // Modal dismissed
-      });
-  }
-
-  openEditModal(role: Role): void {
-    // System roles cannot be edited
-    if (role.isSystem) {
-      alert('Los roles del sistema no pueden ser modificados');
-      return;
-    }
-
-    const modalRef = this.modalService.open(RoleFormComponent, {
-      title: 'Editar Rol',
-      data: { role }
-    });
-
-    modalRef.result
-      .then((roleData) => {
-        this.roleService.update(role.id, roleData).subscribe({
-          next: () => this.loadRoles(),
-          error: (err) => console.error('Error updating role:', err)
-        });
-      })
-      .catch(() => {
-        // Modal dismissed
-      });
-  }
-
   deleteRole(role: Role): void {
     // System roles cannot be deleted
     if (role.isSystem) {
@@ -85,7 +41,7 @@ export class RoleListComponent implements OnInit {
       return;
     }
 
-    if (confirm(`¿Estás seguro de eliminar el rol "${role.displayName}"?`)) {
+    if (confirm(`¿Estás seguro de eliminar el rol "${role.displayName}"?\n\nEsta acción no se puede deshacer.`)) {
       this.roleService.delete(role.id).subscribe({
         next: () => {
           this.loadRoles();
@@ -94,6 +50,8 @@ export class RoleListComponent implements OnInit {
           console.error('Error deleting role:', err);
           if (err.status === 400) {
             alert('No se puede eliminar un rol que está asignado a usuarios');
+          } else {
+            alert('Error al eliminar el rol. Por favor intenta de nuevo.');
           }
         }
       });

@@ -9,6 +9,10 @@ import {
   MonthlyFinancialReport,
   ExpensesByCategoryReport,
   DateRangeQuery,
+  MonthlyInvoiceTrends,
+  MonthlyIvaTrends,
+  MonthlyExpensesByCategory,
+  VehiclePerformanceReport,
 } from '../models/analytics.model';
 
 @Injectable({
@@ -103,5 +107,40 @@ export class AnalyticsService {
   formatMonthDisplay(monthISO: string): string {
     const date = new Date(monthISO);
     return date.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+  }
+
+  /**
+   * Get monthly invoice trends (issued sale invoices and received purchase invoices)
+   */
+  getMonthlyInvoiceTrends(months: number = 6): Observable<MonthlyInvoiceTrends> {
+    const params = new HttpParams().set('months', months.toString());
+    return this.http.get<MonthlyInvoiceTrends>(`${this.apiUrl}/dashboard/invoice-trends`, { params });
+  }
+
+  /**
+   * Get monthly IVA trends
+   */
+  getMonthlyIvaTrends(months: number = 6): Observable<MonthlyIvaTrends> {
+    const params = new HttpParams().set('months', months.toString());
+    return this.http.get<MonthlyIvaTrends>(`${this.apiUrl}/dashboard/iva-trends`, { params });
+  }
+
+  /**
+   * Get monthly expenses by category trends
+   */
+  getMonthlyExpensesByCategory(months: number = 6): Observable<MonthlyExpensesByCategory> {
+    const params = new HttpParams().set('months', months.toString());
+    return this.http.get<MonthlyExpensesByCategory>(`${this.apiUrl}/dashboard/expenses-by-category-trends`, { params });
+  }
+
+  /**
+   * Get vehicle performance (income and expenses per vehicle)
+   */
+  getVehiclePerformance(month?: string): Observable<VehiclePerformanceReport> {
+    let params = new HttpParams();
+    if (month) {
+      params = params.set('month', month);
+    }
+    return this.http.get<VehiclePerformanceReport>(`${this.apiUrl}/dashboard/vehicle-performance`, { params });
   }
 }

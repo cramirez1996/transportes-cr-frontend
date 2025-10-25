@@ -151,6 +151,7 @@ export class TransactionService {
       invoice: transaction.invoice,
       vehicle: transaction.vehicle,
       driver: transaction.driver,
+      tags: transaction.tags,
       customer: transaction.customer,
       supplier: transaction.supplier,
       paymentMethod: transaction.paymentMethod,

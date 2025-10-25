@@ -4,6 +4,8 @@ import { roleGuard } from './core/guards/role.guard';
 import { redirectIfAuthenticatedGuard } from './core/guards/redirect-if-authenticated.guard';
 import { UserRole } from './core/models/enums/user-role.enum';
 import { LoginComponent } from './features/auth/login/login.component';
+import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
 import { RedirectComponent } from './features/auth/redirect/redirect.component';
 import { AdminLayoutComponent } from './layout/admin-layout/admin-layout.component';
 import { CustomerLayoutComponent } from './layout/customer-layout/customer-layout.component';
@@ -15,9 +17,27 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'auth',
+    children: [
+      {
+        path: 'login',
+        component: LoginComponent,
+        canActivate: [redirectIfAuthenticatedGuard]
+      },
+      {
+        path: 'forgot-password',
+        component: ForgotPasswordComponent
+      },
+      {
+        path: 'reset-password',
+        component: ResetPasswordComponent
+      }
+    ]
+  },
+  {
     path: 'login',
-    component: LoginComponent,
-    canActivate: [redirectIfAuthenticatedGuard]
+    redirectTo: 'auth/login',
+    pathMatch: 'full'
   },
   {
     path: 'admin',
@@ -91,9 +111,24 @@ export const routes: Routes = [
           .then(m => m.TransactionListComponent)
       },
       {
+        path: 'accounting/transactions',
+        loadComponent: () => import('./features/admin/accounting/transaction-list/transaction-list.component')
+          .then(m => m.TransactionListComponent)
+      },
+      {
+        path: 'accounting/cost-explorer',
+        loadComponent: () => import('./features/admin/accounting/cost-explorer/cost-explorer.component')
+          .then(m => m.CostExplorerComponent)
+      },
+      {
         path: 'accounting/new',
         loadComponent: () => import('./features/admin/accounting/transaction-form/transaction-form.component')
           .then(m => m.TransactionFormComponent)
+      },
+      {
+        path: 'accounting/:id',
+        loadComponent: () => import('./features/admin/accounting/transaction-detail/transaction-detail.component')
+          .then(m => m.TransactionDetailComponent)
       },
       {
         path: 'accounting/edit/:id',
@@ -104,6 +139,11 @@ export const routes: Routes = [
         path: 'suppliers',
         loadComponent: () => import('./features/admin/suppliers/supplier-list/supplier-list.component')
           .then(m => m.SupplierListComponent)
+      },
+      {
+        path: 'suppliers/:id',
+        loadComponent: () => import('./features/admin/suppliers/supplier-detail/supplier-detail.component')
+          .then(m => m.SupplierDetailComponent)
       },
       {
         path: 'users',
@@ -131,9 +171,19 @@ export const routes: Routes = [
           .then(m => m.RoleListComponent)
       },
       {
+        path: 'roles/new',
+        loadComponent: () => import('./features/admin/roles/role-form/role-form.component')
+          .then(m => m.RoleFormComponent)
+      },
+      {
         path: 'roles/:id',
         loadComponent: () => import('./features/admin/roles/role-detail/role-detail.component')
           .then(m => m.RoleDetailComponent)
+      },
+      {
+        path: 'roles/:id/edit',
+        loadComponent: () => import('./features/admin/roles/role-form/role-form.component')
+          .then(m => m.RoleFormComponent)
       },
       {
         path: 'reports',
@@ -164,6 +214,11 @@ export const routes: Routes = [
         path: 'documents/:id',
         loadComponent: () => import('./features/admin/documents/document-detail/document-detail.component')
           .then(m => m.DocumentDetailComponent)
+      },
+      {
+        path: 'custom-select-demo',
+        loadComponent: () => import('./features/admin/custom-select-demo/custom-select-demo.component')
+          .then(m => m.CustomSelectDemoComponent)
       }
     ]
   },

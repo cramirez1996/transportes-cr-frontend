@@ -35,6 +35,7 @@ export interface Transaction {
   paymentMethod: PaymentMethod;
   referenceNumber?: string;
   attachments?: string[];
+  tags?: Record<string, any>;
   createdBy?: any;
   createdAt: Date;
   updatedAt: Date;
@@ -55,6 +56,7 @@ export interface CreateTransactionDto {
   paymentMethod: PaymentMethod;
   referenceNumber?: string;
   attachments?: string[];
+  tags?: Record<string, any>;
 }
 
 export interface UpdateTransactionDto extends Partial<CreateTransactionDto> {}

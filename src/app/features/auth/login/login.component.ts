@@ -63,19 +63,4 @@ export class LoginComponent {
       }
     });
   }
-
-  // Helper for demo
-  fillDemo(role: 'admin' | 'customer'): void {
-    if (role === 'admin') {
-      this.loginForm.patchValue({
-        email: 'admin@transportes.cl',
-        password: 'password123'
-      });
-    } else {
-      this.loginForm.patchValue({
-        email: 'customer@example.cl',
-        password: 'password123'
-      });
-    }
-  }
 }

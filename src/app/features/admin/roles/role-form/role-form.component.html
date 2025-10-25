@@ -1,148 +1,292 @@
-<form [formGroup]="roleForm" (ngSubmit)="onSubmit()" class="space-y-6">
-  <!-- Basic Info -->
-  <div class="space-y-4">
-    <h3 class="text-lg font-semibold text-gray-900">Información Básica</h3>
-
-    <!-- Name (technical) -->
-    <div>
-      <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
-        Nombre Técnico *
-      </label>
-      <input
-        type="text"
-        id="name"
-        formControlName="name"
-        placeholder="ej: custom_manager"
-        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-        [class.border-red-500]="roleForm.get('name')?.invalid && roleForm.get('name')?.touched"
-      />
-      @if (role) {
-        <p class="text-xs text-gray-500 mt-1">El nombre técnico no puede ser modificado</p>
-      }
-      @if (getErrorMessage('name')) {
-        <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('name') }}</p>
+<div class="max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+      <a [routerLink]="['/admin/roles']" class="hover:text-blue-600 transition-colors">Roles</a>
+      <span>/</span>
+      @if (roleId) {
+        <a [routerLink]="['/admin/roles', roleId]" class="hover:text-blue-600 transition-colors">{{ role?.displayName }}</a>
+        <span>/</span>
+        <span class="text-gray-900">Editar</span>
+      } @else {
+        <span class="text-gray-900">Nuevo Rol</span>
       }
     </div>
 
-    <!-- Display Name -->
-    <div>
-      <label for="displayName" class="block text-sm font-medium text-gray-700 mb-1">
-        Nombre para Mostrar *
-      </label>
-      <input
-        type="text"
-        id="displayName"
-        formControlName="displayName"
-        placeholder="ej: Gerente Personalizado"
-        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        [class.border-red-500]="roleForm.get('displayName')?.invalid && roleForm.get('displayName')?.touched"
-      />
-      @if (getErrorMessage('displayName')) {
-        <p class="text-red-500 text-xs mt-1">{{ getErrorMessage('displayName') }}</p>
-      }
-    </div>
-
-    <!-- Description -->
-    <div>
-      <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-        Descripción
-      </label>
-      <textarea
-        id="description"
-        formControlName="description"
-        rows="3"
-        placeholder="Describe las responsabilidades de este rol..."
-        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      ></textarea>
-    </div>
+    <h1 class="text-3xl font-bold text-gray-800">
+      {{ roleId ? 'Editar Rol' : 'Crear Nuevo Rol' }}
+    </h1>
+    <p class="text-sm text-gray-500 mt-1">
+      {{ roleId ? 'Modifica la información y permisos del rol' : 'Completa la información y selecciona los permisos para el nuevo rol' }}
+    </p>
   </div>
 
-  <!-- Permissions Selection -->
-  <div class="space-y-4">
-    <div class="flex justify-between items-center">
-      <h3 class="text-lg font-semibold text-gray-900">Permisos</h3>
-      <span class="text-sm text-gray-500">{{ selectedPermissionIds().size }} seleccionados</span>
+  <form [formGroup]="roleForm" (ngSubmit)="onSubmit()">
+    <!-- Basic Info Card -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6">Información Básica</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Name (technical) -->
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+            Nombre Técnico *
+          </label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="ej: custom_manager"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+            [class.border-red-500]="roleForm.get('name')?.invalid && roleForm.get('name')?.touched"
+          />
+          @if (roleId) {
+            <p class="text-xs text-gray-500 mt-2">El nombre técnico no puede ser modificado</p>
+          } @else {
+            <p class="text-xs text-gray-500 mt-2">Solo minúsculas y guión bajo (ej: custom_role)</p>
+          }
+          @if (getErrorMessage('name')) {
+            <p class="text-red-500 text-xs mt-2">{{ getErrorMessage('name') }}</p>
+          }
+        </div>
+
+        <!-- Display Name -->
+        <div>
+          <label for="displayName" class="block text-sm font-medium text-gray-700 mb-2">
+            Nombre para Mostrar *
+          </label>
+          <input
+            type="text"
+            id="displayName"
+            formControlName="displayName"
+            placeholder="ej: Gerente Personalizado"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            [class.border-red-500]="roleForm.get('displayName')?.invalid && roleForm.get('displayName')?.touched"
+          />
+          @if (getErrorMessage('displayName')) {
+            <p class="text-red-500 text-xs mt-2">{{ getErrorMessage('displayName') }}</p>
+          }
+        </div>
+
+        <!-- Description -->
+        <div class="md:col-span-2">
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+            Descripción
+          </label>
+          <textarea
+            id="description"
+            formControlName="description"
+            rows="3"
+            placeholder="Describe las responsabilidades y alcance de este rol..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+          ></textarea>
+        </div>
+      </div>
     </div>
 
-    @if (loading()) {
-      <div class="flex justify-center items-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <!-- Permissions Card -->
+    <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+      <div class="p-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900">Permisos del Rol</h2>
+            <p class="text-sm text-gray-500 mt-1">Selecciona los permisos que tendrá este rol</p>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-bold text-blue-600">{{ selectedPermissionIds().size }}</div>
+            <div class="text-xs text-gray-500">permisos seleccionados</div>
+          </div>
+        </div>
       </div>
-    }
 
-    @if (!loading()) {
-      <div class="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-96 overflow-y-auto">
-        @for (resource of getResourceKeys(); track resource) {
-          <div class="p-4">
-            <!-- Resource Header -->
-            <div class="flex items-center mb-3">
-              <input
-                type="checkbox"
-                [id]="'resource-' + resource"
-                [checked]="isResourceFullySelected(resource)"
-                [indeterminate]="isResourcePartiallySelected(resource)"
-                (change)="toggleResource(resource)"
-                class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <label
-                [for]="'resource-' + resource"
-                class="ml-3 text-sm font-semibold text-gray-900 cursor-pointer"
+      @if (loading()) {
+        <div class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      }
+
+      @if (!loading()) {
+        <!-- Permission Tabs -->
+        <div class="border-b border-gray-200 bg-gray-50">
+          <nav class="flex -mb-px overflow-x-auto" aria-label="Tabs">
+            @for (tab of permissionTabs; track tab.key) {
+              @let count = getCategoryPermissionCount(tab.key);
+              <button
+                type="button"
+                (click)="setActiveCategory(tab.key)"
+                [class]="activeCategory() === tab.key
+                  ? 'border-blue-500 text-blue-600 bg-white'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                class="min-w-0 flex-1 whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-all flex items-center justify-center gap-2"
               >
-                {{ getResourceDisplayName(resource) }}
-              </label>
-            </div>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="tab.icon" />
+                </svg>
+                <span>{{ tab.label }}</span>
+                <span
+                  [class]="activeCategory() === tab.key
+                    ? 'bg-blue-100 text-blue-600'
+                    : 'bg-gray-200 text-gray-600'"
+                  class="ml-2 py-0.5 px-2 rounded-full text-xs font-medium"
+                >
+                  {{ count.selected }}/{{ count.total }}
+                </span>
+              </button>
+            }
+          </nav>
+        </div>
 
-            <!-- Permissions in this resource -->
-            <div class="ml-7 space-y-2">
-              @for (permission of groupedPermissions()[resource]; track permission.id) {
-                <div class="flex items-start">
-                  <input
-                    type="checkbox"
-                    [id]="'permission-' + permission.id"
-                    [checked]="isPermissionSelected(permission.id)"
-                    (change)="togglePermission(permission.id)"
-                    class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5"
-                  />
-                  <div class="ml-3">
-                    <label
-                      [for]="'permission-' + permission.id"
-                      class="text-sm text-gray-700 cursor-pointer"
-                    >
-                      <span class="font-medium">{{ getActionDisplayName(permission.action) }}</span>
-                      <span class="text-gray-500 ml-1">({{ permission.name }})</span>
-                    </label>
-                    @if (permission.description) {
-                      <p class="text-xs text-gray-500">{{ permission.description }}</p>
-                    }
-                  </div>
+        <!-- Tab Content -->
+        <div class="p-6">
+          @for (tab of permissionTabs; track tab.key) {
+            @if (activeCategory() === tab.key) {
+              @let count = getCategoryPermissionCount(tab.key);
+
+              <!-- Category Actions -->
+              <div class="flex justify-between items-center mb-4">
+                <div>
+                  <h3 class="text-sm font-medium text-gray-900">Permisos de {{ tab.label }}</h3>
+                  <p class="text-xs text-gray-500 mt-0.5">{{ count.selected }} de {{ count.total }} permisos seleccionados</p>
                 </div>
-              }
+                <div class="flex gap-2">
+                  @if (count.selected < count.total) {
+                    <button
+                      type="button"
+                      (click)="selectAllInCategory(tab.key)"
+                      class="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 border border-blue-200 rounded-lg transition-colors"
+                    >
+                      Seleccionar todos
+                    </button>
+                  }
+                  @if (count.selected > 0) {
+                    <button
+                      type="button"
+                      (click)="deselectAllInCategory(tab.key)"
+                      class="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 border border-gray-300 rounded-lg transition-colors"
+                    >
+                      Deseleccionar todos
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Resources in this category -->
+              <div class="space-y-4">
+                @for (resource of getAvailableResourcesForCategory(tab.key); track resource) {
+                  <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                    <!-- Resource Header -->
+                    <div class="flex items-center mb-3">
+                      <input
+                        type="checkbox"
+                        [id]="'resource-' + resource"
+                        [checked]="isResourceFullySelected(resource)"
+                        [indeterminate]="isResourcePartiallySelected(resource)"
+                        (change)="toggleResource(resource)"
+                        class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                      />
+                      <label
+                        [for]="'resource-' + resource"
+                        class="ml-3 flex-1 text-sm font-semibold text-gray-900 cursor-pointer flex items-center gap-2"
+                      >
+                        <div class="w-7 h-7 rounded bg-blue-100 flex items-center justify-center">
+                          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        {{ getResourceDisplayName(resource) }}
+                      </label>
+                      <span class="text-xs text-gray-500">
+                        {{ getSelectedPermissionCountForResource(resource) }}/{{ groupedPermissions()[resource].length }}
+                      </span>
+                    </div>
+
+                    <!-- Permissions Grid -->
+                    <div class="ml-11 grid grid-cols-2 gap-3">
+                      @for (permission of groupedPermissions()[resource]; track permission.id) {
+                        <div class="flex items-start">
+                          <input
+                            type="checkbox"
+                            [id]="'permission-' + permission.id"
+                            [checked]="isPermissionSelected(permission.id)"
+                            (change)="togglePermission(permission.id)"
+                            class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mt-0.5 cursor-pointer"
+                          />
+                          <div class="ml-3 flex-1">
+                            <label
+                              [for]="'permission-' + permission.id"
+                              class="cursor-pointer"
+                            >
+                              <span
+                                [class]="'inline-flex px-2 py-0.5 text-xs font-medium rounded ' + getActionBadgeColor(permission.action)"
+                              >
+                                {{ getActionDisplayName(permission.action) }}
+                              </span>
+                            </label>
+                            @if (permission.description) {
+                              <p class="text-xs text-gray-500 mt-1">{{ permission.description }}</p>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (getAvailableResourcesForCategory(tab.key).length === 0) {
+                  <div class="text-center py-8 text-sm text-gray-500">
+                    No hay recursos disponibles en esta categoría
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
+
+        @if (selectedPermissionIds().size === 0) {
+          <div class="px-6 pb-6">
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+              <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div>
+                <h4 class="text-sm font-medium text-red-800">Debes seleccionar al menos un permiso</h4>
+                <p class="text-xs text-red-700 mt-1">Un rol sin permisos no tendrá acceso a ninguna funcionalidad del sistema.</p>
+              </div>
             </div>
           </div>
         }
-      </div>
-
-      @if (selectedPermissionIds().size === 0) {
-        <p class="text-sm text-red-600">Debes seleccionar al menos un permiso</p>
       }
-    }
-  </div>
+    </div>
 
-  <!-- Actions -->
-  <div class="flex justify-end gap-3 pt-4 border-t">
-    <button
-      type="button"
-      (click)="onCancel()"
-      class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-    >
-      Cancelar
-    </button>
-    <button
-      type="submit"
-      [disabled]="!roleForm.valid || selectedPermissionIds().size === 0 || loading()"
-      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {{ role ? 'Actualizar' : 'Crear' }} Rol
-    </button>
-  </div>
-</form>
+    <!-- Actions -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          (click)="onCancel()"
+          [disabled]="submitting()"
+          class="px-6 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="!roleForm.valid || selectedPermissionIds().size === 0 || loading() || submitting()"
+          class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          @if (submitting()) {
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            <span>{{ roleId ? 'Actualizando...' : 'Creando...' }}</span>
+          } @else {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>{{ roleId ? 'Actualizar Rol' : 'Crear Rol' }}</span>
+          }
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

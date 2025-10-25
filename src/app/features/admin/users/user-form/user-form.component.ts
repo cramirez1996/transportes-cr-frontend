@@ -4,15 +4,18 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../../../core/services/user.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { TenantService } from '../../../../core/services/tenant.service';
 import { ModalService } from '../../../../core/services/modal.service';
-import { User, Role, CreateUserRequest, UpdateUserRequest, AssignRoleRequest } from '../../../../core/models/user.model';
+import { User, Role, CreateUserRequest, UpdateUserRequest, AssignRoleRequest, UserStatus } from '../../../../core/models/user.model';
+import { Tenant } from '../../../../core/models/auth.model';
 import { UserRole } from '../../../../core/models/enums/user-role.enum';
 import { AssignRoleModalComponent, AssignRoleModalData } from '../assign-role-modal/assign-role-modal.component';
+import { CustomSelectComponent, CustomSelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-user-form',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, CustomSelectComponent],
   templateUrl: './user-form.component.html',
   styleUrl: './user-form.component.scss'
 })
@@ -23,15 +26,29 @@ export class UserFormComponent implements OnInit {
   userId: string | null = null;
   user: User | null = null;
   roles: Role[] = [];
+  tenants: Tenant[] = [];
   currentUserRole: UserRole | null = null;
   currentTenantId: string | null = null;
   userTenants: any[] = [];
   isSubmitting = false;
 
+  // Enums for template
+  UserStatus = UserStatus;
+
+  // Options for custom-select
+  roleOptions: CustomSelectOption[] = [];
+  tenantOptions: CustomSelectOption[] = [];
+  statusOptions: CustomSelectOption[] = [
+    { value: UserStatus.ACTIVE, label: 'Activo' },
+    { value: UserStatus.INACTIVE, label: 'Inactivo' },
+    { value: UserStatus.SUSPENDED, label: 'Suspendido' }
+  ];
+
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
     private authService: AuthService,
+    private tenantService: TenantService,
     private modalService: ModalService,
     private router: Router,
     private route: ActivatedRoute
@@ -42,7 +59,9 @@ export class UserFormComponent implements OnInit {
       phone: [''],
       email: ['', [Validators.required, Validators.email]],
       password: ['', []],
-      status: ['ACTIVE']
+      status: [UserStatus.ACTIVE, Validators.required],
+      tenantId: [''], // Only for creation, not edit
+      roleId: [''] // Initial role assignment
     });
   }
 
@@ -57,11 +76,23 @@ export class UserFormComponent implements OnInit {
     if (this.isEditMode && this.userId) {
       this.loadUser(this.userId);
     } else {
-      // For create mode, set password as required
+      // For create mode, set password and role as required
       this.userForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
+
+      // Set validators based on user role
+      if (this.isSuperAdmin) {
+        // Super Admin must select tenant and role
+        this.userForm.get('tenantId')?.setValidators([Validators.required]);
+        this.userForm.get('roleId')?.setValidators([Validators.required]);
+      } else if (this.isAdmin) {
+        // Admin creates users in their tenant with role selection
+        this.userForm.patchValue({ tenantId: this.currentTenantId });
+        this.userForm.get('roleId')?.setValidators([Validators.required]);
+      }
     }
 
     this.loadRoles();
+    this.loadTenants();
   }
 
   loadUser(id: string): void {
@@ -91,11 +122,65 @@ export class UserFormComponent implements OnInit {
     this.userService.getRoles().subscribe({
       next: (roles) => {
         this.roles = roles;
+        this.roleOptions = roles.map(role => ({
+          value: role.id,
+          label: role.displayName || role.name,
+          data: { description: role.description }
+        }));
       },
       error: (error) => {
         console.error('Error loading roles:', error);
       }
     });
+  }
+
+  loadTenants(): void {
+    // Super Admin can see all tenants, Admin only sees their own
+    if (this.isSuperAdmin) {
+      this.tenantService.getAllTenants().subscribe({
+        next: (tenants) => {
+          this.tenants = tenants;
+          this.tenantOptions = tenants.map(tenant => ({
+            value: tenant.id,
+            label: tenant.businessName || tenant.tradeName || 'Sin nombre',
+            data: {
+              rut: tenant.rut,
+              tradeName: tenant.tradeName,
+              avatar: this.getInitials(tenant.businessName || tenant.tradeName || '')
+            }
+          }));
+        },
+        error: (error) => {
+          console.error('Error loading tenants:', error);
+        }
+      });
+    } else if (this.isAdmin && this.currentTenantId) {
+      // For Admin, load only their tenant
+      this.tenantService.getTenantById(this.currentTenantId).subscribe({
+        next: (tenant) => {
+          this.tenants = [tenant];
+          this.tenantOptions = [{
+            value: tenant.id,
+            label: tenant.businessName || tenant.tradeName || 'Sin nombre',
+            data: {
+              rut: tenant.rut,
+              tradeName: tenant.tradeName,
+              avatar: this.getInitials(tenant.businessName || tenant.tradeName || '')
+            }
+          }];
+        },
+        error: (error) => {
+          console.error('Error loading tenant:', error);
+        }
+      });
+    }
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '?';
+    const words = name.trim().split(' ');
+    if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+    return (words[0][0] + words[words.length - 1][0]).toUpperCase();
   }
 
   onSubmit(): void {
@@ -128,8 +213,8 @@ export class UserFormComponent implements OnInit {
           this.router.navigate(['/admin/users']);
         },
         error: (error) => {
-          console.error('Error updating user:', error);
-          alert('Error updating user');
+          console.error('Error al actualizar usuario:', error);
+          alert(error.error?.message || 'Error al actualizar usuario');
           this.isSubmitting = false;
         }
       });
@@ -140,13 +225,10 @@ export class UserFormComponent implements OnInit {
         phone: this.userForm.value.phone,
         email: this.userForm.value.email,
         password: this.userForm.value.password,
-        status: this.userForm.value.status
+        status: this.userForm.value.status,
+        tenantId: this.userForm.value.tenantId || this.currentTenantId,
+        roleId: this.userForm.value.roleId
       };
-
-      // If Admin is creating, auto-assign to their tenant
-      if (this.currentUserRole === UserRole.ADMIN && this.currentTenantId) {
-        createData.tenantId = this.currentTenantId;
-      }
 
       this.userService.createUser(createData).subscribe({
         next: () => {
@@ -154,8 +236,8 @@ export class UserFormComponent implements OnInit {
           this.router.navigate(['/admin/users']);
         },
         error: (error) => {
-          console.error('Error creating user:', error);
-          alert('Error creating user');
+          console.error('Error al crear usuario:', error);
+          alert(error.error?.message || 'Error al crear usuario');
           this.isSubmitting = false;
         }
       });
@@ -211,7 +293,7 @@ export class UserFormComponent implements OnInit {
   }
 
   removeRole(tenantId: string): void {
-    if (!this.userId || !confirm('Are you sure you want to remove this role?')) {
+    if (!this.userId || !confirm('¿Está seguro de eliminar este rol?')) {
       return;
     }
 
@@ -222,8 +304,8 @@ export class UserFormComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Error removing role:', error);
-        alert('Error removing role');
+        console.error('Error al eliminar rol:', error);
+        alert('Error al eliminar rol');
       }
     });
   }
@@ -242,12 +324,30 @@ export class UserFormComponent implements OnInit {
     return this.currentUserRole === UserRole.SUPER_ADMIN;
   }
 
+  get isSuperAdmin(): boolean {
+    return this.currentUserRole === UserRole.SUPER_ADMIN;
+  }
+
+  get isAdmin(): boolean {
+    return this.currentUserRole === UserRole.ADMIN;
+  }
+
+  get showTenantField(): boolean {
+    // Super Admin can select tenant in creation mode
+    return this.isSuperAdmin && !this.isEditMode;
+  }
+
+  get showRoleField(): boolean {
+    // Both Super Admin and Admin can assign roles during creation
+    return !this.isEditMode && (this.isSuperAdmin || this.isAdmin);
+  }
+
   getFieldError(fieldName: string): string {
     const field = this.userForm.get(fieldName);
     if (field?.errors && field.touched) {
-      if (field.errors['required']) return 'This field is required';
-      if (field.errors['email']) return 'Invalid email format';
-      if (field.errors['minlength']) return `Minimum length is ${field.errors['minlength'].requiredLength}`;
+      if (field.errors['required']) return 'Este campo es requerido';
+      if (field.errors['email']) return 'Formato de email inválido';
+      if (field.errors['minlength']) return `Mínimo ${field.errors['minlength'].requiredLength} caracteres`;
     }
     return '';
   }
