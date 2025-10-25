@@ -25,6 +25,10 @@ export class InvoiceDetailComponent implements OnInit {
   invoice: Invoice | null = null;
   loading = false;
   error: string | null = null;
+  
+  // Credit notes
+  creditNotes: Invoice[] = [];
+  loadingCreditNotes = false;
 
   // Document upload
   selectedFile: File | null = null;
@@ -54,6 +58,11 @@ export class InvoiceDetailComponent implements OnInit {
       next: (invoice) => {
         this.invoice = invoice;
         this.loading = false;
+        
+        // Load credit notes if this is not a credit note itself
+        if (invoice.documentType !== 61) {
+          this.loadCreditNotes(id);
+        }
       },
       error: (err) => {
         this.error = 'Error al cargar la factura';
@@ -63,12 +72,37 @@ export class InvoiceDetailComponent implements OnInit {
     });
   }
 
+  loadCreditNotes(invoiceId: string): void {
+    this.loadingCreditNotes = true;
+    this.invoiceService.getCreditNotes(invoiceId).subscribe({
+      next: (notes) => {
+        this.creditNotes = notes;
+        this.loadingCreditNotes = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar notas de crédito:', err);
+        this.loadingCreditNotes = false;
+      }
+    });
+  }
+
+  getTotalCredited(): number {
+    return this.creditNotes.reduce((sum, note) => sum + note.totalAmount, 0);
+  }
+
+  getNetAmount(): number {
+    if (!this.invoice) return 0;
+    return this.invoice.totalAmount - this.getTotalCredited();
+  }
+
   getStatusLabel(status: InvoiceStatus): string {
     const labels = {
       [InvoiceStatus.DRAFT]: 'Borrador',
       [InvoiceStatus.ISSUED]: 'Emitida',
       [InvoiceStatus.PAID]: 'Pagada',
-      [InvoiceStatus.CANCELLED]: 'Anulada'
+      [InvoiceStatus.CANCELLED]: 'Anulada',
+      [InvoiceStatus.PARTIALLY_CREDITED]: 'Creditada Parcial',
+      [InvoiceStatus.FULLY_CREDITED]: 'Creditada Total'
     };
     return labels[status];
   }
@@ -78,7 +112,9 @@ export class InvoiceDetailComponent implements OnInit {
       [InvoiceStatus.DRAFT]: 'bg-gray-100 text-gray-800',
       [InvoiceStatus.ISSUED]: 'bg-blue-100 text-blue-800',
       [InvoiceStatus.PAID]: 'bg-green-100 text-green-800',
-      [InvoiceStatus.CANCELLED]: 'bg-red-100 text-red-800'
+      [InvoiceStatus.CANCELLED]: 'bg-red-100 text-red-800',
+      [InvoiceStatus.PARTIALLY_CREDITED]: 'bg-yellow-100 text-yellow-800',
+      [InvoiceStatus.FULLY_CREDITED]: 'bg-orange-100 text-orange-800'
     };
     return classes[status];
   }

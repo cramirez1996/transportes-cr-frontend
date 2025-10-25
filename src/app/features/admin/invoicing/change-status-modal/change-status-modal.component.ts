@@ -235,7 +235,9 @@ export class ChangeStatusModalComponent implements OnInit {
       [InvoiceStatus.DRAFT]: 'Borrador',
       [InvoiceStatus.ISSUED]: 'Emitida',
       [InvoiceStatus.PAID]: 'Pagada',
-      [InvoiceStatus.CANCELLED]: 'Anulada'
+      [InvoiceStatus.CANCELLED]: 'Anulada',
+      [InvoiceStatus.PARTIALLY_CREDITED]: 'Creditada Parcial',
+      [InvoiceStatus.FULLY_CREDITED]: 'Creditada Total'
     };
     return labels[status];
   }

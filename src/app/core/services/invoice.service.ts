@@ -13,6 +13,7 @@ import {
   UploadXmlBulkDto,
   BulkUploadResponse,
 } from '../models/invoice.model';
+import { PaginatedResponse, PaginationParams } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -23,8 +24,16 @@ export class InvoiceService {
   private apiUrl = `${environment.apiUrl}/invoices`;
 
   // CRUD de Facturas
-  getInvoices(filters?: InvoiceFilters): Observable<Invoice[]> {
+  getInvoices(filters?: InvoiceFilters, pagination?: PaginationParams): Observable<PaginatedResponse<Invoice>> {
     let params = new HttpParams();
+
+    // Pagination parameters
+    if (pagination) {
+      if (pagination.page) params = params.set('page', pagination.page.toString());
+      if (pagination.limit) params = params.set('limit', pagination.limit.toString());
+      if (pagination.sortBy) params = params.set('sortBy', pagination.sortBy);
+      if (pagination.sortOrder) params = params.set('sortOrder', pagination.sortOrder);
+    }
 
     if (filters) {
       // Basic filters
@@ -72,8 +81,14 @@ export class InvoiceService {
       if (filters.search) params = params.set('search', filters.search);
     }
 
-    return this.http.get<any[]>(this.apiUrl, { params }).pipe(
-      map(invoices => invoices.map(invoice => this.mapInvoiceFromBackend(invoice)))
+    return this.http.get<PaginatedResponse<any>>(this.apiUrl, { params }).pipe(
+      map(response => ({
+        data: response.data.map(invoice => this.mapInvoiceFromBackend(invoice)),
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        totalPages: response.totalPages
+      }))
     );
   }
 
@@ -99,6 +114,13 @@ export class InvoiceService {
 
   deleteInvoice(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  // Obtener Notas de Crédito asociadas a una factura
+  getCreditNotes(invoiceId: string): Observable<Invoice[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${invoiceId}/credit-notes`).pipe(
+      map(invoices => invoices.map(inv => this.mapInvoiceFromBackend(inv)))
+    );
   }
 
   // Cambiar estado de factura

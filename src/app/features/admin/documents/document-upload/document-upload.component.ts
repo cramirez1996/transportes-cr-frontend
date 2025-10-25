@@ -158,8 +158,8 @@ export class DocumentUploadComponent implements OnInit {
 
       case DocumentEntityType.INVOICE:
         this.invoiceService.getInvoices().subscribe({
-          next: (invoices) => {
-            this.availableEntities = invoices.map(i => ({
+          next: (response) => {
+            this.availableEntities = response.data.map(i => ({
               id: i.id,
               label: `${i.documentType} ${i.folioNumber} - ${i.customer?.businessName || 'N/A'}`
             }));

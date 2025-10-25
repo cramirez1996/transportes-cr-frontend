@@ -106,7 +106,7 @@ export class TransactionFormComponent implements OnInit {
         this.vehicles = data.vehicles;
         this.drivers = data.drivers;
         this.trips = data.trips;
-        this.invoices = data.invoices;
+        this.invoices = data.invoices.data; // Extract data from paginated response
         this.isLoading = false;
       },
       error: (error) => {

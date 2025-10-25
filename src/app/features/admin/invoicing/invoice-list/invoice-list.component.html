@@ -188,43 +188,131 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">ID de Cliente</label>
-          <input
-            type="text"
+          <label class="block text-sm font-medium text-gray-700 mb-2">Cliente</label>
+          <app-custom-select
             [(ngModel)]="filters.customerId"
             (ngModelChange)="onFilterChange()"
-            placeholder="UUID del cliente"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            [options]="customerOptions"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Seleccione un cliente">
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold">
+                  {{ option.data.avatar }}
+                </div>
+                <div>
+                  <p class="text-sm font-medium">{{ option.label }}</p>
+                  <p class="text-xs text-gray-500">RUT: {{ option.data.rut }}</p>
+                </div>
+              </div>
+            </ng-template>
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold">
+                  {{ option.data.avatar }}
+                </div>
+                <span class="text-sm">{{ option.label }}</span>
+              </div>
+            </ng-template>
+          </app-custom-select>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">ID de Proveedor</label>
-          <input
-            type="text"
+          <label class="block text-sm font-medium text-gray-700 mb-2">Proveedor</label>
+          <app-custom-select
             [(ngModel)]="filters.supplierId"
             (ngModelChange)="onFilterChange()"
-            placeholder="UUID del proveedor"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            [options]="supplierOptions"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Seleccione un proveedor">
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm font-semibold">
+                  {{ option.data.avatar }}
+                </div>
+                <div>
+                  <p class="text-sm font-medium">{{ option.label }}</p>
+                  <p class="text-xs text-gray-500">RUT: {{ option.data.rut }}</p>
+                </div>
+              </div>
+            </ng-template>
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-semibold">
+                  {{ option.data.avatar }}
+                </div>
+                <span class="text-sm">{{ option.label }}</span>
+              </div>
+            </ng-template>
+          </app-custom-select>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">ID de Viaje</label>
-          <input
-            type="text"
+          <label class="block text-sm font-medium text-gray-700 mb-2">Viaje</label>
+          <app-custom-select
             [(ngModel)]="filters.tripId"
             (ngModelChange)="onFilterChange()"
-            placeholder="UUID del viaje"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            [options]="tripOptions"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Seleccione un viaje">
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-medium">{{ option.label }}</p>
+                  <p class="text-xs text-gray-500">Estado: {{ option.data.status }}</p>
+                </div>
+              </div>
+            </ng-template>
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-sm">{{ option.label }}</span>
+              </div>
+            </ng-template>
+          </app-custom-select>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">ID de Vehículo</label>
-          <input
-            type="text"
+          <label class="block text-sm font-medium text-gray-700 mb-2">Vehículo</label>
+          <app-custom-select
             [(ngModel)]="filters.vehicleId"
             (ngModelChange)="onFilterChange()"
-            placeholder="UUID del vehículo"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            [options]="vehicleOptions"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Seleccione un vehículo">
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4h6l3 4v8m-5 4h-4m-5-4a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4zM5 12h14" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-medium">{{ option.label }}</p>
+                  <p class="text-xs text-gray-500">{{ option.data.brand }} {{ option.data.model }}</p>
+                </div>
+              </div>
+            </ng-template>
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4h6l3 4v8m-5 4h-4m-5-4a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4zM5 12h14" />
+                </svg>
+                <span class="text-sm">{{ option.label }}</span>
+              </div>
+            </ng-template>
+          </app-custom-select>
         </div>
       </div>
     </div>
@@ -450,19 +538,66 @@
     </table>
 
     <!-- Paginación -->
-    <div *ngIf="totalPages > 1" class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-      <div class="text-sm text-gray-700">
-        Página {{ currentPage }} de {{ totalPages }}
-      </div>
-      <div class="flex gap-2">
-        <button (click)="previousPage()" [disabled]="currentPage === 1"
-          class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-          Anterior
-        </button>
-        <button (click)="nextPage()" [disabled]="currentPage === totalPages"
-          class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
-          Siguiente
-        </button>
+    <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <!-- Info de paginación -->
+        <div class="text-sm text-gray-700">
+          Mostrando
+          <span class="font-medium">{{ (page - 1) * limit + 1 }}</span>
+          -
+          <span class="font-medium">{{ Math.min(page * limit, total) }}</span>
+          de
+          <span class="font-medium">{{ total }}</span>
+          resultados
+        </div>
+
+        <!-- Controles de paginación -->
+        <div class="flex items-center gap-2">
+          <!-- Items por página -->
+          <div class="flex items-center gap-2 mr-4">
+            <label class="text-sm text-gray-700">Por página:</label>
+            <select
+              [(ngModel)]="limit"
+              (change)="changePageSize(limit)"
+              class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="25">25</option>
+              <option [ngValue]="50">50</option>
+              <option [ngValue]="100">100</option>
+            </select>
+          </div>
+
+          <!-- Botones de navegación -->
+          <button
+            (click)="previousPage()"
+            [disabled]="page === 1"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            Anterior
+          </button>
+
+          <!-- Números de página -->
+          <div class="hidden sm:flex items-center gap-1">
+            <ng-container *ngFor="let pageNum of getPageNumbers()">
+              <button
+                *ngIf="pageNum > 0"
+                (click)="goToPage(pageNum)"
+                [class]="pageNum === page
+                  ? 'px-3 py-2 border border-blue-500 rounded-lg text-sm font-medium text-white bg-blue-600'
+                  : 'px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50'"
+                class="transition-colors">
+                {{ pageNum }}
+              </button>
+              <span *ngIf="pageNum === -1" class="px-2 text-gray-500">...</span>
+            </ng-container>
+          </div>
+
+          <button
+            (click)="nextPage()"
+            [disabled]="page === totalPages"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            Siguiente
+          </button>
+        </div>
       </div>
     </div>
   </div>

@@ -10,6 +10,8 @@ export enum InvoiceStatus {
   ISSUED = 'ISSUED',
   PAID = 'PAID',
   CANCELLED = 'CANCELLED',
+  PARTIALLY_CREDITED = 'PARTIALLY_CREDITED',
+  FULLY_CREDITED = 'FULLY_CREDITED',
 }
 
 export interface InvoiceItem {
@@ -64,6 +66,11 @@ export interface Invoice {
   pdfFile?: string;
   status: InvoiceStatus;
   createdBy?: any;
+  referencedInvoiceId?: string;
+  referencedInvoice?: Invoice;
+  creditNotes?: Invoice[];
+  referenceReason?: string;
+  referenceCode?: number;
   items: InvoiceItem[];
   taxes: InvoiceTax[];
   createdAt: Date;
@@ -135,14 +142,14 @@ export interface InvoiceStatistics {
 export interface UploadXmlInvoiceDto {
   tripId?: string;
   notes?: string;
-  accountingPeriod?: Date;
+  accountingPeriod?: Date | string;
 }
 
 export interface UploadXmlBulkDto {
   tripId?: string;
   notes?: string;
   skipDuplicates?: boolean;
-  accountingPeriod?: Date;
+  accountingPeriod?: Date | string;
 }
 
 export enum BulkUploadStatus {
