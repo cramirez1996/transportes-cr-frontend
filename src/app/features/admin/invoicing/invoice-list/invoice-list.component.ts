@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { InvoiceService } from '../../../../core/services/invoice.service';
 import { Invoice, InvoiceType, InvoiceStatus, InvoiceFilters, SII_DOCUMENT_TYPES } from '../../../../core/models/invoice.model';
@@ -14,6 +14,7 @@ import { DropdownComponent } from '../../../../shared/components/dropdown/dropdo
 import { DropdownItemComponent } from '../../../../shared/components/dropdown-item/dropdown-item.component';
 import { DropdownDividerComponent } from '../../../../shared/components/dropdown-divider/dropdown-divider.component';
 import { CustomSelectComponent, CustomSelectOption } from '../../../../shared/components/custom-select/custom-select.component';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { ModalService } from '../../../../core/services/modal.service';
 import { CustomerService } from '../../../../core/services/business/customer.service';
 import { SupplierService } from '../../../../core/services/supplier.service';
@@ -22,7 +23,7 @@ import { VehicleService } from '../../../../core/services/business/vehicle.servi
 
 @Component({
   selector: 'app-invoice-list',
-  imports: [CommonModule, RouterModule, FormsModule, DropdownComponent, DropdownItemComponent, DropdownDividerComponent, CustomSelectComponent, UploadXmlModalComponent, ChangeStatusModalComponent, EditFieldsModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, DropdownComponent, DropdownItemComponent, DropdownDividerComponent, CustomSelectComponent, PaginationComponent, UploadXmlModalComponent, ChangeStatusModalComponent, EditFieldsModalComponent],
   templateUrl: './invoice-list.component.html',
   styleUrls: ['./invoice-list.component.scss']
 })
@@ -33,6 +34,8 @@ export class InvoiceListComponent implements OnInit {
   private tripService = inject(TripService);
   private vehicleService = inject(VehicleService);
   private modalService = inject(ModalService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   @ViewChild(UploadXmlModalComponent) uploadXmlModal!: UploadXmlModalComponent;
   @ViewChild(ChangeStatusModalComponent) changeStatusModal!: ChangeStatusModalComponent;
@@ -96,7 +99,17 @@ export class InvoiceListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadInvoices();
+    // Read query params
+    this.route.queryParams.subscribe(params => {
+      if (params['page']) {
+        this.page = Number(params['page']);
+      }
+      if (params['limit']) {
+        this.limit = Number(params['limit']);
+      }
+      this.loadInvoices();
+    });
+    
     this.loadCustomers();
     this.loadSuppliers();
     this.loadTrips();
@@ -348,68 +361,29 @@ export class InvoiceListComponent implements OnInit {
     return this.invoices;
   }
 
-  nextPage(): void {
-    if (this.page < this.totalPages) {
-      this.page++;
-      this.loadInvoices();
-    }
-  }
-
-  previousPage(): void {
-    if (this.page > 1) {
-      this.page--;
-      this.loadInvoices();
-    }
-  }
-
-  goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.page = page;
-      this.loadInvoices();
-    }
-  }
-
-  changePageSize(newSize: number): void {
-    this.limit = newSize;
-    this.page = 1;
+  // Pagination methods
+  onPageChange(page: number): void {
+    this.page = Number(page);
+    this.updateQueryParams();
     this.loadInvoices();
   }
 
-  getPageNumbers(): number[] {
-    const total = this.totalPages;
-    const current = this.page;
-    const pages: number[] = [];
+  onLimitChange(limit: number): void {
+    this.limit = Number(limit);
+    this.page = 1;
+    this.updateQueryParams();
+    this.loadInvoices();
+  }
 
-    if (total <= 7) {
-      // Show all pages if total is 7 or less
-      for (let i = 1; i <= total; i++) {
-        pages.push(i);
-      }
-    } else {
-      // Always show first page
-      pages.push(1);
-
-      if (current > 3) {
-        pages.push(-1); // Ellipsis
-      }
-
-      // Show pages around current page
-      const start = Math.max(2, current - 1);
-      const end = Math.min(total - 1, current + 1);
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      if (current < total - 2) {
-        pages.push(-1); // Ellipsis
-      }
-
-      // Always show last page
-      pages.push(total);
-    }
-
-    return pages;
+  private updateQueryParams(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: this.page,
+        limit: this.limit
+      },
+      queryParamsHandling: 'merge'
+    });
   }
 
   // Expose Math for template

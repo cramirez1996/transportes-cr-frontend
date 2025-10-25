@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Trip, TripStatus, TripFilters } from '../../../../core/models/trip.model';
 import { Customer } from '../../../../core/models/business/customer.model';
@@ -19,11 +19,12 @@ import { DropdownComponent } from '../../../../shared/components/dropdown/dropdo
 import { DropdownItemComponent } from '../../../../shared/components/dropdown-item/dropdown-item.component';
 import { DropdownDividerComponent } from '../../../../shared/components/dropdown-divider/dropdown-divider.component';
 import { CustomSelectComponent, CustomSelectOption } from '../../../../shared/components/custom-select/custom-select.component';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-trip-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, DropdownComponent, DropdownItemComponent, DropdownDividerComponent, CustomSelectComponent],
+  imports: [CommonModule, RouterModule, FormsModule, DropdownComponent, DropdownItemComponent, DropdownDividerComponent, CustomSelectComponent, PaginationComponent],
   templateUrl: './trip-list.component.html',
   styleUrls: ['./trip-list.component.scss']
 })
@@ -34,6 +35,8 @@ export class TripListComponent implements OnInit {
   private driverService = inject(DriverService);
   private supplierService = inject(SupplierService);
   private modalService = inject(ModalService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   trips: Trip[] = [];
   loading = false;
@@ -86,8 +89,15 @@ export class TripListComponent implements OnInit {
   TripStatus = TripStatus;
 
   ngOnInit(): void {
-    this.loadCatalogs();
-    this.loadTrips();
+    // Read query params
+    this.route.queryParams.subscribe(params => {
+      this.page = params['page'] ? Number(params['page']) : 1;
+      this.limit = params['limit'] ? Number(params['limit']) : 10;
+      
+      // Load data
+      this.loadCatalogs();
+      this.loadTrips();
+    });
   }
 
   loadCatalogs(): void {
@@ -245,6 +255,7 @@ export class TripListComponent implements OnInit {
       this.filters.endDate = undefined;
     }
 
+    this.updateQueryParams();
     this.loadTrips();
   }
 
@@ -256,6 +267,7 @@ export class TripListComponent implements OnInit {
     this.startDateInput = '';
     this.endDateInput = '';
     this.page = 1;
+    this.updateQueryParams();
     this.loadTrips();
   }
 
@@ -283,63 +295,27 @@ export class TripListComponent implements OnInit {
 
   // Pagination methods
   onPageChange(page: number): void {
-    this.page = page;
+    this.page = Number(page);
+    this.updateQueryParams();
     this.loadTrips();
   }
 
   onLimitChange(limit: number): void {
-    this.limit = limit;
+    this.limit = Number(limit);
     this.page = 1;
+    this.updateQueryParams();
     this.loadTrips();
   }
 
-  get visiblePages(): (number | string)[] {
-    const pages: (number | string)[] = [];
-    const maxVisible = 5; // Maximum number of page buttons to show
-    const halfVisible = Math.floor(maxVisible / 2);
-
-    if (this.totalPages <= maxVisible + 2) {
-      // Show all pages if total is small
-      for (let i = 1; i <= this.totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // Always show first page
-      pages.push(1);
-
-      let start = Math.max(2, this.page - halfVisible);
-      let end = Math.min(this.totalPages - 1, this.page + halfVisible);
-
-      // Adjust if we're near the start
-      if (this.page <= halfVisible + 1) {
-        end = maxVisible;
-      }
-
-      // Adjust if we're near the end
-      if (this.page >= this.totalPages - halfVisible) {
-        start = this.totalPages - maxVisible + 1;
-      }
-
-      // Add ellipsis after first page if needed
-      if (start > 2) {
-        pages.push('...');
-      }
-
-      // Add middle pages
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      // Add ellipsis before last page if needed
-      if (end < this.totalPages - 1) {
-        pages.push('...');
-      }
-
-      // Always show last page
-      pages.push(this.totalPages);
-    }
-
-    return pages;
+  private updateQueryParams(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: this.page,
+        limit: this.limit
+      },
+      queryParamsHandling: 'merge'
+    });
   }
 
   openCreateModal(): void {

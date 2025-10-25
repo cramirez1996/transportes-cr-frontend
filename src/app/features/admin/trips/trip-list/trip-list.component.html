@@ -554,66 +554,13 @@
     </div>
 
     <!-- Paginación -->
-    <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
-      <div class="flex items-center justify-between">
-        <!-- Resultados por página -->
-        <div class="flex items-center gap-2">
-          <label class="text-sm text-gray-700">Mostrar:</label>
-          <select [(ngModel)]="limit" (change)="onLimitChange(limit)"
-            class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            <option [value]="10">10</option>
-            <option [value]="25">25</option>
-            <option [value]="50">50</option>
-            <option [value]="100">100</option>
-          </select>
-          <span class="text-sm text-gray-700">viajes por página</span>
-        </div>
-
-        <!-- Controles de paginación -->
-        <div class="flex items-center gap-2">
-          <!-- Botón anterior -->
-          <button
-            (click)="onPageChange(page - 1)"
-            [disabled]="page === 1"
-            [class]="page === 1 
-              ? 'px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50'"
-            type="button">
-            Anterior
-          </button>
-
-          <!-- Números de página -->
-          <div class="flex gap-1">
-            <ng-container *ngFor="let p of visiblePages">
-              <!-- Ellipsis -->
-              <span *ngIf="p === '...'" class="px-3 py-1.5 text-sm text-gray-500">
-                {{ p }}
-              </span>
-              <!-- Page button -->
-              <button
-                *ngIf="p !== '...'"
-                (click)="onPageChange($any(p))"
-                [class]="p === page
-                  ? 'px-3 py-1.5 text-sm border border-blue-500 rounded-lg bg-blue-500 text-white'
-                  : 'px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50'"
-                type="button">
-                {{ p }}
-              </button>
-            </ng-container>
-          </div>
-
-          <!-- Botón siguiente -->
-          <button
-            (click)="onPageChange(page + 1)"
-            [disabled]="page === totalPages"
-            [class]="page === totalPages 
-              ? 'px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50'"
-            type="button">
-            Siguiente
-          </button>
-        </div>
-      </div>
-    </div>
+    <app-pagination
+      [page]="page"
+      [limit]="limit"
+      [total]="total"
+      [totalPages]="totalPages"
+      (pageChange)="onPageChange($event)"
+      (limitChange)="onLimitChange($event)">
+    </app-pagination>
   </div>
 </div>
