@@ -162,18 +162,18 @@ Utiliza clases de Tailwind para estilos:
 
 ## 🚀 Inicializar Repositorio Git
 
-### Windows (PowerShell)
-
-```powershell
-.\init-git.ps1
-```
-
-### Linux/Mac (Bash)
+Desde el directorio `frontend`:
 
 ```bash
 chmod +x init-git.sh
 ./init-git.sh
 ```
+
+El script creará automáticamente el repositorio `transportes-cr-frontend` en GitHub usando `gh` CLI.
+
+**Requisitos**:
+- Git instalado
+- GitHub CLI (`gh`) instalado y autenticado
 
 ---
 

@@ -53,7 +53,6 @@ jobs:
             --content-type "text/html"
 
       - name: Invalidate CloudFront cache
-        if: secrets.CLOUDFRONT_DISTRIBUTION_ID != ''
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
@@ -61,7 +60,8 @@ jobs:
 
       - name: Deployment summary
         run: |
-          echo "✅ Deployment completed successfully!"
-          echo "🌐 Website URL: https://${{ secrets.S3_BUCKET }}"
-          echo "📦 S3 Bucket: ${{ secrets.S3_BUCKET }}"
-          echo "🚀 CloudFront Distribution: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
+          echo "Deployment completed successfully!"
+          echo "Website URL: https://${{ secrets.S3_BUCKET }}"
+          echo "S3 Bucket: ${{ secrets.S3_BUCKET }}"
+          echo "CloudFront Distribution: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
+
