@@ -1,22 +1,127 @@
 <aside
-  [class]="'bg-gray-900 text-white h-full transition-all duration-300 ' + (isOpen() ? 'w-64' : 'w-20')">
-  <nav class="p-4">
-    <ul class="space-y-2">
-      @for (item of menuItems; track item.route) {
-        <li>
-          <a
-            [routerLink]="item.route"
-            routerLinkActive="bg-blue-600"
-            class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-800 transition-colors">
-            <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon"/>
-            </svg>
-            @if (isOpen()) {
-              <span class="text-sm font-medium">{{ item.label }}</span>
+  [class]="'bg-gradient-to-b from-gray-900 to-gray-800 text-white h-full transition-all duration-300 flex flex-col shadow-xl ' + (isOpen() ? 'w-64' : 'w-20')">
+  
+  <!-- Logo/Brand Section with Expand Toggle -->
+  <div class="p-4 border-b border-gray-700/50 relative">
+    @if (isOpen()) {
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h2 class="text-sm font-bold text-white">Transportes CR</h2>
+          <p class="text-xs text-gray-400">Sistema de Control</p>
+        </div>
+        <!-- Expand All Toggle Button (Top Right) -->
+        <button
+          (click)="toggleExpandAll()"
+          [title]="getExpandAllTooltip()"
+          [class]="'relative p-1.5 rounded-md transition-all duration-200 group ' + 
+            (expandAllMode() ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30' : 'text-gray-400 hover:bg-gray-700/50 hover:text-gray-300')"
+          type="button">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            @if (expandAllMode()) {
+              <!-- Collapse icon -->
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+            } @else {
+              <!-- Expand icon -->
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
             }
-          </a>
+          </svg>
+        </button>
+      </div>
+    } @else {
+      <div class="flex justify-center">
+        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"/>
+          </svg>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav class="flex-1 overflow-y-auto py-4 px-3 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+    <ul class="space-y-1">
+      @for (item of menuItems; track item.label) {
+        <li>
+          <!-- Item with children (submenu) -->
+          @if (item.children && item.children.length > 0) {
+            <div>
+              <!-- Parent item button -->
+              <button
+                (click)="toggleMenuItem(item)"
+                [class]="'w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ' + 
+                  (isParentActive(item) ? 'bg-blue-600/20 text-blue-400' : 'hover:bg-gray-700/50 text-gray-300')"
+                type="button">
+                <div class="flex items-center gap-3 min-w-0">
+                  <svg [class]="'w-5 h-5 flex-shrink-0 transition-colors ' + (isParentActive(item) ? 'text-blue-400' : 'text-gray-400 group-hover:text-gray-300')" 
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon"/>
+                  </svg>
+                  @if (isOpen()) {
+                    <span class="text-sm font-medium truncate">{{ item.label }}</span>
+                  }
+                </div>
+                @if (isOpen()) {
+                  <svg [class]="'w-4 h-4 flex-shrink-0 transition-transform duration-200 ' + (isExpanded(item) ? 'rotate-180' : '')" 
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                }
+              </button>
+
+              <!-- Submenu items (collapsible) -->
+              @if (isOpen() && (isExpanded(item) || isParentActive(item))) {
+                <ul class="mt-1 ml-4 pl-4 border-l-2 border-gray-700/50 space-y-1">
+                  @for (child of item.children; track child.route) {
+                    <li>
+                      <a
+                        [routerLink]="child.route"
+                        [class]="'flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group ' + 
+                          (isActive(child.route) ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'hover:bg-gray-700/50 text-gray-300')"
+                        [title]="child.label">
+                        <svg [class]="'w-4 h-4 flex-shrink-0 transition-colors ' + (isActive(child.route) ? 'text-white' : 'text-gray-400 group-hover:text-gray-300')" 
+                          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="child.icon"/>
+                        </svg>
+                        <span class="text-sm font-medium truncate">{{ child.label }}</span>
+                      </a>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          } @else {
+            <!-- Regular item (no children) -->
+            <a
+              [routerLink]="item.route"
+              [class]="'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ' + 
+                (isActive(item.route) ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'hover:bg-gray-700/50 text-gray-300')"
+              [title]="item.label">
+              <svg [class]="'w-5 h-5 flex-shrink-0 transition-colors ' + (isActive(item.route) ? 'text-white' : 'text-gray-400 group-hover:text-gray-300')" 
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon"/>
+              </svg>
+              @if (isOpen()) {
+                <span class="text-sm font-medium truncate">{{ item.label }}</span>
+              }
+            </a>
+          }
         </li>
       }
     </ul>
   </nav>
+
+  <!-- Footer Section (Optional) -->
+  @if (isOpen()) {
+    <div class="p-4 border-t border-gray-700/50">
+      <div class="text-xs text-gray-400 text-center">
+        <p>v1.0.0</p>
+      </div>
+    </div>
+  }
 </aside>
