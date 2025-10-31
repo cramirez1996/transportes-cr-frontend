@@ -193,20 +193,20 @@ export class ChangeStatusModalComponent implements OnInit {
 
       const formValue = this.changeStatusForm.value;
 
-      // Convert YYYY-MM to Date object (first day of month at midnight UTC)
+      // Convert YYYY-MM to Date object (first day of month at local timezone)
       // El input type="month" devuelve "YYYY-MM", necesitamos crear un Date object
       let accountingPeriodDate: Date | undefined = undefined;
       if (formValue.accountingPeriod) {
         const [year, month] = formValue.accountingPeriod.split('-');
-        // Crear fecha en UTC (medianoche del primer día del mes)
-        accountingPeriodDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, 1, 0, 0, 0, 0));
+        // Crear fecha en timezone local (medianoche del primer día del mes)
+        accountingPeriodDate = new Date(parseInt(year), parseInt(month) - 1, 1, 0, 0, 0, 0);
       }
 
       // Construir payload
       const payload: any = {
         status: this.targetStatus,
         paymentMethod: formValue.paymentMethod,
-        accountingPeriod: accountingPeriodDate?.toISOString() // Enviar como ISO string con timezone
+        accountingPeriod: accountingPeriodDate?.toISOString() // Enviar como ISO string con timezone local
       };
 
       // Si hay itemCategories, enviar eso; si no, categoryId

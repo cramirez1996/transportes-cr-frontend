@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, catchError, throwError, BehaviorSubject } from 'rxjs';
+import { Observable, tap, catchError, throwError, BehaviorSubject, shareReplay, finalize } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   LoginRequest,
@@ -50,6 +50,9 @@ export class AuthService {
 
   private userTenantsSubject = new BehaviorSubject<Tenant[]>(this.getTenantsFromStorage());
   public userTenants$ = this.userTenantsSubject.asObservable();
+
+  // Single refresh in-flight: para evitar múltiples llamadas simultáneas a refresh
+  private refreshTokenInProgress$: Observable<TokenResponse> | null = null;
 
   constructor(
     private http: HttpClient,
@@ -122,16 +125,23 @@ export class AuthService {
   }
 
   /**
-   * Refrescar token
+   * Refrescar token con protección contra múltiples llamadas simultáneas
+   * Si ya hay un refresh en progreso, retorna el mismo observable
    */
   refreshToken(): Observable<TokenResponse> {
+    // Si ya hay un refresh en progreso, retornar el mismo observable
+    if (this.refreshTokenInProgress$) {
+      return this.refreshTokenInProgress$;
+    }
+
     const refreshToken = this.getRefreshToken();
 
     if (!refreshToken) {
       return throwError(() => new Error('No refresh token available'));
     }
 
-    return this.http
+    // Crear el observable de refresh y compartirlo
+    this.refreshTokenInProgress$ = this.http
       .post<TokenResponse>(`${this.API_URL}/refresh`, { refreshToken })
       .pipe(
         tap((response) => {
@@ -143,7 +153,15 @@ export class AuthService {
           this.router.navigate(['/auth/login']);
           return throwError(() => error);
         }),
+        // shareReplay permite que múltiples suscriptores reciban el mismo valor
+        shareReplay(1),
+        // Limpiar el observable en progreso cuando termine (éxito o error)
+        finalize(() => {
+          this.refreshTokenInProgress$ = null;
+        })
       );
+
+    return this.refreshTokenInProgress$;
   }
 
   /**

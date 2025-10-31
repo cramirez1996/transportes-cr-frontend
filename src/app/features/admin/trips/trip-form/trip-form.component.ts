@@ -6,10 +6,12 @@ import { Customer } from '../../../../core/models/business/customer.model';
 import { Vehicle } from '../../../../core/models/business/vehicle.model';
 import { Driver } from '../../../../core/models/business/driver.model';
 import { Supplier } from '../../../../core/models/supplier.model';
+import { TripGroup } from '../../../../core/models/trip-group.model';
 import { CustomerService } from '../../../../core/services/business/customer.service';
 import { VehicleService } from '../../../../core/services/business/vehicle.service';
 import { DriverService } from '../../../../core/services/business/driver.service';
 import { SupplierService } from '../../../../core/services/supplier.service';
+import { TripGroupService } from '../../../../core/services/trip-group.service';
 import { ModalRef } from '../../../../core/services/modal.service';
 import { TagsEditorComponent } from '../../../../shared/components/tags-editor/tags-editor.component';
 import { CustomSelectComponent, CustomSelectOption } from '../../../../shared/components/custom-select/custom-select.component';
@@ -30,6 +32,7 @@ export class TripFormComponent implements OnInit {
   private vehicleService = inject(VehicleService);
   private driverService = inject(DriverService);
   private supplierService = inject(SupplierService);
+  private tripGroupService = inject(TripGroupService);
 
   tripForm!: FormGroup;
   trip: Trip | null = null;
@@ -38,12 +41,14 @@ export class TripFormComponent implements OnInit {
   vehicles: Vehicle[] = [];
   drivers: Driver[] = [];
   subcontractors: Supplier[] = [];
+  tripGroups: TripGroup[] = [];
 
   // Custom select options
   customerOptions: CustomSelectOption[] = [];
   vehicleOptions: CustomSelectOption[] = [];
   driverOptions: CustomSelectOption[] = [];
   subcontractorOptions: CustomSelectOption[] = [];
+  tripGroupOptions: CustomSelectOption[] = [];
 
   loading = false;
   tags: Record<string, any> = {};
@@ -58,18 +63,23 @@ export class TripFormComponent implements OnInit {
   loadCatalogs(): void {
     this.loading = true;
 
-    // Cargar clientes, vehículos, conductores y subcontratistas en paralelo
+    // Cargar clientes, vehículos, conductores, subcontratistas y vueltas en paralelo
     Promise.all([
       this.customerService.getCustomers().toPromise(),
       this.vehicleService.getVehicles().toPromise(),
       this.driverService.getDrivers().toPromise(),
-      this.supplierService.getSuppliers().toPromise()
-    ]).then(([customers, vehicles, drivers, suppliers]) => {
+      this.supplierService.getSuppliers().toPromise(),
+      this.tripGroupService.getAll().toPromise()
+    ]).then(([customers, vehicles, drivers, suppliers, tripGroups]) => {
       this.customers = customers || [];
       this.vehicles = vehicles || [];
       this.drivers = drivers || [];
       // Filtrar solo proveedores tipo SUBCONTRACTOR
       this.subcontractors = (suppliers || []).filter(s => s.supplierType === 'SUBCONTRACTOR');
+      // Filtrar solo vueltas que no estén completadas o canceladas
+      this.tripGroups = (tripGroups || []).filter(tg =>
+        tg.status === 'PENDING' || tg.status === 'IN_PROGRESS'
+      );
 
       // Prepare custom select options
       this.prepareSelectOptions();
@@ -132,6 +142,17 @@ export class TripFormComponent implements OnInit {
         color: this.getColorFromName(subcontractor.businessName)
       }
     }));
+
+    // Trip group options (simple mode - no custom templates)
+    this.tripGroupOptions = this.tripGroups.map(tripGroup => ({
+      value: tripGroup.id,
+      label: tripGroup.code,
+      data: {
+        description: tripGroup.description,
+        startDate: tripGroup.startDate,
+        status: tripGroup.status
+      }
+    }));
   }
 
   getInitials(name: string): string {
@@ -175,6 +196,7 @@ export class TripFormComponent implements OnInit {
 
     this.tripForm = this.fb.group({
       customerId: [this.trip?.customer?.id || '', [Validators.required]],
+      tripGroupId: [this.trip?.tripGroupId || ''], // Nueva campo para asociar a vuelta
       isSubcontracted: [this.trip?.isSubcontracted || false],
       vehicleId: [this.trip?.vehicle?.id || ''],
       driverId: [this.trip?.driver?.id || ''],

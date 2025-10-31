@@ -18,6 +18,11 @@ export interface MaintenanceFilters {
   status?: MaintenanceStatus;
   startDate?: Date;
   endDate?: Date;
+  maintenanceClass?: string;
+  minCost?: number;
+  maxCost?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
 }
 
 @Injectable({
@@ -28,6 +33,7 @@ export class MaintenanceService {
   private apiUrl = `${environment.apiUrl}/maintenance-records`;
   private typesApiUrl = `${environment.apiUrl}/maintenance-types`;
   private alertsApiUrl = `${environment.apiUrl}/maintenance-alerts`;
+  private vehicleMaintenancesApiUrl = `${environment.apiUrl}/vehicle-maintenances`;
 
   // Maintenance Records CRUD
   getMaintenanceRecords(filters?: MaintenanceFilters): Observable<MaintenanceRecord[]> {
@@ -71,8 +77,16 @@ export class MaintenanceService {
   }
 
   // Maintenance Types
-  getMaintenanceTypes(): Observable<MaintenanceType[]> {
-    return this.http.get<any[]>(this.typesApiUrl).pipe(
+  getMaintenanceTypes(filters?: { category?: string; maintenanceClass?: string; isActive?: boolean }): Observable<MaintenanceType[]> {
+    let params = new HttpParams();
+
+    if (filters) {
+      if (filters.category) params = params.set('category', filters.category);
+      if (filters.maintenanceClass) params = params.set('maintenanceClass', filters.maintenanceClass);
+      if (filters.isActive !== undefined) params = params.set('isActive', filters.isActive.toString());
+    }
+
+    return this.http.get<any[]>(this.typesApiUrl, { params }).pipe(
       map(types => types.map(type => this.mapMaintenanceTypeFromBackend(type)))
     );
   }
@@ -81,6 +95,64 @@ export class MaintenanceService {
     return this.http.get<any>(`${this.typesApiUrl}/${id}`).pipe(
       map(type => this.mapMaintenanceTypeFromBackend(type))
     );
+  }
+
+  createMaintenanceType(typeData: any): Observable<MaintenanceType> {
+    return this.http.post<any>(this.typesApiUrl, typeData).pipe(
+      map(type => this.mapMaintenanceTypeFromBackend(type))
+    );
+  }
+
+  updateMaintenanceType(id: string, typeData: any): Observable<MaintenanceType> {
+    return this.http.patch<any>(`${this.typesApiUrl}/${id}`, typeData).pipe(
+      map(type => this.mapMaintenanceTypeFromBackend(type))
+    );
+  }
+
+  toggleMaintenanceTypeActive(id: string): Observable<MaintenanceType> {
+    return this.http.patch<any>(`${this.typesApiUrl}/${id}/toggle-active`, {}).pipe(
+      map(type => this.mapMaintenanceTypeFromBackend(type))
+    );
+  }
+
+  deleteMaintenanceType(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.typesApiUrl}/${id}`);
+  }
+
+  // Vehicle Maintenances (Maintenance Plans)
+  getVehicleMaintenances(filters?: { vehicleId?: string; isEnabled?: boolean }): Observable<any[]> {
+    let params = new HttpParams();
+
+    if (filters) {
+      if (filters.vehicleId) params = params.set('vehicleId', filters.vehicleId);
+      if (filters.isEnabled !== undefined) params = params.set('isEnabled', filters.isEnabled.toString());
+    }
+
+    return this.http.get<any[]>(this.vehicleMaintenancesApiUrl, { params });
+  }
+
+  getVehicleMaintenanceById(id: string): Observable<any> {
+    return this.http.get<any>(`${this.vehicleMaintenancesApiUrl}/${id}`);
+  }
+
+  getVehicleMaintenancesByVehicle(vehicleId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.vehicleMaintenancesApiUrl}/vehicle/${vehicleId}`);
+  }
+
+  createVehicleMaintenance(data: any): Observable<any> {
+    return this.http.post<any>(this.vehicleMaintenancesApiUrl, data);
+  }
+
+  updateVehicleMaintenance(id: string, data: any): Observable<any> {
+    return this.http.patch<any>(`${this.vehicleMaintenancesApiUrl}/${id}`, data);
+  }
+
+  toggleVehicleMaintenanceEnabled(id: string): Observable<any> {
+    return this.http.patch<any>(`${this.vehicleMaintenancesApiUrl}/${id}/toggle-enabled`, {});
+  }
+
+  deleteVehicleMaintenance(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.vehicleMaintenancesApiUrl}/${id}`);
   }
 
   // Maintenance Alerts

@@ -27,6 +27,7 @@ export interface Transaction {
   date: Date;
   description: string;
   trip?: any;
+  tripGroup?: any;
   invoice?: any;
   vehicle?: any;
   driver?: any;
@@ -48,6 +49,7 @@ export interface CreateTransactionDto {
   date: Date;
   description: string;
   tripId?: string;
+  tripGroupId?: string;
   invoiceId?: string;
   vehicleId?: string;
   driverId?: string;
@@ -74,12 +76,18 @@ export interface TransactionFilters {
   categoryId?: string;
   startDate?: Date;
   endDate?: Date;
+  invoiceId?: string;
   tripId?: string;
   vehicleId?: string;
   driverId?: string;
   customerId?: string;
   supplierId?: string;
   paymentMethod?: PaymentMethod;
+  minAmount?: number;
+  maxAmount?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
 }
 
 export interface TransactionStatistics {

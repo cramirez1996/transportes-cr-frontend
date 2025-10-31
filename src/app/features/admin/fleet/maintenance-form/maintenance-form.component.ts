@@ -6,10 +6,11 @@ import { MaintenanceService } from '../../../../core/services/maintenance.servic
 import { MaintenanceRecord, MaintenanceStatus, MaintenanceClass, MaintenanceType } from '../../../../core/models/maintenance.model';
 import { VehicleService } from '../../../../core/services/business/vehicle.service';
 import { Vehicle } from '../../../../core/models/business/vehicle.model';
+import { CustomSelectComponent, CustomSelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-maintenance-form',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, CustomSelectComponent],
   templateUrl: './maintenance-form.component.html',
   styleUrl: './maintenance-form.component.scss'
 })
@@ -34,8 +35,15 @@ export class MaintenanceFormComponent implements OnInit {
   vehicles: Vehicle[] = [];
   maintenanceTypes: MaintenanceType[] = [];
 
+  // Custom select options
+  vehicleOptions: CustomSelectOption[] = [];
+  maintenanceTypeOptions: CustomSelectOption[] = [];
+  classOptions: CustomSelectOption[] = [];
+  statusOptions: CustomSelectOption[] = [];
+
   ngOnInit(): void {
     this.initForm();
+    this.initializeSelectOptions();
     this.loadVehicles();
     this.loadMaintenanceTypes();
 
@@ -44,6 +52,22 @@ export class MaintenanceFormComponent implements OnInit {
       this.isEditMode = true;
       this.loadMaintenanceRecord(this.maintenanceId);
     }
+  }
+
+  initializeSelectOptions(): void {
+    // Status options
+    this.statusOptions = [
+      { value: MaintenanceStatus.SCHEDULED, label: 'Programado' },
+      { value: MaintenanceStatus.COMPLETED, label: 'Completado' },
+      { value: MaintenanceStatus.OVERDUE, label: 'Vencido' },
+      { value: MaintenanceStatus.CANCELLED, label: 'Cancelado' }
+    ];
+
+    // Class options
+    this.classOptions = [
+      { value: MaintenanceClass.PREVENTIVE, label: 'Preventivo' },
+      { value: MaintenanceClass.CORRECTIVE, label: 'Correctivo' }
+    ];
   }
 
   initForm(): void {
@@ -68,6 +92,12 @@ export class MaintenanceFormComponent implements OnInit {
     this.vehicleService.getVehicles().subscribe({
       next: (vehicles) => {
         this.vehicles = vehicles;
+        this.vehicleOptions = vehicles.map(v => ({
+          value: v.id,
+          label: v.licensePlate,
+          searchableText: `${v.licensePlate} ${v.brand} ${v.model}`,
+          data: { brand: v.brand, model: v.model, type: v.type }
+        }));
       },
       error: (err) => {
         console.error('Error loading vehicles:', err);
@@ -79,6 +109,12 @@ export class MaintenanceFormComponent implements OnInit {
     this.maintenanceService.getMaintenanceTypes().subscribe({
       next: (types) => {
         this.maintenanceTypes = types.filter(t => t.isActive);
+        this.maintenanceTypeOptions = this.maintenanceTypes.map(t => ({
+          value: t.id,
+          label: t.name,
+          searchableText: `${t.name} ${t.category}`,
+          data: { category: t.category, class: t.maintenanceClass }
+        }));
       },
       error: (err) => {
         console.error('Error loading maintenance types:', err);

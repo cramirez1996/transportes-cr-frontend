@@ -155,15 +155,43 @@ export class TripService {
     );
   }
 
-  getTripsByCustomer(customerId: string): Observable<Trip[]> {
-    return this.http.get<TripBackendResponse[]>(`${this.apiUrl}?customerId=${customerId}`).pipe(
-      map(trips => trips.map(trip => this.mapTripFromBackend(trip)))
+  getTripsByCustomer(customerId: string, pagination: PaginationParams = { page: 1, limit: 10 }): Observable<PaginatedResponse<Trip>> {
+    const page = pagination.page || 1;
+    const limit = pagination.limit || 10;
+    
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString())
+      .set('customerId', customerId);
+
+    return this.http.get<any>(`${this.apiUrl}`, { params }).pipe(
+      map(response => ({
+        data: response.data.map((trip: TripBackendResponse) => this.mapTripFromBackend(trip)),
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        totalPages: response.totalPages
+      }))
     );
   }
 
-  getTripsByDriver(driverId: string): Observable<Trip[]> {
-    return this.http.get<TripBackendResponse[]>(`${this.apiUrl}?driverId=${driverId}`).pipe(
-      map(trips => trips.map(trip => this.mapTripFromBackend(trip)))
+  getTripsByDriver(driverId: string, pagination: PaginationParams = { page: 1, limit: 10 }): Observable<PaginatedResponse<Trip>> {
+    const page = pagination.page || 1;
+    const limit = pagination.limit || 10;
+    
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString())
+      .set('driverId', driverId);
+
+    return this.http.get<any>(`${this.apiUrl}`, { params }).pipe(
+      map(response => ({
+        data: response.data.map((trip: TripBackendResponse) => this.mapTripFromBackend(trip)),
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        totalPages: response.totalPages
+      }))
     );
   }
 

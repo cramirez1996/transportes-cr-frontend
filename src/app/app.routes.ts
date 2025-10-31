@@ -86,6 +86,41 @@ export const routes: Routes = [
           .then(m => m.MaintenanceFormComponent)
       },
       {
+        path: 'fleet/maintenance/:id',
+        loadComponent: () => import('./features/admin/fleet/maintenance-detail/maintenance-detail.component')
+          .then(m => m.MaintenanceDetailComponent)
+      },
+      {
+        path: 'fleet/maintenance-types',
+        loadComponent: () => import('./features/admin/fleet/maintenance-types-list/maintenance-types-list.component')
+          .then(m => m.MaintenanceTypesListComponent)
+      },
+      {
+        path: 'fleet/maintenance-types/new',
+        loadComponent: () => import('./features/admin/fleet/maintenance-types-form/maintenance-types-form.component')
+          .then(m => m.MaintenanceTypesFormComponent)
+      },
+      {
+        path: 'fleet/maintenance-types/:id/edit',
+        loadComponent: () => import('./features/admin/fleet/maintenance-types-form/maintenance-types-form.component')
+          .then(m => m.MaintenanceTypesFormComponent)
+      },
+      {
+        path: 'fleet/vehicle-maintenance-plans',
+        loadComponent: () => import('./features/admin/fleet/vehicle-maintenance-plans-list/vehicle-maintenance-plans-list.component')
+          .then(m => m.VehicleMaintenancePlansListComponent)
+      },
+      {
+        path: 'fleet/vehicle-maintenance-plans/new',
+        loadComponent: () => import('./features/admin/fleet/vehicle-maintenance-plans-form/vehicle-maintenance-plans-form.component')
+          .then(m => m.VehicleMaintenancePlansFormComponent)
+      },
+      {
+        path: 'fleet/vehicle-maintenance-plans/:id/edit',
+        loadComponent: () => import('./features/admin/fleet/vehicle-maintenance-plans-form/vehicle-maintenance-plans-form.component')
+          .then(m => m.VehicleMaintenancePlansFormComponent)
+      },
+      {
         path: 'hr',
         loadComponent: () => import('./features/admin/hr/driver-list/driver-list.component')
           .then(m => m.DriverListComponent)
@@ -99,6 +134,26 @@ export const routes: Routes = [
         path: 'trips/:id',
         loadComponent: () => import('./features/admin/trips/trip-detail/trip-detail.component')
           .then(m => m.TripDetailComponent)
+      },
+      {
+        path: 'trip-groups',
+        loadComponent: () => import('./features/admin/trip-groups/trip-group-list/trip-group-list.component')
+          .then(m => m.TripGroupListComponent)
+      },
+      {
+        path: 'trip-groups/new',
+        loadComponent: () => import('./features/admin/trip-groups/trip-group-form/trip-group-form.component')
+          .then(m => m.TripGroupFormComponent)
+      },
+      {
+        path: 'trip-groups/:id',
+        loadComponent: () => import('./features/admin/trip-groups/trip-group-detail/trip-group-detail.component')
+          .then(m => m.TripGroupDetailComponent)
+      },
+      {
+        path: 'trip-groups/:id/edit',
+        loadComponent: () => import('./features/admin/trip-groups/trip-group-form/trip-group-form.component')
+          .then(m => m.TripGroupFormComponent)
       },
       {
         path: 'invoicing',
@@ -116,9 +171,14 @@ export const routes: Routes = [
           .then(m => m.TransactionListComponent)
       },
       {
-        path: 'accounting/cost-explorer',
-        loadComponent: () => import('./features/admin/accounting/cost-explorer/cost-explorer.component')
-          .then(m => m.CostExplorerComponent)
+        path: 'accounting/transaction-explorer',
+        loadComponent: () => import('./features/admin/accounting/transaction-explorer/transaction-explorer.component')
+          .then(m => m.TransactionExplorerComponent)
+      },
+      {
+        path: 'accounting/categories',
+        loadComponent: () => import('./features/admin/accounting/category-management/category-management.component')
+          .then(m => m.CategoryManagementComponent)
       },
       {
         path: 'accounting/new',

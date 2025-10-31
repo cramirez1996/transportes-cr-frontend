@@ -283,9 +283,12 @@ export class InvoiceFormComponent implements OnInit {
   }
 
   createTaxFormGroup(tax?: InvoiceTax): FormGroup {
+    const defaultTaxCode = tax?.taxCode || 28;
+    const defaultTaxName = tax?.taxName || this.taxCodes.find(t => t.code === defaultTaxCode)?.name || '';
+
     return this.fb.group({
-      taxCode: [tax?.taxCode || 28, Validators.required],
-      taxName: [tax?.taxName || '', Validators.required],
+      taxCode: [defaultTaxCode, Validators.required],
+      taxName: [defaultTaxName, Validators.required],
       taxAmount: [tax?.taxAmount || 0, [Validators.required, Validators.min(0)]],
       taxRate: [tax?.taxRate || 0, Validators.min(0)]
     });

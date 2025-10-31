@@ -14,6 +14,7 @@ import {
   TransactionByCategory,
   TransactionType,
 } from '../models/transaction.model';
+import { PaginatedResponse, PaginationParams } from '../models/pagination.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -24,24 +25,64 @@ export class TransactionService {
   private apiUrl = `${environment.apiUrl}/transactions`;
 
   // CRUD de Transacciones
-  getTransactions(filters?: TransactionFilters): Observable<Transaction[]> {
+  getTransactions(filters?: TransactionFilters, pagination?: PaginationParams): Observable<PaginatedResponse<Transaction>> {
     let params = new HttpParams();
 
+    // Pagination parameters
+    if (pagination) {
+      if (pagination.page) params = params.set('page', pagination.page.toString());
+      if (pagination.limit) params = params.set('limit', pagination.limit.toString());
+      if (pagination.sortBy) params = params.set('sortBy', pagination.sortBy);
+      if (pagination.sortOrder) params = params.set('sortOrder', pagination.sortOrder);
+    }
+
     if (filters) {
+      // Basic filters
       if (filters.type) params = params.set('type', filters.type);
       if (filters.categoryId) params = params.set('categoryId', filters.categoryId);
-      if (filters.startDate) params = params.set('startDate', filters.startDate.toISOString());
-      if (filters.endDate) params = params.set('endDate', filters.endDate.toISOString());
       if (filters.tripId) params = params.set('tripId', filters.tripId);
       if (filters.vehicleId) params = params.set('vehicleId', filters.vehicleId);
       if (filters.driverId) params = params.set('driverId', filters.driverId);
       if (filters.customerId) params = params.set('customerId', filters.customerId);
       if (filters.supplierId) params = params.set('supplierId', filters.supplierId);
       if (filters.paymentMethod) params = params.set('paymentMethod', filters.paymentMethod);
+      if (filters.startDate) {
+        const dateStr = filters.startDate instanceof Date
+          ? filters.startDate.toISOString()
+          : new Date(filters.startDate).toISOString();
+        params = params.set('startDate', dateStr);
+      }
+      if (filters.endDate) {
+        const dateStr = filters.endDate instanceof Date
+          ? filters.endDate.toISOString()
+          : new Date(filters.endDate).toISOString();
+        params = params.set('endDate', dateStr);
+      }
+
+      // Advanced filters
+      if (filters.minAmount !== undefined && filters.minAmount !== null) {
+        params = params.set('minAmount', filters.minAmount.toString());
+      }
+      if (filters.maxAmount !== undefined && filters.maxAmount !== null) {
+        params = params.set('maxAmount', filters.maxAmount.toString());
+      }
+
+      // Quick search
+      if (filters.search) params = params.set('search', filters.search);
+      
+      // Sorting
+      if (filters.sortBy) params = params.set('sortBy', filters.sortBy);
+      if (filters.sortOrder) params = params.set('sortOrder', filters.sortOrder);
     }
 
-    return this.http.get<any[]>(this.apiUrl, { params }).pipe(
-      map(transactions => transactions.map(t => this.mapTransactionFromBackend(t)))
+    return this.http.get<PaginatedResponse<any>>(this.apiUrl, { params }).pipe(
+      map(response => ({
+        data: response.data.map(t => this.mapTransactionFromBackend(t)),
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        totalPages: response.totalPages
+      }))
     );
   }
 

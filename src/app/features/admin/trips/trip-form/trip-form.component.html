@@ -59,6 +59,25 @@
       </p>
     </div>
 
+    <!-- Vuelta (Opcional) -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Vuelta (Opcional)
+        <span class="ml-1 text-xs text-gray-500 font-normal">- Para agrupar múltiples viajes</span>
+      </label>
+      <app-custom-select
+        formControlName="tripGroupId"
+        [options]="tripGroupOptions"
+        [searchable]="true"
+        [clearable]="true"
+        placeholder="Sin asignar a vuelta"
+      >
+      </app-custom-select>
+      <p class="mt-1 text-xs text-gray-500">
+        Selecciona una vuelta existente para agrupar este viaje con otros (ej: ida y vuelta). Los gastos compartidos se asociarán a la vuelta completa.
+      </p>
+    </div>
+
     <!-- Toggle Tipo de Viaje -->
     <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
       <label class="flex items-center cursor-pointer">

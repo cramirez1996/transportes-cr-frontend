@@ -1,0 +1,249 @@
+<div class="container mx-auto px-4 py-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Tipos de Mantenimiento</h1>
+      <p class="text-sm text-gray-600 mt-1">Gestiona los tipos de mantenimiento preventivo y correctivo</p>
+    </div>
+    <button
+      type="button"
+      routerLink="/admin/fleet/maintenance-types/new"
+      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Nuevo Tipo
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Search -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+        <input
+          type="text"
+          [(ngModel)]="filters.search"
+          (ngModelChange)="onFilterChange()"
+          placeholder="Nombre o descripción"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      </div>
+
+      <!-- Category filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+        <app-custom-select
+          [(ngModel)]="filters.category"
+          (ngModelChange)="onFilterChange()"
+          [options]="categoryOptions"
+          [searchable]="true"
+          [clearable]="true"
+          placeholder="Todas">
+        </app-custom-select>
+      </div>
+
+      <!-- Class filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Clase</label>
+        <app-custom-select
+          [(ngModel)]="filters.maintenanceClass"
+          (ngModelChange)="onFilterChange()"
+          [options]="classOptions"
+          [clearable]="true"
+          placeholder="Todas">
+        </app-custom-select>
+      </div>
+
+      <!-- Status filter -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+        <app-custom-select
+          [(ngModel)]="filters.isActive"
+          (ngModelChange)="onFilterChange()"
+          [options]="statusOptions"
+          [clearable]="true"
+          placeholder="Todos">
+        </app-custom-select>
+      </div>
+    </div>
+
+    <!-- Clear filters button -->
+    <div class="mt-4 flex justify-end" *ngIf="activeFiltersCount > 0">
+      <button
+        type="button"
+        (click)="clearFilters()"
+        class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+        Limpiar filtros ({{ activeFiltersCount }})
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-8">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <p class="text-gray-600 mt-2">Cargando tipos de mantenimiento...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+    {{ error }}
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!loading && !error" class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clase</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Intervalos</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let type of paginatedTypes" class="hover:bg-gray-50 transition-colors">
+            <!-- Name & Description -->
+            <td class="px-6 py-4">
+              <div class="text-sm font-medium text-gray-900">{{ type.name }}</div>
+              <div class="text-xs text-gray-500" *ngIf="type.description">{{ type.description }}</div>
+            </td>
+
+            <!-- Category -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span [class]="'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ' + getCategoryBadgeClass(type.category)">
+                {{ getCategoryLabel(type.category) }}
+              </span>
+            </td>
+
+            <!-- Class -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span [class]="'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ' + getClassBadgeClass(type.maintenanceClass)">
+                {{ getClassLabel(type.maintenanceClass) }}
+              </span>
+            </td>
+
+            <!-- Intervals -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900" *ngIf="type.maintenanceClass === MaintenanceClass.PREVENTIVE">
+                {{ getIntervalDisplay(type) }}
+              </div>
+              <div class="text-sm text-gray-500" *ngIf="type.maintenanceClass === MaintenanceClass.CORRECTIVE">
+                N/A (Correctivo)
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span [class]="type.isActive ? 'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800' : 'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800'">
+                {{ type.isActive ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <div class="inline-flex rounded-md shadow-sm" role="group">
+                <!-- Edit button -->
+                <a [routerLink]="['/admin/fleet/maintenance-types', type.id, 'edit']"
+                  class="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 focus:z-10 focus:ring-2 focus:ring-blue-500 transition-all group">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    Editar
+                  </span>
+                </a>
+
+                <!-- Toggle active button -->
+                <button
+                  type="button"
+                  (click)="toggleActive(type)"
+                  class="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border-t border-b border-gray-300 hover:bg-gray-50 focus:z-10 focus:ring-2 focus:ring-blue-500 transition-all group">
+                  <svg *ngIf="type.isActive" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                  <svg *ngIf="!type.isActive" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                    {{ type.isActive ? 'Desactivar' : 'Activar' }}
+                  </span>
+                </button>
+
+                <!-- More options dropdown -->
+                <app-dropdown align="right">
+                  <ng-template #trigger>
+                    <button type="button"
+                      class="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 focus:z-10 focus:ring-2 focus:ring-blue-500 transition-all group">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                      </svg>
+                      <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                        Más opciones
+                      </span>
+                    </button>
+                  </ng-template>
+
+                  <ng-template #menu let-dropdown>
+                    <div class="py-1">
+                      <app-dropdown-divider></app-dropdown-divider>
+                      <app-dropdown-item
+                        type="button"
+                        variant="danger"
+                        (itemClick)="deleteMaintenanceType(type); dropdown.closeDropdown()">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Eliminar
+                      </app-dropdown-item>
+                    </div>
+                  </ng-template>
+                </app-dropdown>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Empty state -->
+          <tr *ngIf="maintenanceTypes.length === 0">
+            <td colspan="6" class="px-6 py-12 text-center">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">No hay tipos de mantenimiento</h3>
+              <p class="mt-1 text-sm text-gray-500">Comienza creando un nuevo tipo de mantenimiento</p>
+              <div class="mt-6">
+                <button
+                  type="button"
+                  routerLink="/admin/fleet/maintenance-types/new"
+                  class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Nuevo Tipo
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="maintenanceTypes.length > 0" class="px-6 py-4 border-t border-gray-200">
+      <app-pagination
+        [page]="page"
+        [totalPages]="totalPages"
+        [limit]="limit"
+        [total]="total"
+        (pageChange)="onPageChange($event)"
+        (limitChange)="onLimitChange($event)">
+      </app-pagination>
+    </div>
+  </div>
+</div>

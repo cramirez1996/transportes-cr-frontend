@@ -19,11 +19,12 @@ import { SupplierService } from '../../../../core/services/supplier.service';
 import { MaintenanceService } from '../../../../core/services/maintenance.service';
 import { TransactionService } from '../../../../core/services/transaction.service';
 import { UserService } from '../../../../core/services/user.service';
+import { CustomSelectComponent, CustomSelectOption } from '../../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-document-upload',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './document-upload.component.html',
   styleUrl: './document-upload.component.scss'
 })
@@ -56,6 +57,9 @@ export class DocumentUploadComponent implements OnInit {
 
   // Available entities based on selected type
   availableEntities: any[] = [];
+  
+  // Custom select options
+  tripOptions: CustomSelectOption[] = [];
 
   // Enums para el template
   DocumentEntityType = DocumentEntityType;
@@ -147,6 +151,17 @@ export class DocumentUploadComponent implements OnInit {
               id: t.id,
               label: `${t.origin} → ${t.destination} - ${t.departureDate.toLocaleDateString()}`
             }));
+            this.tripOptions = response.data.map(t => ({
+              value: t.id,
+              label: `${t.origin} → ${t.destination}`,
+              searchableText: `${t.id} ${t.origin} ${t.destination}`,
+              data: {
+                id: t.id,
+                origin: t.origin,
+                destination: t.destination,
+                departureDate: t.departureDate
+              }
+            }));
             this.loadingEntities = false;
           },
           error: (err) => {
@@ -206,8 +221,8 @@ export class DocumentUploadComponent implements OnInit {
 
       case DocumentEntityType.TRANSACTION:
         this.transactionService.getTransactions().subscribe({
-          next: (transactions) => {
-            this.availableEntities = transactions.map(t => ({
+          next: (response) => {
+            this.availableEntities = response.data.map((t: any) => ({
               id: t.id,
               label: `${t.type} - ${t.description} - $${t.amount}`
             }));

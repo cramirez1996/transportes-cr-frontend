@@ -411,8 +411,8 @@ export class TripDetailComponent implements OnInit, AfterViewInit {
       type: TransactionType.EXPENSE,
       tripId: tripId
     }).subscribe({
-      next: (expenses) => {
-        this.expenses = expenses;
+      next: (response) => {
+        this.expenses = response.data;
         this.updateTripCalculations();
         this.loading = false;
       },

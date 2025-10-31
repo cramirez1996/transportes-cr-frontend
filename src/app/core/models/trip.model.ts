@@ -70,6 +70,7 @@ export interface Trip {
   customer: Customer;
   vehicle?: Vehicle | null;
   driver?: Driver | null;
+  tripGroupId?: string | null;
   origin: string;
   destination: string;
 
@@ -103,6 +104,7 @@ export interface Trip {
 
 export interface CreateTripDto {
   customerId: string;
+  tripGroupId?: string;
   isSubcontracted?: boolean;
   // Required when NOT subcontracted
   vehicleId?: string;
@@ -124,6 +126,7 @@ export interface CreateTripDto {
 
 export interface UpdateTripDto {
   customerId?: string;
+  tripGroupId?: string;
   isSubcontracted?: boolean;
   vehicleId?: string;
   driverId?: string;

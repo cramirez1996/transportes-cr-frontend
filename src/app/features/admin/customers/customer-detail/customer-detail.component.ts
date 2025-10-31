@@ -3,14 +3,20 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CustomerService } from '../../../../core/services/business/customer.service';
 import { TripService } from '../../../../core/services/trip.service';
+import { InvoiceService } from '../../../../core/services/invoice.service';
+import { TransactionService } from '../../../../core/services/transaction.service';
 import { Customer, CustomerStatus } from '../../../../core/models/business/customer.model';
 import { Trip, TripStatus } from '../../../../core/models/trip.model';
+import { Invoice } from '../../../../core/models/invoice.model';
+import { Transaction } from '../../../../core/models/transaction.model';
 import { TabsComponent, Tab } from '../../../../shared/components/tabs/tabs.component';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { PaginationParams } from '../../../../core/models/pagination.model';
 
 @Component({
   selector: 'app-customer-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, TabsComponent],
+  imports: [CommonModule, RouterModule, TabsComponent, PaginationComponent],
   templateUrl: './customer-detail.component.html',
   styleUrl: './customer-detail.component.scss'
 })
@@ -19,11 +25,35 @@ export class CustomerDetailComponent implements OnInit {
   private router = inject(Router);
   private customerService = inject(CustomerService);
   private tripService = inject(TripService);
+  private invoiceService = inject(InvoiceService);
+  private transactionService = inject(TransactionService);
 
   customer: Customer | null = null;
   trips: Trip[] = [];
+  invoices: Invoice[] = [];
+  transactions: Transaction[] = [];
   loading = false;
   loadingTrips = false;
+  loadingInvoices = false;
+  loadingTransactions = false;
+
+  // Pagination for trips
+  tripsPage = 1;
+  tripsLimit = 10;
+  tripsTotal = 0;
+  tripsTotalPages = 0;
+
+  // Pagination for invoices
+  invoicesPage = 1;
+  invoicesLimit = 10;
+  invoicesTotal = 0;
+  invoicesTotalPages = 0;
+
+  // Pagination for transactions
+  transactionsPage = 1;
+  transactionsLimit = 10;
+  transactionsTotal = 0;
+  transactionsTotalPages = 0;
 
   // Tabs configuration
   activeTab = 'trips';
@@ -88,9 +118,18 @@ export class CustomerDetailComponent implements OnInit {
 
   loadCustomerTrips(customerId: string): void {
     this.loadingTrips = true;
-    this.tripService.getTripsByCustomer(customerId).subscribe({
-      next: (trips) => {
-        this.trips = trips;
+    const pagination: PaginationParams = {
+      page: this.tripsPage,
+      limit: this.tripsLimit
+    };
+    
+    this.tripService.getTripsByCustomer(customerId, pagination).subscribe({
+      next: (response) => {
+        this.trips = response.data;
+        this.tripsTotal = response.total;
+        this.tripsPage = response.page;
+        this.tripsLimit = response.limit;
+        this.tripsTotalPages = response.totalPages;
         this.updateTabCounts();
         this.loadingTrips = false;
       },
@@ -101,17 +140,152 @@ export class CustomerDetailComponent implements OnInit {
     });
   }
 
+  loadCustomerInvoices(customerId: string): void {
+    this.loadingInvoices = true;
+    const pagination: PaginationParams = {
+      page: this.invoicesPage,
+      limit: this.invoicesLimit
+    };
+    
+    this.invoiceService.getInvoices({ customerId }, pagination).subscribe({
+      next: (response) => {
+        this.invoices = response.data;
+        this.invoicesTotal = response.total;
+        this.invoicesPage = response.page;
+        this.invoicesLimit = response.limit;
+        this.invoicesTotalPages = response.totalPages;
+        this.updateTabCounts();
+        this.loadingInvoices = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar facturas:', err);
+        this.loadingInvoices = false;
+      }
+    });
+  }
+
+  loadCustomerTransactions(customerId: string): void {
+    this.loadingTransactions = true;
+    const pagination: PaginationParams = {
+      page: this.transactionsPage,
+      limit: this.transactionsLimit
+    };
+    
+    this.transactionService.getTransactions({ customerId }, pagination).subscribe({
+      next: (response) => {
+        this.transactions = response.data;
+        this.transactionsTotal = response.total;
+        this.transactionsPage = response.page;
+        this.transactionsLimit = response.limit;
+        this.transactionsTotalPages = response.totalPages;
+        this.updateTabCounts();
+        this.loadingTransactions = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar transacciones:', err);
+        this.loadingTransactions = false;
+      }
+    });
+  }
+
   updateTabCounts(): void {
     const tripsTab = this.tabs.find(t => t.id === 'trips');
     if (tripsTab) {
-      tripsTab.count = this.trips.length;
+      tripsTab.count = this.tripsTotal;
     }
-    // Update other tab counts when data is loaded
+    const invoicesTab = this.tabs.find(t => t.id === 'invoices');
+    if (invoicesTab) {
+      invoicesTab.count = this.invoicesTotal;
+    }
+    const transactionsTab = this.tabs.find(t => t.id === 'transactions');
+    if (transactionsTab) {
+      transactionsTab.count = this.transactionsTotal;
+    }
   }
 
   onTabChange(tabId: string): void {
     this.activeTab = tabId;
-    // Load data for the selected tab if needed
+    if (!this.customer) return;
+
+    // Load data for the selected tab if not already loaded
+    switch (tabId) {
+      case 'trips':
+        if (this.trips.length === 0) {
+          this.loadCustomerTrips(this.customer.id);
+        }
+        break;
+      case 'invoices':
+        if (this.invoices.length === 0) {
+          this.loadCustomerInvoices(this.customer.id);
+        }
+        break;
+      case 'transactions':
+        if (this.transactions.length === 0) {
+          this.loadCustomerTransactions(this.customer.id);
+        }
+        break;
+    }
+  }
+
+  // Pagination handlers for trips
+  onTripsPageChange(page: number): void {
+    this.tripsPage = page;
+    if (this.customer) {
+      this.loadCustomerTrips(this.customer.id);
+    }
+  }
+
+  onTripsLimitChange(limit: number): void {
+    this.tripsLimit = limit;
+    this.tripsPage = 1;
+    if (this.customer) {
+      this.loadCustomerTrips(this.customer.id);
+    }
+  }
+
+  // Pagination handlers for invoices
+  onInvoicesPageChange(page: number): void {
+    this.invoicesPage = page;
+    if (this.customer) {
+      this.loadCustomerInvoices(this.customer.id);
+    }
+  }
+
+  onInvoicesLimitChange(limit: number): void {
+    this.invoicesLimit = limit;
+    this.invoicesPage = 1;
+    if (this.customer) {
+      this.loadCustomerInvoices(this.customer.id);
+    }
+  }
+
+  // Pagination handlers for transactions
+  onTransactionsPageChange(page: number): void {
+    this.transactionsPage = page;
+    if (this.customer) {
+      this.loadCustomerTransactions(this.customer.id);
+    }
+  }
+
+  onTransactionsLimitChange(limit: number): void {
+    this.transactionsLimit = limit;
+    this.transactionsPage = 1;
+    if (this.customer) {
+      this.loadCustomerTransactions(this.customer.id);
+    }
+  }
+
+  // Drilldown navigation
+  viewTripDetail(tripId: string): void {
+    this.router.navigate(['/admin/trips', tripId]);
+  }
+
+  viewInvoiceDetail(invoiceId: string): void {
+    this.router.navigate(['/admin/invoicing/invoices', invoiceId]);
+  }
+
+  viewTransactionDetail(transactionId: string): void {
+    this.router.navigate(['/admin/accounting/transactions', transactionId]);
   }
 
   goBack(): void {

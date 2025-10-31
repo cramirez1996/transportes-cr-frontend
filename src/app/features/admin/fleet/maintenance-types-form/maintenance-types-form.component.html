@@ -1,0 +1,253 @@
+<div class="container mx-auto px-4 py-6 max-w-4xl">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-600 mb-2">
+      <a routerLink="/admin/fleet" class="hover:text-blue-600">Flota</a>
+      <span>/</span>
+      <a routerLink="/admin/fleet/maintenance-types" class="hover:text-blue-600">Tipos de Mantenimiento</a>
+      <span>/</span>
+      <span class="text-gray-900 font-medium">{{ isEditMode ? 'Editar' : 'Nuevo' }}</span>
+    </div>
+    <h1 class="text-2xl font-bold text-gray-900">
+      {{ isEditMode ? 'Editar Tipo de Mantenimiento' : 'Nuevo Tipo de Mantenimiento' }}
+    </h1>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-8">
+    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <p class="text-gray-600 mt-2">Cargando...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+    {{ error }}
+  </div>
+
+  <!-- Form -->
+  <form *ngIf="!loading" [formGroup]="maintenanceTypeForm" (ngSubmit)="onSubmit()" class="space-y-6">
+    <!-- Basic Information Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Información Básica</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Name -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Nombre <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            formControlName="name"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            [class.border-red-500]="maintenanceTypeForm.get('name')?.invalid && maintenanceTypeForm.get('name')?.touched"
+            placeholder="Ej: Cambio de aceite motor">
+          <p *ngIf="maintenanceTypeForm.get('name')?.invalid && maintenanceTypeForm.get('name')?.touched"
+            class="mt-1 text-sm text-red-500">
+            El nombre es requerido
+          </p>
+        </div>
+
+        <!-- Description -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+          <textarea
+            formControlName="description"
+            rows="3"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Descripción detallada del tipo de mantenimiento"></textarea>
+        </div>
+
+        <!-- Category -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Categoría <span class="text-red-500">*</span>
+          </label>
+          <app-custom-select
+            formControlName="category"
+            [options]="categoryOptions"
+            [searchable]="true"
+            placeholder="Seleccione categoría">
+          </app-custom-select>
+        </div>
+
+        <!-- Maintenance Class -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Clase de Mantenimiento <span class="text-red-500">*</span>
+          </label>
+          <app-custom-select
+            formControlName="maintenanceClass"
+            [options]="classOptions"
+            placeholder="Seleccione clase">
+          </app-custom-select>
+          <p class="mt-1 text-xs text-gray-500">
+            {{ maintenanceTypeForm.get('maintenanceClass')?.value === MaintenanceClass.PREVENTIVE ? 'Requiere configuración de intervalos' : 'Se registra solo cuando ocurre' }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interval Configuration Card (solo para preventivo) -->
+    <div *ngIf="isPreventive" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Configuración de Intervalos</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Interval Type -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Tipo de Intervalo <span class="text-red-500">*</span>
+          </label>
+          <app-custom-select
+            formControlName="intervalType"
+            [options]="intervalTypeOptions"
+            placeholder="Seleccione tipo de intervalo">
+          </app-custom-select>
+        </div>
+
+        <!-- Interval Kilometers -->
+        <div *ngIf="showKilometersField">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Intervalo en Kilómetros <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            formControlName="intervalKilometers"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            [class.border-red-500]="maintenanceTypeForm.get('intervalKilometers')?.invalid && maintenanceTypeForm.get('intervalKilometers')?.touched"
+            placeholder="5000"
+            min="1">
+          <p *ngIf="maintenanceTypeForm.get('intervalKilometers')?.invalid && maintenanceTypeForm.get('intervalKilometers')?.touched"
+            class="mt-1 text-sm text-red-500">
+            Debe ser mayor a 0
+          </p>
+        </div>
+
+        <!-- Interval Months -->
+        <div *ngIf="showMonthsField">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Intervalo en Meses <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            formControlName="intervalMonths"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            [class.border-red-500]="maintenanceTypeForm.get('intervalMonths')?.invalid && maintenanceTypeForm.get('intervalMonths')?.touched"
+            placeholder="6"
+            min="1">
+          <p *ngIf="maintenanceTypeForm.get('intervalMonths')?.invalid && maintenanceTypeForm.get('intervalMonths')?.touched"
+            class="mt-1 text-sm text-red-500">
+            Debe ser mayor a 0
+          </p>
+        </div>
+
+        <!-- Alert Before Km -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Alerta Antes (km) <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            formControlName="alertBeforeKm"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="1000"
+            min="0">
+          <p class="mt-1 text-xs text-gray-500">Alertar cuando falten X km para el mantenimiento</p>
+        </div>
+
+        <!-- Alert Before Days -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Alerta Antes (días) <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            formControlName="alertBeforeDays"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="7"
+            min="0">
+          <p class="mt-1 text-xs text-gray-500">Alertar cuando falten X días para el mantenimiento</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Information Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">Información Adicional</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Estimated Cost -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Costo Estimado (CLP)</label>
+          <input
+            type="number"
+            formControlName="estimatedCost"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="50000"
+            min="0"
+            step="1000">
+          <p class="mt-1 text-xs text-gray-500">Costo aproximado del mantenimiento</p>
+        </div>
+
+        <!-- Estimated Duration Hours -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Duración Estimada (horas)</label>
+          <input
+            type="number"
+            formControlName="estimatedDurationHours"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="2"
+            min="0"
+            step="0.5">
+          <p class="mt-1 text-xs text-gray-500">Tiempo aproximado que toma realizar el mantenimiento</p>
+        </div>
+
+        <!-- Is Mandatory -->
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="isMandatory"
+            formControlName="isMandatory"
+            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+          <label for="isMandatory" class="ml-2 text-sm font-medium text-gray-700">
+            Mantenimiento obligatorio
+          </label>
+        </div>
+
+        <!-- Is Active -->
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="isActive"
+            formControlName="isActive"
+            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500">
+          <label for="isActive" class="ml-2 text-sm font-medium text-gray-700">
+            Tipo activo
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end gap-3">
+      <button
+        type="button"
+        (click)="cancel()"
+        [disabled]="saving"
+        class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="saving || maintenanceTypeForm.invalid"
+        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+        <svg *ngIf="saving" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span *ngIf="!saving">{{ isEditMode ? 'Guardar Cambios' : 'Crear Tipo' }}</span>
+        <span *ngIf="saving">Guardando...</span>
+      </button>
+    </div>
+  </form>
+</div>

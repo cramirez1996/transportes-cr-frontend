@@ -119,7 +119,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Viajes</p>
-            <p class="text-3xl font-bold text-gray-900 mt-2">{{ trips.length }}</p>
+            <p class="text-3xl font-bold text-gray-900 mt-2">{{ tripsTotal }}</p>
             <p class="text-sm text-gray-500 mt-1">{{ getCompletedTripsCount() }} completados</p>
           </div>
           <div class="p-3 bg-blue-50 rounded-full">
@@ -190,74 +190,151 @@
             <p class="mt-3 text-gray-500">No hay viajes registrados</p>
           </div>
 
-          <div *ngIf="!loadingTrips && trips.length > 0" class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ruta</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehículo</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conductor</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr *ngFor="let trip of trips" class="hover:bg-gray-50 transition-colors">
-                  <td class="px-4 py-4">
-                    <div class="flex items-center gap-2">
-                      <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span class="text-sm font-medium text-gray-900">{{ trip.origin }}</span>
-                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                      <span class="text-sm font-medium text-gray-900">{{ trip.destination }}</span>
-                      <div class="w-2 h-2 bg-red-500 rounded-full"></div>
-                    </div>
-                  </td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {{ formatDate(trip.departureDate) }}
-                  </td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <span *ngIf="trip.vehicle">{{ trip.vehicle.brand }} {{ trip.vehicle.model }}</span>
-                    <span *ngIf="trip.isSubcontracted" class="text-yellow-600 font-medium">Subcontratado</span>
-                  </td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <span *ngIf="trip.driver">{{ trip.driver.firstName }} {{ trip.driver.lastName }}</span>
-                    <span *ngIf="trip.isSubcontracted && trip.subcontractor" class="text-gray-600">
-                      {{ trip.subcontractor.businessName }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                    {{ formatCurrency(trip.agreedPrice) }}
-                  </td>
-                  <td class="px-4 py-4 whitespace-nowrap">
-                    <span [class]="'px-3 py-1 text-xs font-medium rounded-full ' + tripStatusColors[trip.status]">
-                      {{ tripStatusLabels[trip.status] }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-4 whitespace-nowrap text-center">
-                    <a
-                      [routerLink]="['/admin/trips', trip.id]"
-                      class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
-                    >
-                      Ver detalle
-                    </a>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div *ngIf="!loadingTrips && trips.length > 0">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ruta</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehículo</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conductor</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr *ngFor="let trip of trips" class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="viewTripDetail(trip.id)">
+                    <td class="px-4 py-4">
+                      <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span class="text-sm font-medium text-gray-900">{{ trip.origin }}</span>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span class="text-sm font-medium text-gray-900">{{ trip.destination }}</span>
+                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ formatDate(trip.departureDate) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span *ngIf="trip.vehicle">{{ trip.vehicle.brand }} {{ trip.vehicle.model }}</span>
+                      <span *ngIf="trip.isSubcontracted" class="text-yellow-600 font-medium">Subcontratado</span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span *ngIf="trip.driver">{{ trip.driver.firstName }} {{ trip.driver.lastName }}</span>
+                      <span *ngIf="trip.isSubcontracted && trip.subcontractor" class="text-gray-600">
+                        {{ trip.subcontractor.businessName }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                      {{ formatCurrency(trip.agreedPrice) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <span [class]="'px-3 py-1 text-xs font-medium rounded-full ' + tripStatusColors[trip.status]">
+                        {{ tripStatusLabels[trip.status] }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-center" (click)="$event.stopPropagation()">
+                      <button
+                        (click)="viewTripDetail(trip.id)"
+                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+                      >
+                        Ver detalle
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination for Trips -->
+            <div class="mt-4">
+              <app-pagination
+                [page]="tripsPage"
+                [limit]="tripsLimit"
+                [total]="tripsTotal"
+                [totalPages]="tripsTotalPages"
+                (pageChange)="onTripsPageChange($event)"
+                (limitChange)="onTripsLimitChange($event)"
+              ></app-pagination>
+            </div>
           </div>
         </div>
 
         <!-- Invoices Tab -->
         <div *ngIf="activeTab === 'invoices'">
-          <div class="text-center py-12">
+          <div *ngIf="loadingInvoices" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-3 text-gray-600">Cargando facturas...</p>
+          </div>
+
+          <div *ngIf="!loadingInvoices && invoices.length === 0" class="text-center py-12">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <p class="mt-3 text-gray-500">No hay facturas registradas</p>
+          </div>
+
+          <div *ngIf="!loadingInvoices && invoices.length > 0">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Folio</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Emisión</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr *ngFor="let invoice of invoices" class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="viewInvoiceDetail(invoice.id)">
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {{ invoice.folioNumber }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ invoice.type === 'SALE' ? 'Venta' : 'Compra' }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ formatDate(invoice.issueDate) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                      {{ formatCurrency(invoice.totalAmount) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                        {{ invoice.status }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-center" (click)="$event.stopPropagation()">
+                      <button
+                        (click)="viewInvoiceDetail(invoice.id)"
+                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+                      >
+                        Ver detalle
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination for Invoices -->
+            <div class="mt-4">
+              <app-pagination
+                [page]="invoicesPage"
+                [limit]="invoicesLimit"
+                [total]="invoicesTotal"
+                [totalPages]="invoicesTotalPages"
+                (pageChange)="onInvoicesPageChange($event)"
+                (limitChange)="onInvoicesLimitChange($event)"
+              ></app-pagination>
+            </div>
           </div>
         </div>
 
@@ -267,17 +344,80 @@
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
-            <p class="mt-3 text-gray-500">No hay documentos registrados</p>
+            <p class="mt-3 text-gray-500">Funcionalidad de documentos próximamente</p>
           </div>
         </div>
 
         <!-- Transactions Tab -->
         <div *ngIf="activeTab === 'transactions'">
-          <div class="text-center py-12">
+          <div *ngIf="loadingTransactions" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="mt-3 text-gray-600">Cargando transacciones...</p>
+          </div>
+
+          <div *ngIf="!loadingTransactions && transactions.length === 0" class="text-center py-12">
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             <p class="mt-3 text-gray-500">No hay transacciones registradas</p>
+          </div>
+
+          <div *ngIf="!loadingTransactions && transactions.length > 0">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr *ngFor="let transaction of transactions" class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="viewTransactionDetail(transaction.id)">
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ formatDate(transaction.date) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <span [class]="transaction.type === 'INCOME' ? 'px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800' : 'px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800'">
+                        {{ transaction.type === 'INCOME' ? 'Ingreso' : 'Gasto' }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {{ transaction.category?.name || '-' }}
+                    </td>
+                    <td class="px-4 py-4 text-sm text-gray-900">
+                      {{ transaction.description }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold" [class.text-green-600]="transaction.type === 'INCOME'" [class.text-red-600]="transaction.type === 'EXPENSE'">
+                      {{ formatCurrency(transaction.amount) }}
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-center" (click)="$event.stopPropagation()">
+                      <button
+                        (click)="viewTransactionDetail(transaction.id)"
+                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors"
+                      >
+                        Ver detalle
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination for Transactions -->
+            <div class="mt-4">
+              <app-pagination
+                [page]="transactionsPage"
+                [limit]="transactionsLimit"
+                [total]="transactionsTotal"
+                [totalPages]="transactionsTotalPages"
+                (pageChange)="onTransactionsPageChange($event)"
+                (limitChange)="onTransactionsLimitChange($event)"
+              ></app-pagination>
+            </div>
           </div>
         </div>
       </div>

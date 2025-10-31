@@ -1,7 +1,8 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule } from '@angular/forms';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, combineLatest } from 'rxjs';
 import { InvoiceService } from '../../../../core/services/invoice.service';
 import { Invoice, InvoiceType, InvoiceStatus, InvoiceFilters, SII_DOCUMENT_TYPES } from '../../../../core/models/invoice.model';
 import { PaginationParams } from '../../../../core/models/pagination.model';
@@ -23,11 +24,11 @@ import { VehicleService } from '../../../../core/services/business/vehicle.servi
 
 @Component({
   selector: 'app-invoice-list',
-  imports: [CommonModule, RouterModule, FormsModule, DropdownComponent, DropdownItemComponent, DropdownDividerComponent, CustomSelectComponent, PaginationComponent, UploadXmlModalComponent, ChangeStatusModalComponent, EditFieldsModalComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, DropdownComponent, DropdownItemComponent, DropdownDividerComponent, CustomSelectComponent, PaginationComponent, UploadXmlModalComponent, ChangeStatusModalComponent, EditFieldsModalComponent],
   templateUrl: './invoice-list.component.html',
   styleUrls: ['./invoice-list.component.scss']
 })
-export class InvoiceListComponent implements OnInit {
+export class InvoiceListComponent implements OnInit, OnDestroy {
   private invoiceService = inject(InvoiceService);
   private customerService = inject(CustomerService);
   private supplierService = inject(SupplierService);
@@ -36,6 +37,8 @@ export class InvoiceListComponent implements OnInit {
   private modalService = inject(ModalService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private fb = inject(FormBuilder);
+  private destroy$ = new Subject<void>();
 
   @ViewChild(UploadXmlModalComponent) uploadXmlModal!: UploadXmlModalComponent;
   @ViewChild(ChangeStatusModalComponent) changeStatusModal!: ChangeStatusModalComponent;
@@ -53,20 +56,13 @@ export class InvoiceListComponent implements OnInit {
   total: number = 0;
   totalPages: number = 0;
 
-  // Filtros
-  filters: InvoiceFilters = {
-    sortBy: 'issueDate',
-    sortOrder: 'DESC'
-  };
+  // Form
+  filterForm!: FormGroup;
+
+  // Enums
   InvoiceType = InvoiceType;
   InvoiceStatus = InvoiceStatus;
   SiiDocumentTypes = SII_DOCUMENT_TYPES;
-
-  // Auxiliary properties for date inputs (format: yyyy-MM-dd)
-  startDateInput: string = '';
-  endDateInput: string = '';
-  accountingPeriodStartInput: string = '';
-  accountingPeriodEndInput: string = '';
 
   // Advanced filters toggle
   showAdvancedFilters = false;
@@ -77,112 +73,209 @@ export class InvoiceListComponent implements OnInit {
   tripOptions: CustomSelectOption[] = [];
   vehicleOptions: CustomSelectOption[] = [];
 
+  // Getters for template binding compatibility
+  get filters() {
+    return this.filterForm?.value || {};
+  }
+
+  set filters(value: any) {
+    if (this.filterForm) {
+      this.filterForm.patchValue(value, { emitEvent: false });
+    }
+  }
+
+  // Date input getters/setters for template compatibility
+  get startDateInput(): string {
+    return this.filterForm?.get('startDate')?.value || '';
+  }
+
+  set startDateInput(value: string) {
+    this.filterForm?.patchValue({ startDate: value });
+  }
+
+  get endDateInput(): string {
+    return this.filterForm?.get('endDate')?.value || '';
+  }
+
+  set endDateInput(value: string) {
+    this.filterForm?.patchValue({ endDate: value });
+  }
+
+  get accountingPeriodStartInput(): string {
+    return this.filterForm?.get('accountingPeriodStart')?.value || '';
+  }
+
+  set accountingPeriodStartInput(value: string) {
+    this.filterForm?.patchValue({ accountingPeriodStart: value });
+  }
+
+  get accountingPeriodEndInput(): string {
+    return this.filterForm?.get('accountingPeriodEnd')?.value || '';
+  }
+
+  set accountingPeriodEndInput(value: string) {
+    this.filterForm?.patchValue({ accountingPeriodEnd: value });
+  }
+
   // Active filters count
   get activeFiltersCount(): number {
-    let count = 0;
-    if (this.filters.type) count++;
-    if (this.filters.status) count++;
-    if (this.filters.documentType) count++;
-    if (this.filters.startDate) count++;
-    if (this.filters.endDate) count++;
-    if (this.filters.customerId) count++;
-    if (this.filters.supplierId) count++;
-    if (this.filters.folioNumber) count++;
-    if (this.filters.minAmount !== undefined && this.filters.minAmount !== null) count++;
-    if (this.filters.maxAmount !== undefined && this.filters.maxAmount !== null) count++;
-    if (this.filters.tripId) count++;
-    if (this.filters.vehicleId) count++;
-    if (this.filters.accountingPeriodStart) count++;
-    if (this.filters.accountingPeriodEnd) count++;
-    if (this.filters.search) count++;
-    return count;
+    if (!this.filterForm) return 0;
+    const values = this.filterForm.value;
+    return Object.keys(values).filter(key => {
+      const value = values[key];
+      return value !== null && value !== undefined && value !== '';
+    }).length;
   }
 
   ngOnInit(): void {
-    // Read query params
-    this.route.queryParams.subscribe(params => {
-      if (params['page']) {
-        this.page = Number(params['page']);
-      }
-      if (params['limit']) {
-        this.limit = Number(params['limit']);
-      }
-      this.loadInvoices();
-    });
-    
-    this.loadCustomers();
-    this.loadSuppliers();
-    this.loadTrips();
-    this.loadVehicles();
+    this.initializeForm();
+    // First load options, then subscribe to query params
+    this.loadSelectOptions();
   }
 
-  loadCustomers(): void {
-    this.customerService.getCustomers().subscribe({
-      next: (customers) => {
-        this.customerOptions = customers.map(c => ({
-          value: c.id,
-          label: c.businessName,
-          data: {
-            rut: c.rut,
-            avatar: this.getInitials(c.businessName)
-          }
-        }));
-      },
-      error: (err) => console.error('Error loading customers:', err)
-    });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  loadSuppliers(): void {
-    this.supplierService.getSuppliers().subscribe({
-      next: (suppliers) => {
-        this.supplierOptions = suppliers.map(s => ({
-          value: s.id,
-          label: s.businessName,
-          data: {
-            rut: s.rut,
-            avatar: this.getInitials(s.businessName)
-          }
-        }));
-      },
-      error: (err) => console.error('Error loading suppliers:', err)
+  private initializeForm(): void {
+    this.filterForm = this.fb.group({
+      // Basic filters
+      type: [null],
+      status: [null],
+      documentType: [null],
+      startDate: [null],
+      endDate: [null],
+      search: [null],
+      
+      // Advanced filters
+      customerId: [null],
+      supplierId: [null],
+      folioNumber: [null],
+      minAmount: [null],
+      maxAmount: [null],
+      tripId: [null],
+      vehicleId: [null],
+      accountingPeriodStart: [null],
+      accountingPeriodEnd: [null],
+      
+      // Sorting
+      sortBy: ['issueDate'],
+      sortOrder: ['DESC']
     });
   }
 
-  loadTrips(): void {
-    // Load trips for custom-select (high limit for dropdown)
-    this.tripService.getTrips({ page: 1, limit: 1000 }).subscribe({
-      next: (response) => {
-        this.tripOptions = response.data.map(t => ({
-          value: t.id,
-          label: `${t.origin} → ${t.destination}`,
-          searchableText: `${t.id} ${t.origin} ${t.destination}`, // Include ID in search
-          data: {
-            id: t.id,
-            origin: t.origin,
-            destination: t.destination,
-            departureDate: t.departureDate
-          }
-        }));
-      },
-      error: (err) => console.error('Error loading trips:', err)
-    });
+  private loadSelectOptions(): void {
+    combineLatest([
+      this.customerService.getCustomers(),
+      this.supplierService.getSuppliers(),
+      this.tripService.getTrips({ page: 1, limit: 1000 }),
+      this.vehicleService.getVehicles()
+    ]).pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ([customers, suppliers, tripsResponse, vehicles]) => {
+          this.customerOptions = this.mapToSelectOptions(customers, (c) => ({
+            value: c.id,
+            label: c.businessName,
+            data: { rut: c.rut, avatar: this.getInitials(c.businessName) }
+          }));
+
+          this.supplierOptions = this.mapToSelectOptions(suppliers, (s) => ({
+            value: s.id,
+            label: s.businessName,
+            data: { rut: s.rut, avatar: this.getInitials(s.businessName) }
+          }));
+
+          this.tripOptions = tripsResponse.data.map(t => ({
+            value: t.id,
+            label: `${t.origin} → ${t.destination}`,
+            searchableText: `${t.id} ${t.origin} ${t.destination}`,
+            data: { id: t.id, origin: t.origin, destination: t.destination, departureDate: t.departureDate }
+          }));
+
+          this.vehicleOptions = this.mapToSelectOptions(vehicles, (v) => ({
+            value: v.id,
+            label: v.licensePlate,
+            data: { brand: v.brand, model: v.model, type: v.type }
+          }));
+
+          // After options are loaded, subscribe to query params and form changes
+          this.subscribeToQueryParams();
+          this.subscribeToFormChanges();
+        },
+        error: (err) => console.error('Error loading select options:', err)
+      });
   }
 
-  loadVehicles(): void {
-    this.vehicleService.getVehicles().subscribe({
-      next: (vehicles) => {
-        this.vehicleOptions = vehicles.map(v => ({
-          value: v.id,
-          label: v.licensePlate,
-          data: {
-            brand: v.brand,
-            model: v.model,
-            type: v.type
-          }
-        }));
-      },
-      error: (err) => console.error('Error loading vehicles:', err)
-    });
+  private mapToSelectOptions<T>(items: T[], mapper: (item: T) => CustomSelectOption): CustomSelectOption[] {
+    return items.map(mapper);
+  }
+
+  private subscribeToQueryParams(): void {
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        // Pagination
+        this.page = params['page'] ? Number(params['page']) : 1;
+        this.limit = params['limit'] ? Number(params['limit']) : 10;
+
+        // Update form with query params (without emitting to avoid loop)
+        this.filterForm.patchValue({
+          type: params['type'] || null,
+          status: params['status'] || null,
+          documentType: params['documentType'] ? Number(params['documentType']) : null,
+          startDate: params['startDate'] || null,
+          endDate: params['endDate'] || null,
+          customerId: params['customerId'] || null,
+          supplierId: params['supplierId'] || null,
+          folioNumber: params['folioNumber'] || null,
+          minAmount: params['minAmount'] ? Number(params['minAmount']) : null,
+          maxAmount: params['maxAmount'] ? Number(params['maxAmount']) : null,
+          tripId: params['tripId'] || null,
+          vehicleId: params['vehicleId'] || null,
+          accountingPeriodStart: params['accountingPeriodStart'] || null,
+          accountingPeriodEnd: params['accountingPeriodEnd'] || null,
+          search: params['search'] || null,
+          sortBy: params['sortBy'] || 'issueDate',
+          sortOrder: params['sortOrder'] || 'DESC'
+        }, { emitEvent: false });
+
+        // Show advanced filters if any advanced filter is present
+        this.showAdvancedFilters = !!(
+          params['customerId'] || params['supplierId'] || params['folioNumber'] ||
+          params['minAmount'] || params['maxAmount'] || params['tripId'] ||
+          params['vehicleId'] || params['accountingPeriodStart'] || params['accountingPeriodEnd']
+        );
+
+        this.loadInvoices();
+      });
+  }
+
+  private subscribeToFormChanges(): void {
+    this.filterForm.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.page = 1; // Reset to first page on filter change
+        this.updateQueryParams();
+      });
+  }
+
+  // Method for template compatibility with ngModel
+  onFilterChange(): void {
+    // This method is called from template but actual reactivity is handled by subscribeToFormChanges
+    // Just trigger a manual update
+    this.page = 1;
+    this.updateQueryParams();
+    this.loadInvoices();
+  }
+
+  // Update filter value from template
+  updateFilter(key: string, value: any): void {
+    this.filterForm.patchValue({ [key]: value }, { emitEvent: true });
   }
 
   getInitials(name: string): string {
@@ -203,7 +296,9 @@ export class InvoiceListComponent implements OnInit {
       limit: this.limit
     };
 
-    this.invoiceService.getInvoices(this.filters, pagination).subscribe({
+    const filters = this.buildFiltersFromForm();
+
+    this.invoiceService.getInvoices(filters, pagination).subscribe({
       next: (response) => {
         this.invoices = response.data;
         this.total = response.total;
@@ -220,45 +315,41 @@ export class InvoiceListComponent implements OnInit {
     });
   }
 
-  onFilterChange(): void {
-    // Convert date input strings to Date objects for filters
-    if (this.startDateInput) {
-      this.filters.startDate = new Date(this.startDateInput);
-    } else {
-      this.filters.startDate = undefined;
+  private buildFiltersFromForm(): InvoiceFilters {
+    const formValue = this.filterForm.value;
+    const filters: InvoiceFilters = {};
+
+    // Convert date strings to Date objects
+    if (formValue.startDate) {
+      filters.startDate = new Date(formValue.startDate);
+    }
+    if (formValue.endDate) {
+      filters.endDate = new Date(formValue.endDate);
+    }
+    if (formValue.accountingPeriodStart) {
+      filters.accountingPeriodStart = new Date(formValue.accountingPeriodStart);
+    }
+    if (formValue.accountingPeriodEnd) {
+      filters.accountingPeriodEnd = new Date(formValue.accountingPeriodEnd);
     }
 
-    if (this.endDateInput) {
-      this.filters.endDate = new Date(this.endDateInput);
-    } else {
-      this.filters.endDate = undefined;
-    }
+    // Copy other filters
+    Object.keys(formValue).forEach(key => {
+      if (formValue[key] !== null && formValue[key] !== undefined && formValue[key] !== '' &&
+          !['startDate', 'endDate', 'accountingPeriodStart', 'accountingPeriodEnd'].includes(key)) {
+        filters[key as keyof InvoiceFilters] = formValue[key];
+      }
+    });
 
-    if (this.accountingPeriodStartInput) {
-      this.filters.accountingPeriodStart = new Date(this.accountingPeriodStartInput);
-    } else {
-      this.filters.accountingPeriodStart = undefined;
-    }
-
-    if (this.accountingPeriodEndInput) {
-      this.filters.accountingPeriodEnd = new Date(this.accountingPeriodEndInput);
-    } else {
-      this.filters.accountingPeriodEnd = undefined;
-    }
-
-    // Reset pagination when filters change
-    this.page = 1;
-    this.loadInvoices();
+    return filters;
   }
 
   clearFilters(): void {
-    this.filters = {};
-    this.startDateInput = '';
-    this.endDateInput = '';
-    this.accountingPeriodStartInput = '';
-    this.accountingPeriodEndInput = '';
+    this.filterForm.reset({
+      sortBy: 'issueDate',
+      sortOrder: 'DESC'
+    });
     this.page = 1;
-    this.loadInvoices();
   }
 
   toggleAdvancedFilters(): void {
@@ -376,13 +467,24 @@ export class InvoiceListComponent implements OnInit {
   }
 
   private updateQueryParams(): void {
+    const formValue = this.filterForm.value;
+    const queryParams: any = {
+      page: this.page,
+      limit: this.limit
+    };
+
+    // Add form values to query params (excluding null/undefined/empty)
+    Object.keys(formValue).forEach(key => {
+      const value = formValue[key];
+      if (value !== null && value !== undefined && value !== '') {
+        queryParams[key] = value;
+      }
+    });
+
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: {
-        page: this.page,
-        limit: this.limit
-      },
-      queryParamsHandling: 'merge'
+      queryParams: queryParams,
+      replaceUrl: true
     });
   }
 

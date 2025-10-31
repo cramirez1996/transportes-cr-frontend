@@ -12,15 +12,14 @@
   <form *ngIf="!isLoading" [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="bg-white rounded-lg shadow-md p-6">
     <!-- Tipo de transacción -->
     <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700 mb-1">
+      <label class="block text-sm font-medium text-gray-700 mb-2">
         Tipo de transacción <span class="text-red-500">*</span>
       </label>
-      <select formControlName="type" (change)="onTypeChange()"
-              class="w-full border border-gray-300 rounded-md px-3 py-2"
-              [class.border-red-500]="transactionForm.get('type')?.invalid && transactionForm.get('type')?.touched">
-        <option [value]="TransactionType.INCOME">Ingreso</option>
-        <option [value]="TransactionType.EXPENSE">Gasto</option>
-      </select>
+      <app-custom-select
+        formControlName="type"
+        [options]="typeOptions"
+        placeholder="Seleccione tipo">
+      </app-custom-select>
       <p *ngIf="transactionForm.get('type')?.invalid && transactionForm.get('type')?.touched"
          class="mt-1 text-sm text-red-500">
         El tipo es requerido
@@ -30,17 +29,15 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- Categoría -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
           Categoría <span class="text-red-500">*</span>
         </label>
-        <select formControlName="categoryId"
-                class="w-full border border-gray-300 rounded-md px-3 py-2"
-                [class.border-red-500]="transactionForm.get('categoryId')?.invalid && transactionForm.get('categoryId')?.touched">
-          <option value="">Seleccione una categoría</option>
-          <option *ngFor="let category of getCategoriesByType()" [value]="category.id">
-            {{ category.name }}
-          </option>
-        </select>
+        <app-custom-select
+          formControlName="categoryId"
+          [options]="getCategoriesByType()"
+          [searchable]="true"
+          placeholder="Seleccione una categoría">
+        </app-custom-select>
         <p *ngIf="transactionForm.get('categoryId')?.invalid && transactionForm.get('categoryId')?.touched"
            class="mt-1 text-sm text-red-500">
           La categoría es requerida
@@ -63,7 +60,7 @@
 
       <!-- Fecha -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
           Fecha <span class="text-red-500">*</span>
         </label>
         <input type="date" formControlName="date"
@@ -77,17 +74,14 @@
 
       <!-- Método de pago -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
           Método de pago <span class="text-red-500">*</span>
         </label>
-        <select formControlName="paymentMethod"
-                class="w-full border border-gray-300 rounded-md px-3 py-2"
-                [class.border-red-500]="transactionForm.get('paymentMethod')?.invalid && transactionForm.get('paymentMethod')?.touched">
-          <option [value]="PaymentMethod.CASH">Efectivo</option>
-          <option [value]="PaymentMethod.TRANSFER">Transferencia</option>
-          <option [value]="PaymentMethod.CARD">Tarjeta</option>
-          <option [value]="PaymentMethod.CHECK">Cheque</option>
-        </select>
+        <app-custom-select
+          formControlName="paymentMethod"
+          [options]="paymentMethodOptions"
+          placeholder="Seleccione método de pago">
+        </app-custom-select>
         <p *ngIf="transactionForm.get('paymentMethod')?.invalid && transactionForm.get('paymentMethod')?.touched"
            class="mt-1 text-sm text-red-500">
           El método de pago es requerido
@@ -125,7 +119,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Factura -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
             Factura
             <span class="text-xs text-gray-500" *ngIf="transactionForm.get('type')?.value === TransactionType.INCOME">
               (Venta)
@@ -134,73 +128,293 @@
               (Compra)
             </span>
           </label>
-          <select formControlName="invoiceId"
-                  class="w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="">Sin factura asociada</option>
-            <option *ngFor="let invoice of getInvoicesByType()" [value]="invoice.id">
-              {{ invoice.documentNumber }} - ${{ invoice.totalAmount | number:'1.0-0' }}
-            </option>
-          </select>
+          <app-custom-select
+            formControlName="invoiceId"
+            [options]="getInvoicesByType()"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Sin factura asociada">
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3">
+                <div [class]="'w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-semibold ' +
+                  (option.data.type === 'SALE' ? 'bg-green-500' : 'bg-orange-500')">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-semibold text-gray-900">Folio {{ option.data.folioNumber }}</p>
+                    <span class="text-sm font-bold text-gray-900">${{ option.data.totalAmount | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                    <span>{{ option.data.issueDate | date:'dd/MM/yyyy' }}</span>
+                    <span class="text-gray-300">•</span>
+                    <span class="truncate">{{ option.data.customerName || option.data.supplierName || 'Sin cliente/proveedor' }}</span>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <svg [class]="'w-4 h-4 ' + (option.data.type === 'SALE' ? 'text-green-600' : 'text-orange-600')"
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span class="text-sm font-medium">Folio {{ option.data.folioNumber }}</span>
+                <span class="text-sm text-gray-500">- ${{ option.data.totalAmount | number:'1.0-0' }}</span>
+              </div>
+            </ng-template>
+          </app-custom-select>
         </div>
 
-        <!-- Viaje -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Viaje</label>
-          <select formControlName="tripId"
-                  class="w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="">Ninguno</option>
-            <option *ngFor="let trip of trips" [value]="trip.id">
-              {{ trip.origin }} → {{ trip.destination }} ({{ trip.date | date:'dd/MM/yyyy' }})
-            </option>
-          </select>
+        <!-- Asociación a Viaje o Vuelta -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-3">
+            Asociar a Viaje o Vuelta
+            <span class="ml-1 text-xs text-gray-500 font-normal">- Para gastos compartidos usa "Vuelta"</span>
+          </label>
+
+          <!-- Radio buttons -->
+          <div class="flex gap-6 mb-4">
+            <label class="flex items-center cursor-pointer">
+              <input
+                type="radio"
+                name="associationType"
+                [value]="'none'"
+                [checked]="associationType === 'none'"
+                (change)="onAssociationTypeChange('none')"
+                class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+              <span class="ml-2 text-sm text-gray-700">Ninguno</span>
+            </label>
+            <label class="flex items-center cursor-pointer">
+              <input
+                type="radio"
+                name="associationType"
+                [value]="'trip'"
+                [checked]="associationType === 'trip'"
+                (change)="onAssociationTypeChange('trip')"
+                class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+              <span class="ml-2 text-sm text-gray-700">Viaje individual</span>
+            </label>
+            <label class="flex items-center cursor-pointer">
+              <input
+                type="radio"
+                name="associationType"
+                [value]="'tripGroup'"
+                [checked]="associationType === 'tripGroup'"
+                (change)="onAssociationTypeChange('tripGroup')"
+                class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+              <span class="ml-2 text-sm text-gray-700">Vuelta completa</span>
+            </label>
+          </div>
+
+          <!-- Conditional selectors -->
+          <div *ngIf="associationType === 'trip'">
+            <app-custom-select
+              formControlName="tripId"
+              [options]="tripOptions"
+              [searchable]="true"
+              [clearable]="true"
+              placeholder="Seleccione un viaje">
+              <ng-template #optionTemplate let-option>
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-green-100 text-green-700 flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium">{{ option.data.departureDate | date:'dd/MM/yyyy' }} - {{ option.label }}</p>
+                    <p class="text-xs text-gray-500">ID: {{ option.data.id }}</p>
+                  </div>
+                </div>
+              </ng-template>
+              <ng-template #selectedTemplate let-option>
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  <span class="text-sm">{{ option.label }}</span>
+                </div>
+              </ng-template>
+            </app-custom-select>
+            <p class="mt-1 text-xs text-gray-500">
+              Asocia este gasto a un viaje específico (ej: combustible usado solo en este viaje)
+            </p>
+          </div>
+
+          <div *ngIf="associationType === 'tripGroup'">
+            <app-custom-select
+              formControlName="tripGroupId"
+              [options]="tripGroupOptions"
+              [searchable]="true"
+              [clearable]="true"
+              placeholder="Seleccione una vuelta">
+              <ng-template #optionTemplate let-option>
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center text-sm font-semibold">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium">{{ option.label }}</p>
+                    <p class="text-xs text-gray-500">{{ option.data.description }}</p>
+                  </div>
+                </div>
+              </ng-template>
+              <ng-template #selectedTemplate let-option>
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  <span class="text-sm">{{ option.label }}</span>
+                </div>
+              </ng-template>
+            </app-custom-select>
+            <p class="mt-1 text-xs text-gray-500">
+              Asocia este gasto a una vuelta completa (ej: combustible compartido entre ida y vuelta)
+            </p>
+          </div>
+
+          <div *ngIf="associationType === 'none'" class="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <p class="text-sm text-gray-600">
+              Este gasto no estará asociado a ningún viaje o vuelta específica (ej: gastos administrativos generales)
+            </p>
+          </div>
         </div>
 
         <!-- Vehículo -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Vehículo</label>
-          <select formControlName="vehicleId"
-                  class="w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="">Ninguno</option>
-            <option *ngFor="let vehicle of getActiveVehicles()" [value]="vehicle.id">
-              {{ vehicle.licensePlate }} - {{ vehicle.brand }} {{ vehicle.model }}
-            </option>
-          </select>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Vehículo</label>
+          <app-custom-select
+            formControlName="vehicleId"
+            [options]="vehicleOptions"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Ninguno">
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-semibold">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-sm font-medium">{{ option.data.licensePlate }}</p>
+                  <p class="text-xs text-gray-500">{{ option.data.brand }} {{ option.data.model }}</p>
+                </div>
+              </div>
+            </ng-template>
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                </svg>
+                <span class="text-sm">{{ option.data.licensePlate }}</span>
+              </div>
+            </ng-template>
+          </app-custom-select>
         </div>
 
         <!-- Conductor -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Conductor</label>
-          <select formControlName="driverId"
-                  class="w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="">Ninguno</option>
-            <option *ngFor="let driver of getActiveDrivers()" [value]="driver.id">
-              {{ driver.firstName }} {{ driver.lastName }} - {{ driver.licenseNumber }}
-            </option>
-          </select>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Conductor</label>
+          <app-custom-select
+            formControlName="driverId"
+            [options]="driverOptions"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Ninguno">
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center text-sm font-semibold">
+                  {{ option.data.avatar }}
+                </div>
+                <div>
+                  <p class="text-sm font-medium">{{ option.label }}</p>
+                  <p class="text-xs text-gray-500">Licencia: {{ option.data.licenseNumber }}</p>
+                </div>
+              </div>
+            </ng-template>
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center text-xs font-semibold">
+                  {{ option.data.avatar }}
+                </div>
+                <span class="text-sm">{{ option.label }}</span>
+              </div>
+            </ng-template>
+          </app-custom-select>
         </div>
 
         <!-- Cliente (solo para INCOME) -->
         <div *ngIf="transactionForm.get('type')?.value === TransactionType.INCOME">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
-          <select formControlName="customerId"
-                  class="w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="">Ninguno</option>
-            <option *ngFor="let customer of getActiveCustomers()" [value]="customer.id">
-              {{ customer.businessName }} - {{ customer.rut }}
-            </option>
-          </select>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Cliente</label>
+          <app-custom-select
+            formControlName="customerId"
+            [options]="customerOptions"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Ninguno">
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold">
+                  {{ option.data.avatar }}
+                </div>
+                <div>
+                  <p class="text-sm font-medium">{{ option.label }}</p>
+                  <p class="text-xs text-gray-500">RUT: {{ option.data.rut }}</p>
+                </div>
+              </div>
+            </ng-template>
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold">
+                  {{ option.data.avatar }}
+                </div>
+                <span class="text-sm">{{ option.label }}</span>
+              </div>
+            </ng-template>
+          </app-custom-select>
         </div>
 
         <!-- Proveedor (solo para EXPENSE) -->
         <div *ngIf="transactionForm.get('type')?.value === TransactionType.EXPENSE">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
-          <select formControlName="supplierId"
-                  class="w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="">Ninguno</option>
-            <option *ngFor="let supplier of suppliers" [value]="supplier.id">
-              {{ supplier.businessName }} - {{ supplier.rut }}
-            </option>
-          </select>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Proveedor</label>
+          <app-custom-select
+            formControlName="supplierId"
+            [options]="supplierOptions"
+            [searchable]="true"
+            [clearable]="true"
+            placeholder="Ninguno">
+            <ng-template #optionTemplate let-option>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm font-semibold">
+                  {{ option.data.avatar }}
+                </div>
+                <div>
+                  <p class="text-sm font-medium">{{ option.label }}</p>
+                  <p class="text-xs text-gray-500">RUT: {{ option.data.rut }}</p>
+                </div>
+              </div>
+            </ng-template>
+            <ng-template #selectedTemplate let-option>
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-semibold">
+                  {{ option.data.avatar }}
+                </div>
+                <span class="text-sm">{{ option.label }}</span>
+              </div>
+            </ng-template>
+          </app-custom-select>
           <p class="mt-1 text-xs text-gray-500">
             Ej: Copec, Autopista Central, Talleres, etc.
           </p>
