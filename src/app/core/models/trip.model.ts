@@ -126,7 +126,7 @@ export interface CreateTripDto {
 
 export interface UpdateTripDto {
   customerId?: string;
-  tripGroupId?: string;
+  tripGroupId?: string | null;
   isSubcontracted?: boolean;
   vehicleId?: string;
   driverId?: string;

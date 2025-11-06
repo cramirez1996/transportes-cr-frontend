@@ -115,12 +115,12 @@
               </svg>
               Fecha Emisión
             </label>
-            <p class="mt-1 text-gray-900">{{ invoice.issueDate | date:'dd/MM/yyyy' }}</p>
+            <p class="mt-1 text-gray-900">{{ invoice.issueDate | dateOnly:'dd/MM/yyyy' }}</p>
           </div>
 
           <div *ngIf="invoice.receptionDate">
             <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Fecha Recepción</label>
-            <p class="mt-1 text-gray-900">{{ invoice.receptionDate | date:'dd/MM/yyyy' }}</p>
+            <p class="mt-1 text-gray-900">{{ invoice.receptionDate | dateOnly:'dd/MM/yyyy' }}</p>
           </div>
 
           <div>
@@ -282,7 +282,7 @@
                 </span>
               </div>
               <p class="text-sm text-gray-600 mb-1">
-                <span class="font-medium">Fecha:</span> {{ note.issueDate | date:'dd/MM/yyyy' }}
+                <span class="font-medium">Fecha:</span> {{ note.issueDate | dateOnly:'dd/MM/yyyy' }}
               </p>
               <p *ngIf="note.referenceReason" class="text-sm text-gray-600 mb-2">
                 <span class="font-medium">Motivo:</span> {{ note.referenceReason }}
@@ -341,7 +341,7 @@
         <div class="grid grid-cols-2 gap-3 text-sm">
           <div>
             <p class="text-gray-600">Fecha Emisión</p>
-            <p class="font-medium text-gray-900">{{ invoice.referencedInvoice.issueDate | date:'dd/MM/yyyy' }}</p>
+            <p class="font-medium text-gray-900">{{ invoice.referencedInvoice.issueDate | dateOnly:'dd/MM/yyyy' }}</p>
           </div>
           <div>
             <p class="text-gray-600">Tipo Documento</p>

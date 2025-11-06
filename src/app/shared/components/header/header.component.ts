@@ -8,6 +8,7 @@ import { DropdownComponent } from '../dropdown/dropdown.component';
 import { DropdownItemComponent } from '../dropdown-item/dropdown-item.component';
 import { DropdownDividerComponent } from '../dropdown-divider/dropdown-divider.component';
 import { CustomSelectComponent, CustomSelectOption } from '../custom-select/custom-select.component';
+import { NotificationsComponent } from '../notifications/notifications.component';
 import { Tenant } from '../../../core/models/auth.model';
 
 @Component({
@@ -19,7 +20,8 @@ import { Tenant } from '../../../core/models/auth.model';
     DropdownComponent,
     DropdownItemComponent,
     DropdownDividerComponent,
-    CustomSelectComponent
+    CustomSelectComponent,
+    NotificationsComponent
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'

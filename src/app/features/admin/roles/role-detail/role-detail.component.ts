@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { RoleService } from '../../../../core/services/role.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Role } from '../../../../core/models/role.model';
 import { Permission } from '../../../../core/models/permission.model';
 import { User } from '../../../../core/models/user.model';
@@ -38,6 +39,7 @@ export class RoleDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private roleService = inject(RoleService);
+  private authService = inject(AuthService);
 
   ngOnInit(): void {
     const roleId = this.route.snapshot.paramMap.get('id');
@@ -164,8 +166,20 @@ export class RoleDetailComponent implements OnInit {
   }
 
   navigateToEdit(): void {
-    if (this.role() && !this.role()!.isSystem) {
+    if (this.role() && this.canEdit()) {
       this.router.navigate(['/admin/roles', this.role()!.id, 'edit']);
     }
+  }
+
+  /**
+   * Check if the current role can be edited
+   * Custom roles can always be edited
+   * System roles can only be edited by super_admin
+   */
+  canEdit(): boolean {
+    const role = this.role();
+    if (!role) return false;
+    if (!role.isSystem) return true; // Custom roles can always be edited
+    return this.authService.isSuperAdmin(); // System roles only by super_admin
   }
 }

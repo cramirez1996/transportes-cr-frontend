@@ -53,10 +53,10 @@ export interface Invoice {
   type: InvoiceType;
   documentType: number;
   folioNumber: string;
-  issueDate: Date;
-  receptionDate?: Date;
-  acknowledgeDate?: Date;
-  accountingPeriod: Date;
+  issueDate: string; // YYYY-MM-DD format
+  receptionDate?: string; // YYYY-MM-DD format
+  acknowledgeDate?: string; // YYYY-MM-DD format
+  accountingPeriod: string; // YYYY-MM-DD format (first day of month)
   tenant?: Tenant;
   customer?: any;
   supplier?: any;
@@ -86,18 +86,18 @@ export interface Invoice {
   referenceCode?: number;
   items: InvoiceItem[];
   taxes: InvoiceTax[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date; // Keep as Date for timestamps
+  updatedAt: Date; // Keep as Date for timestamps
 }
 
 export interface CreateInvoiceDto {
   type: InvoiceType;
   documentType: number;
   folioNumber: string;
-  issueDate: Date;
-  receptionDate?: Date;
-  acknowledgeDate?: Date;
-  accountingPeriod: Date;
+  issueDate: string; // YYYY-MM-DD format
+  receptionDate?: string; // YYYY-MM-DD format
+  acknowledgeDate?: string; // YYYY-MM-DD format
+  accountingPeriod: string; // YYYY-MM-DD format
   customerId?: string;
   supplierId?: string;
   tripId?: string;

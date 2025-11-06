@@ -237,6 +237,18 @@ export class TripService {
     if ('driverId' in tripData && tripData.driverId) {
       payload.driverId = tripData.driverId;
     }
+    if ('tripGroupId' in tripData) {
+      payload.tripGroupId = tripData.tripGroupId;
+    }
+    if ('isSubcontracted' in tripData) {
+      payload.isSubcontracted = tripData.isSubcontracted;
+    }
+    if ('subcontractorId' in tripData && tripData.subcontractorId) {
+      payload.subcontractorId = tripData.subcontractorId;
+    }
+    if ('subcontractorCost' in tripData && tripData.subcontractorCost !== undefined) {
+      payload.subcontractorCost = tripData.subcontractorCost;
+    }
 
     if ('origin' in tripData) payload.origin = tripData.origin;
     if ('destination' in tripData) payload.destination = tripData.destination;

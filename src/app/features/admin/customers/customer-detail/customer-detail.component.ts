@@ -12,11 +12,12 @@ import { Transaction } from '../../../../core/models/transaction.model';
 import { TabsComponent, Tab } from '../../../../shared/components/tabs/tabs.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { PaginationParams } from '../../../../core/models/pagination.model';
+import { DateOnlyPipe } from '../../../../shared/pipes/date-only.pipe';
 
 @Component({
   selector: 'app-customer-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, TabsComponent, PaginationComponent],
+  imports: [CommonModule, RouterModule, TabsComponent, PaginationComponent, DateOnlyPipe],
   templateUrl: './customer-detail.component.html',
   styleUrl: './customer-detail.component.scss'
 })

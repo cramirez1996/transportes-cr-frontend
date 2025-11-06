@@ -319,6 +319,13 @@ export class AuthService {
   }
 
   /**
+   * Verificar si el usuario es super admin
+   */
+  isSuperAdmin(): boolean {
+    return this.hasRole('super_admin');
+  }
+
+  /**
    * Obtener token de acceso
    */
   getToken(): string | null {

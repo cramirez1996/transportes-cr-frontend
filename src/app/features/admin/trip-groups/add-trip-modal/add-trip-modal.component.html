@@ -1,0 +1,190 @@
+<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" (click)="close()">
+  <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white"
+    (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-lg font-semibold text-gray-900">
+        Agregar Viaje a la Vuelta
+      </h3>
+      <button type="button" (click)="close()" class="text-gray-400 hover:text-gray-500">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded relative">
+      <span class="block sm:inline">{{ error }}</span>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="loadingTrips" class="text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p class="text-gray-600 mt-4">Cargando viajes disponibles...</p>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="!loadingTrips">
+
+      <!-- Trip Group Info -->
+      <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+        <p class="text-sm text-gray-600">Vuelta destino:</p>
+        <p class="text-lg font-semibold text-gray-900">{{ data.tripGroupCode }}</p>
+      </div>
+
+      <!-- Trip Selection -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Seleccionar Viaje <span class="text-red-500">*</span>
+        </label>
+        <app-custom-select
+          formControlName="tripId"
+          [options]="tripOptions"
+          [searchable]="true"
+          [clearable]="true"
+          placeholder="Buscar y seleccionar un viaje...">
+
+          <!-- Dropdown option template -->
+          <ng-template #optionTemplate let-option>
+            <div class="py-2">
+              <div class="flex items-center justify-between mb-1">
+                <span class="font-medium text-gray-900">{{ option.label }}</span>
+                <span class="text-sm font-semibold text-green-600">
+                  {{ formatCurrency(option.data.trip.agreedPrice) }}
+                </span>
+              </div>
+              <div class="text-xs text-gray-500 space-y-0.5">
+                <div class="flex items-center gap-2">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>{{ option.data.customer }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span>{{ formatDate(option.data.departureDate) }}</span>
+                </div>
+                <div class="flex items-center gap-2" *ngIf="!option.data.isSubcontracted">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>{{ option.data.vehicle }} - {{ option.data.driver }}</span>
+                </div>
+                <div class="flex items-center gap-2" *ngIf="option.data.isSubcontracted">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span class="text-orange-600">Subcontratado: {{ option.data.subcontractor }}</span>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+
+          <!-- Selected value template -->
+          <ng-template #selectedTemplate let-option>
+            <span class="text-sm">{{ option.label }}</span>
+          </ng-template>
+        </app-custom-select>
+
+        <p class="mt-1 text-xs text-gray-500">
+          Solo se muestran viajes que no están asignados a ninguna vuelta
+        </p>
+      </div>
+
+      <!-- Trip Summary (shown when trip is selected) -->
+      <div *ngIf="selectedTrip" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+        <h4 class="text-sm font-semibold text-gray-900 mb-3">Resumen del Viaje</h4>
+
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p class="text-gray-600">Cliente:</p>
+            <p class="font-medium text-gray-900">
+              {{ getCustomerName(selectedTrip.customer) }}
+            </p>
+          </div>
+
+          <div>
+            <p class="text-gray-600">Precio Acordado:</p>
+            <p class="font-semibold text-green-600">{{ formatCurrency(selectedTrip.agreedPrice) }}</p>
+          </div>
+
+          <div>
+            <p class="text-gray-600">Origen:</p>
+            <p class="font-medium text-gray-900">{{ selectedTrip.origin }}</p>
+          </div>
+
+          <div>
+            <p class="text-gray-600">Destino:</p>
+            <p class="font-medium text-gray-900">{{ selectedTrip.destination }}</p>
+          </div>
+
+          <div>
+            <p class="text-gray-600">Fecha de Salida:</p>
+            <p class="font-medium text-gray-900">{{ formatDate(selectedTrip.departureDate) }}</p>
+          </div>
+
+          <div *ngIf="selectedTrip.arrivalDate">
+            <p class="text-gray-600">Fecha de Llegada:</p>
+            <p class="font-medium text-gray-900">{{ formatDate(selectedTrip.arrivalDate) }}</p>
+          </div>
+
+          <div *ngIf="!selectedTrip.isSubcontracted">
+            <p class="text-gray-600">Vehículo:</p>
+            <p class="font-medium text-gray-900">{{ getVehiclePlate(selectedTrip.vehicle) }}</p>
+          </div>
+
+          <div *ngIf="!selectedTrip.isSubcontracted">
+            <p class="text-gray-600">Conductor:</p>
+            <p class="font-medium text-gray-900">{{ getDriverName(selectedTrip.driver) }}</p>
+          </div>
+
+          <div *ngIf="selectedTrip.isSubcontracted" class="col-span-2">
+            <p class="text-gray-600">Subcontratado a:</p>
+            <p class="font-medium text-orange-600">
+              {{ selectedTrip.subcontractor?.businessName || 'Sin subcontratista' }}
+            </p>
+          </div>
+
+          <div *ngIf="selectedTrip.notes" class="col-span-2">
+            <p class="text-gray-600">Notas:</p>
+            <p class="text-sm text-gray-900">{{ selectedTrip.notes }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-3 mt-6">
+        <button
+          type="button"
+          (click)="close()"
+          [disabled]="loading"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="loading || form.invalid"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+          <span *ngIf="!loading">Agregar Viaje</span>
+          <span *ngIf="loading" class="flex items-center">
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+            Agregando...
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

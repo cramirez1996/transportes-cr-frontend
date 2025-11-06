@@ -21,10 +21,11 @@ import { CustomerService } from '../../../../core/services/business/customer.ser
 import { SupplierService } from '../../../../core/services/supplier.service';
 import { TripService } from '../../../../core/services/trip.service';
 import { VehicleService } from '../../../../core/services/business/vehicle.service';
+import { DateOnlyPipe } from '../../../../shared/pipes/date-only.pipe';
 
 @Component({
   selector: 'app-invoice-list',
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, DropdownComponent, DropdownItemComponent, DropdownDividerComponent, CustomSelectComponent, PaginationComponent, UploadXmlModalComponent, ChangeStatusModalComponent, EditFieldsModalComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, DropdownComponent, DropdownItemComponent, DropdownDividerComponent, CustomSelectComponent, PaginationComponent, UploadXmlModalComponent, ChangeStatusModalComponent, EditFieldsModalComponent, DateOnlyPipe],
   templateUrl: './invoice-list.component.html',
   styleUrls: ['./invoice-list.component.scss']
 })

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -6,11 +6,10 @@ import { Role, CreateRoleDto, UpdateRoleDto } from '../../../../core/models/role
 import { GroupedPermissions, Permission } from '../../../../core/models/permission.model';
 import { RoleService } from '../../../../core/services/role.service';
 import { PermissionService } from '../../../../core/services/permission.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
-type PermissionCategory = 'operations' | 'finance' | 'fleet' | 'admin';
-
-interface PermissionTab {
-  key: PermissionCategory;
+interface ResourceCategory {
+  key: string;
   label: string;
   resources: string[];
   icon: string;
@@ -28,6 +27,7 @@ export class RoleFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private roleService = inject(RoleService);
   private permissionService = inject(PermissionService);
+  private authService = inject(AuthService);
 
   roleForm!: FormGroup;
   roleId: string | null = null;
@@ -36,34 +36,88 @@ export class RoleFormComponent implements OnInit {
   selectedPermissionIds = signal<Set<string>>(new Set());
   loading = signal(true);
   submitting = signal(false);
-  activeCategory = signal<PermissionCategory>('operations');
+  activeCategory = signal<string>('');
 
-  permissionTabs: PermissionTab[] = [
-    {
-      key: 'operations',
-      label: 'Operaciones',
-      resources: ['customer', 'trip', 'driver'],
-      icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01'
-    },
-    {
-      key: 'finance',
-      label: 'Finanzas',
-      resources: ['invoice', 'transaction', 'supplier'],
-      icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-    },
-    {
-      key: 'fleet',
-      label: 'Flota',
-      resources: ['vehicle', 'maintenance'],
-      icon: 'M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2'
-    },
-    {
-      key: 'admin',
-      label: 'Administración',
-      resources: ['user', 'role'],
-      icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-    }
-  ];
+  // Computed signal: is editing a system role?
+  isEditingSystemRole = computed(() => {
+    return this.role !== null && this.role.isSystem === true;
+  });
+
+  // Computed signal: dynamically generate categories from available resources
+  permissionTabs = computed<ResourceCategory[]>(() => {
+    const resources = Object.keys(this.groupedPermissions());
+
+    // Category definitions with flexible resource assignment
+    const categoryDefinitions: Record<string, { label: string; icon: string; priority: number; matcher: (resource: string) => boolean }> = {
+      operations: {
+        label: 'Operaciones',
+        icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
+        priority: 1,
+        matcher: (r) => ['customer', 'trip', 'driver'].includes(r)
+      },
+      finance: {
+        label: 'Finanzas',
+        icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+        priority: 2,
+        matcher: (r) => ['invoice', 'transaction', 'supplier'].includes(r)
+      },
+      fleet: {
+        label: 'Flota',
+        icon: 'M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2',
+        priority: 3,
+        matcher: (r) => ['vehicle', 'maintenance'].includes(r)
+      },
+      admin: {
+        label: 'Administración',
+        icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+        priority: 4,
+        matcher: (r) => ['user', 'role', 'tenant'].includes(r)
+      },
+      system: {
+        label: 'Sistema',
+        icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+        priority: 5,
+        matcher: (r) => ['notification', 'report', 'dashboard', 'analytics', 'audit'].includes(r)
+      }
+    };
+
+    // Build categories from available resources
+    const categories = new Map<string, ResourceCategory>();
+
+    resources.forEach(resource => {
+      // Find which category this resource belongs to
+      let categoryKey = 'other';
+      for (const [key, def] of Object.entries(categoryDefinitions)) {
+        if (def.matcher(resource)) {
+          categoryKey = key;
+          break;
+        }
+      }
+
+      // Get or create category
+      if (!categories.has(categoryKey)) {
+        const def = categoryDefinitions[categoryKey];
+        categories.set(categoryKey, {
+          key: categoryKey,
+          label: def?.label || 'Otros',
+          resources: [],
+          icon: def?.icon || 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4'
+        });
+      }
+
+      categories.get(categoryKey)!.resources.push(resource);
+    });
+
+    // Convert to array and sort by priority
+    const result = Array.from(categories.values());
+    result.sort((a, b) => {
+      const priorityA = categoryDefinitions[a.key]?.priority || 999;
+      const priorityB = categoryDefinitions[b.key]?.priority || 999;
+      return priorityA - priorityB;
+    });
+
+    return result;
+  });
 
   ngOnInit(): void {
     this.roleId = this.route.snapshot.paramMap.get('id');
@@ -116,6 +170,11 @@ export class RoleFormComponent implements OnInit {
       next: (grouped) => {
         this.groupedPermissions.set(grouped);
         this.loading.set(false);
+
+        // Set first category as active if none selected
+        if (!this.activeCategory() && this.permissionTabs().length > 0) {
+          this.activeCategory.set(this.permissionTabs()[0].key);
+        }
       },
       error: (err) => {
         console.error('Error loading permissions:', err);
@@ -124,16 +183,16 @@ export class RoleFormComponent implements OnInit {
     });
   }
 
-  setActiveCategory(category: PermissionCategory): void {
+  setActiveCategory(category: string): void {
     this.activeCategory.set(category);
   }
 
-  getResourcesForCategory(category: PermissionCategory): string[] {
-    const tab = this.permissionTabs.find(t => t.key === category);
+  getResourcesForCategory(category: string): string[] {
+    const tab = this.permissionTabs().find(t => t.key === category);
     return tab?.resources || [];
   }
 
-  getAvailableResourcesForCategory(category: PermissionCategory): string[] {
+  getAvailableResourcesForCategory(category: string): string[] {
     const categoryResources = this.getResourcesForCategory(category);
     const allResources = Object.keys(this.groupedPermissions());
     return allResources.filter(resource => categoryResources.includes(resource));
@@ -165,7 +224,7 @@ export class RoleFormComponent implements OnInit {
     this.selectedPermissionIds.set(selected);
   }
 
-  selectAllInCategory(category: PermissionCategory): void {
+  selectAllInCategory(category: string): void {
     const resources = this.getAvailableResourcesForCategory(category);
     const selected = new Set(this.selectedPermissionIds());
 
@@ -177,7 +236,7 @@ export class RoleFormComponent implements OnInit {
     this.selectedPermissionIds.set(selected);
   }
 
-  deselectAllInCategory(category: PermissionCategory): void {
+  deselectAllInCategory(category: string): void {
     const resources = this.getAvailableResourcesForCategory(category);
     const selected = new Set(this.selectedPermissionIds());
 
@@ -204,12 +263,12 @@ export class RoleFormComponent implements OnInit {
     return selectedCount > 0 && selectedCount < permissions.length;
   }
 
-  isCategoryFullySelected(category: PermissionCategory): boolean {
+  isCategoryFullySelected(category: string): boolean {
     const resources = this.getAvailableResourcesForCategory(category);
     return resources.length > 0 && resources.every(r => this.isResourceFullySelected(r));
   }
 
-  isCategoryPartiallySelected(category: PermissionCategory): boolean {
+  isCategoryPartiallySelected(category: string): boolean {
     const resources = this.getAvailableResourcesForCategory(category);
     const hasAnySelected = resources.some(r => {
       const permissions = this.groupedPermissions()[r] || [];
@@ -218,7 +277,7 @@ export class RoleFormComponent implements OnInit {
     return hasAnySelected && !this.isCategoryFullySelected(category);
   }
 
-  getCategoryPermissionCount(category: PermissionCategory): { selected: number; total: number } {
+  getCategoryPermissionCount(category: string): { selected: number; total: number } {
     const resources = this.getAvailableResourcesForCategory(category);
     let selected = 0;
     let total = 0;
@@ -243,9 +302,15 @@ export class RoleFormComponent implements OnInit {
       user: 'Usuarios',
       role: 'Roles',
       maintenance: 'Mantenimientos',
-      supplier: 'Proveedores'
+      supplier: 'Proveedores',
+      notification: 'Notificaciones',
+      tenant: 'Empresas',
+      report: 'Reportes',
+      dashboard: 'Dashboard',
+      analytics: 'Analíticas',
+      audit: 'Auditoría'
     };
-    return names[resource] || resource;
+    return names[resource] || this.capitalizeFirst(resource);
   }
 
   getActionDisplayName(action: string): string {
@@ -256,9 +321,10 @@ export class RoleFormComponent implements OnInit {
       DELETE: 'Eliminar',
       EXPORT: 'Exportar',
       MANAGE_ROLES: 'Gestionar Roles',
-      READ_OWN: 'Ver Propios'
+      READ_OWN: 'Ver Propios',
+      BROADCAST: 'Difundir'
     };
-    return names[action] || action;
+    return names[action] || this.capitalizeFirst(action);
   }
 
   getActionBadgeColor(action: string): string {
@@ -269,9 +335,14 @@ export class RoleFormComponent implements OnInit {
       DELETE: 'bg-red-100 text-red-800',
       EXPORT: 'bg-purple-100 text-purple-800',
       MANAGE_ROLES: 'bg-indigo-100 text-indigo-800',
-      READ_OWN: 'bg-cyan-100 text-cyan-800'
+      READ_OWN: 'bg-cyan-100 text-cyan-800',
+      BROADCAST: 'bg-orange-100 text-orange-800'
     };
     return colors[action] || 'bg-gray-100 text-gray-800';
+  }
+
+  private capitalizeFirst(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   getSelectedPermissionCountForResource(resource: string): number {

@@ -413,11 +413,11 @@
             
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {{ invoice.issueDate | date:'dd/MM/yyyy' }}
+            {{ invoice.issueDate | dateOnly:'dd/MM/yyyy' }}
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
             <span class="inline-flex items-center px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-medium">
-              {{ invoice.accountingPeriod | date:'MM/yyyy' }}
+              {{ invoice.accountingPeriod | dateOnly:'MM/yyyy' }}
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">

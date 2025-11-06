@@ -63,4 +63,44 @@ export class PermissionService {
   findOne(id: string): Observable<Permission> {
     return this.http.get<Permission>(`${this.apiUrl}/${id}`);
   }
+
+  /**
+   * Create a new permission (Super Admin only)
+   */
+  create(data: CreatePermissionDto): Observable<Permission> {
+    return this.http.post<Permission>(this.apiUrl, data);
+  }
+
+  /**
+   * Update a permission (Super Admin only)
+   */
+  update(id: string, data: UpdatePermissionDto): Observable<Permission> {
+    return this.http.put<Permission>(`${this.apiUrl}/${id}`, data);
+  }
+
+  /**
+   * Delete a permission (Super Admin only)
+   */
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Get roles that have a specific permission
+   */
+  getPermissionRoles(id: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${id}/roles`);
+  }
+}
+
+export interface CreatePermissionDto {
+  resource: string;
+  action: PermissionAction;
+  displayName: string;
+  description?: string;
+}
+
+export interface UpdatePermissionDto {
+  displayName?: string;
+  description?: string;
 }

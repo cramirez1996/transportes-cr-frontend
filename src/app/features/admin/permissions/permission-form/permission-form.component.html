@@ -1,0 +1,191 @@
+<div class="max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-6">
+    <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+      <a [routerLink]="['/admin/permissions']" class="hover:text-blue-600 transition-colors">Permisos</a>
+      <span>/</span>
+      <span class="text-gray-900">{{ isEditMode() ? 'Editar Permiso' : 'Nuevo Permiso' }}</span>
+    </div>
+
+    <h1 class="text-3xl font-bold text-gray-800">
+      {{ isEditMode() ? 'Editar Permiso' : 'Crear Nuevo Permiso' }}
+    </h1>
+    <p class="text-sm text-gray-500 mt-1">
+      {{ isEditMode() ? 'Modifica el nombre y descripción del permiso' : 'Completa la información para crear un nuevo permiso' }}
+    </p>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!loading()) {
+    <!-- Warning for edit mode -->
+    @if (isEditMode()) {
+      <div class="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-lg">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-amber-800">Editando Permiso Existente</h3>
+            <div class="mt-2 text-sm text-amber-700">
+              <p>El <strong>recurso</strong> y la <strong>acción</strong> no pueden ser modificados porque definen la identidad del permiso.</p>
+              <p class="mt-1">Solo puedes cambiar el nombre para mostrar y la descripción.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <form [formGroup]="permissionForm" (ngSubmit)="onSubmit()">
+      <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-6">Información del Permiso</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Resource -->
+          <div>
+            <label for="resource" class="block text-sm font-medium text-gray-700 mb-2">
+              Recurso *
+            </label>
+            <input
+              type="text"
+              id="resource"
+              formControlName="resource"
+              placeholder="ej: customer, trip, invoice"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+              [class.border-red-500]="permissionForm.get('resource')?.invalid && permissionForm.get('resource')?.touched"
+            />
+            @if (isEditMode()) {
+              <p class="text-xs text-gray-500 mt-2">El recurso no puede ser modificado</p>
+            } @else {
+              <p class="text-xs text-gray-500 mt-2">Solo minúsculas y guión bajo (ej: customer, trip_group)</p>
+            }
+            @if (getErrorMessage('resource')) {
+              <p class="text-red-500 text-xs mt-2">{{ getErrorMessage('resource') }}</p>
+            }
+          </div>
+
+          <!-- Action -->
+          <div>
+            <label for="action" class="block text-sm font-medium text-gray-700 mb-2">
+              Acción *
+            </label>
+            <select
+              id="action"
+              formControlName="action"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+              [class.border-red-500]="permissionForm.get('action')?.invalid && permissionForm.get('action')?.touched"
+            >
+              <option value="">Selecciona una acción</option>
+              @for (action of availableActions; track action) {
+                <option [value]="action">{{ getActionDisplayName(action) }}</option>
+              }
+            </select>
+            @if (isEditMode()) {
+              <p class="text-xs text-gray-500 mt-2">La acción no puede ser modificada</p>
+            } @else {
+              <p class="text-xs text-gray-500 mt-2">Tipo de operación que permite este permiso</p>
+            }
+            @if (getErrorMessage('action')) {
+              <p class="text-red-500 text-xs mt-2">{{ getErrorMessage('action') }}</p>
+            }
+          </div>
+
+          <!-- Display Name -->
+          <div>
+            <label for="displayName" class="block text-sm font-medium text-gray-700 mb-2">
+              Nombre para Mostrar *
+            </label>
+            <input
+              type="text"
+              id="displayName"
+              formControlName="displayName"
+              placeholder="ej: Crear Clientes, Ver Facturas"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              [class.border-red-500]="permissionForm.get('displayName')?.invalid && permissionForm.get('displayName')?.touched"
+            />
+            <p class="text-xs text-gray-500 mt-2">Nombre legible para humanos</p>
+            @if (getErrorMessage('displayName')) {
+              <p class="text-red-500 text-xs mt-2">{{ getErrorMessage('displayName') }}</p>
+            }
+          </div>
+
+          <!-- Generated Permission Name (preview) -->
+          @if (!isEditMode() && permissionForm.get('resource')?.value && permissionForm.get('action')?.value) {
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Nombre del Permiso (generado automáticamente)
+              </label>
+              <div class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 font-mono text-sm">
+                {{ permissionForm.get('resource')?.value.toLowerCase() }}:{{ permissionForm.get('action')?.value }}
+              </div>
+              <p class="text-xs text-gray-500 mt-2">Este será el identificador único del permiso</p>
+            </div>
+          }
+
+          <!-- Current Permission Name (edit mode) -->
+          @if (isEditMode() && permission) {
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Nombre del Permiso (no editable)
+              </label>
+              <div class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 font-mono text-sm">
+                {{ permission.name }}
+              </div>
+              <p class="text-xs text-gray-500 mt-2">El identificador del permiso no puede cambiar</p>
+            </div>
+          }
+
+          <!-- Description -->
+          <div class="md:col-span-2">
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+              Descripción
+            </label>
+            <textarea
+              id="description"
+              formControlName="description"
+              rows="3"
+              placeholder="Describe qué permite hacer este permiso..."
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+            ></textarea>
+            <p class="text-xs text-gray-500 mt-2">Ayuda a otros usuarios a entender el alcance del permiso</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          (click)="cancel()"
+          [disabled]="submitting()"
+          class="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="permissionForm.invalid || submitting()"
+          class="px-6 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          @if (submitting()) {
+            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Guardando...</span>
+          } @else {
+            <span>{{ isEditMode() ? 'Actualizar Permiso' : 'Crear Permiso' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

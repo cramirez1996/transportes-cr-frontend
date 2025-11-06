@@ -23,6 +23,7 @@ export class UserFormComponent implements OnInit {
   userForm: FormGroup;
   isEditMode = false;
   isLoading = false;
+  error: string | null = null;
   userId: string | null = null;
   user: User | null = null;
   roles: Role[] = [];
@@ -112,8 +113,10 @@ export class UserFormComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading user:', error);
-        alert('Error loading user');
-        this.router.navigate(['/admin/users']);
+        this.showError('No se pudo cargar la información del usuario');
+        setTimeout(() => {
+          this.router.navigate(['/admin/users']);
+        }, 2000);
       }
     });
   }
@@ -209,12 +212,13 @@ export class UserFormComponent implements OnInit {
 
       this.userService.updateUser(this.userId, updateData).subscribe({
         next: () => {
-          this.isSubmitting = false;
-          this.router.navigate(['/admin/users']);
+          this.router.navigate(['/admin/users'], {
+            state: { message: 'Usuario actualizado exitosamente' }
+          });
         },
         error: (error) => {
           console.error('Error al actualizar usuario:', error);
-          alert(error.error?.message || 'Error al actualizar usuario');
+          this.showError(error.error?.message || 'Error al actualizar usuario');
           this.isSubmitting = false;
         }
       });
@@ -232,12 +236,13 @@ export class UserFormComponent implements OnInit {
 
       this.userService.createUser(createData).subscribe({
         next: () => {
-          this.isSubmitting = false;
-          this.router.navigate(['/admin/users']);
+          this.router.navigate(['/admin/users'], {
+            state: { message: 'Usuario creado exitosamente' }
+          });
         },
         error: (error) => {
           console.error('Error al crear usuario:', error);
-          alert(error.error?.message || 'Error al crear usuario');
+          this.showError(error.error?.message || 'Error al crear usuario');
           this.isSubmitting = false;
         }
       });
@@ -287,13 +292,20 @@ export class UserFormComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error assigning role:', error);
-        alert('Error assigning role');
+        this.showError(error.error?.message || 'Error al asignar el rol');
       }
     });
   }
 
+  showError(message: string): void {
+    this.error = message;
+    setTimeout(() => {
+      this.error = null;
+    }, 5000);
+  }
+
   removeRole(tenantId: string): void {
-    if (!this.userId || !confirm('¿Está seguro de eliminar este rol?')) {
+    if (!this.userId || !confirm('¿Está seguro de eliminar esta asignación de rol?')) {
       return;
     }
 
@@ -305,7 +317,7 @@ export class UserFormComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al eliminar rol:', error);
-        alert('Error al eliminar rol');
+        this.showError(error.error?.message || 'Error al eliminar la asignación de rol');
       }
     });
   }

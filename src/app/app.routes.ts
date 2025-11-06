@@ -246,6 +246,21 @@ export const routes: Routes = [
           .then(m => m.RoleFormComponent)
       },
       {
+        path: 'permissions',
+        loadComponent: () => import('./features/admin/permissions/permission-list/permission-list.component')
+          .then(m => m.PermissionListComponent)
+      },
+      {
+        path: 'permissions/new',
+        loadComponent: () => import('./features/admin/permissions/permission-form/permission-form.component')
+          .then(m => m.PermissionFormComponent)
+      },
+      {
+        path: 'permissions/:id/edit',
+        loadComponent: () => import('./features/admin/permissions/permission-form/permission-form.component')
+          .then(m => m.PermissionFormComponent)
+      },
+      {
         path: 'reports',
         loadComponent: () => import('./features/admin/reports/reports-dashboard/reports-dashboard.component')
           .then(m => m.ReportsDashboardComponent)

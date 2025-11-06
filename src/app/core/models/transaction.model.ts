@@ -49,7 +49,7 @@ export interface CreateTransactionDto {
   date: Date;
   description: string;
   tripId?: string;
-  tripGroupId?: string;
+  tripGroupId?: string | null;
   invoiceId?: string;
   vehicleId?: string;
   driverId?: string;

@@ -1,67 +1,189 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../../../core/services/user.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { User, TenantUser } from '../../../../core/models/user.model';
 import { UserRole } from '../../../../core/models/enums/user-role.enum';
+import { DropdownComponent } from '../../../../shared/components/dropdown/dropdown.component';
+import { DropdownItemComponent } from '../../../../shared/components/dropdown-item/dropdown-item.component';
+import { DropdownDividerComponent } from '../../../../shared/components/dropdown-divider/dropdown-divider.component';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    ReactiveFormsModule,
+    DropdownComponent,
+    DropdownItemComponent,
+    DropdownDividerComponent,
+    PaginationComponent
+  ],
   templateUrl: './user-list.component.html',
   styleUrl: './user-list.component.scss'
 })
-export class UserListComponent implements OnInit {
+export class UserListComponent implements OnInit, OnDestroy {
+  private userService = inject(UserService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private fb = inject(FormBuilder);
+  private destroy$ = new Subject<void>();
+
   users: User[] = [];
-  filteredUsers: User[] = [];
-  isLoading = false;
-  searchTerm = '';
-  selectedStatus = 'all';
+  loading = false;
+  error: string | null = null;
+
   currentUserRole: UserRole | null = null;
   currentTenantId: string | null = null;
 
   // Pagination
-  currentPage = 1;
-  pageSize = 10;
-  totalUsers = 0;
+  page = 1;
+  limit = 10;
+  total = 0;
   totalPages = 0;
 
   // Modal
   showDeleteModal = false;
   userToDelete: User | null = null;
 
+  // Form
+  filterForm!: FormGroup;
+
+  // Advanced filters toggle
+  showAdvancedFilters = false;
+
   // Expose Math for template
   Math = Math;
 
-  constructor(
-    private userService: UserService,
-    private authService: AuthService
-  ) {}
+  // Getters for template binding compatibility
+  get filters() {
+    return this.filterForm?.value || {};
+  }
+
+  set filters(value: any) {
+    if (this.filterForm) {
+      this.filterForm.patchValue(value, { emitEvent: false });
+    }
+  }
+
+  // Active filters count
+  get activeFiltersCount(): number {
+    if (!this.filterForm) return 0;
+    const values = this.filterForm.value;
+    return Object.keys(values).filter(key => {
+      const value = values[key];
+      return value !== null && value !== undefined && value !== '';
+    }).length;
+  }
 
   ngOnInit(): void {
     const user = this.authService.user();
     this.currentUserRole = user?.role.name as UserRole || null;
     this.currentTenantId = this.authService.getCurrentTenant()?.id || null;
+
+    this.initializeForm();
+    this.subscribeToQueryParams();
+    this.subscribeToFormChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private initializeForm(): void {
+    this.filterForm = this.fb.group({
+      // Basic filters
+      search: [null],
+      status: [null],
+      role: [null],
+
+      // Advanced filters
+      tenantId: [null],
+
+      // Sorting
+      sortBy: ['createdAt'],
+      sortOrder: ['DESC']
+    });
+  }
+
+  private subscribeToQueryParams(): void {
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        // Pagination
+        this.page = params['page'] ? Number(params['page']) : 1;
+        this.limit = params['limit'] ? Number(params['limit']) : 10;
+
+        // Update form with query params (without emitting to avoid loop)
+        this.filterForm.patchValue({
+          search: params['search'] || null,
+          status: params['status'] || null,
+          role: params['role'] || null,
+          tenantId: params['tenantId'] || null,
+          sortBy: params['sortBy'] || 'createdAt',
+          sortOrder: params['sortOrder'] || 'DESC'
+        }, { emitEvent: false });
+
+        // Show advanced filters if any advanced filter is present
+        this.showAdvancedFilters = !!(params['tenantId']);
+
+        this.loadUsers();
+      });
+  }
+
+  private subscribeToFormChanges(): void {
+    this.filterForm.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        this.page = 1; // Reset to first page on filter change
+        this.updateQueryParams();
+      });
+  }
+
+  // Method for template compatibility with ngModel
+  onFilterChange(): void {
+    this.page = 1;
+    this.updateQueryParams();
     this.loadUsers();
   }
 
   loadUsers(): void {
-    this.isLoading = true;
+    this.loading = true;
+    this.error = null;
 
+    const formValue = this.filterForm.value;
     const params: any = {
-      page: this.currentPage,
-      limit: this.pageSize
+      page: this.page,
+      limit: this.limit
     };
 
-    if (this.searchTerm) {
-      params.search = this.searchTerm;
+    // Add filters from form
+    if (formValue.search) {
+      params.search = formValue.search;
     }
 
-    if (this.selectedStatus !== 'all') {
-      params.isActive = this.selectedStatus === 'active';
+    if (formValue.status) {
+      params.status = formValue.status;
+    }
+
+    if (formValue.role) {
+      params.role = formValue.role;
+    }
+
+    if (formValue.tenantId) {
+      params.tenantId = formValue.tenantId;
     }
 
     // Admin only sees users from their tenants
@@ -69,30 +191,41 @@ export class UserListComponent implements OnInit {
       params.tenantId = this.currentTenantId;
     }
 
+    // Add sorting
+    if (formValue.sortBy) {
+      params.sortBy = formValue.sortBy;
+    }
+    if (formValue.sortOrder) {
+      params.sortOrder = formValue.sortOrder;
+    }
+
     this.userService.getUsers(params).subscribe({
       next: (response) => {
-        console.log('AQUI', response)
         this.users = response.data;
-        this.filteredUsers = this.users;
-        this.totalUsers = response.total;
-        this.totalPages = Math.ceil(this.totalUsers / this.pageSize);
-        this.isLoading = false;
+        this.total = response.total;
+        this.page = response.page;
+        this.limit = response.limit;
+        this.totalPages = Math.ceil(this.total / this.limit);
+        this.loading = false;
       },
-      error: (error) => {
-        console.error('Error loading users:', error);
-        this.isLoading = false;
+      error: (err) => {
+        this.error = 'Error al cargar los usuarios';
+        console.error('Error loading users:', err);
+        this.loading = false;
       }
     });
   }
 
-  onSearch(): void {
-    this.currentPage = 1;
-    this.loadUsers();
+  clearFilters(): void {
+    this.filterForm.reset({
+      sortBy: 'createdAt',
+      sortOrder: 'DESC'
+    });
+    this.page = 1;
   }
 
-  onStatusChange(): void {
-    this.currentPage = 1;
-    this.loadUsers();
+  toggleAdvancedFilters(): void {
+    this.showAdvancedFilters = !this.showAdvancedFilters;
   }
 
   getTenantNames(user: User): string {
@@ -120,16 +253,12 @@ export class UserListComponent implements OnInit {
       : this.userService.activateUser(user.id);
 
     action.subscribe({
-      next: (updatedUser) => {
-        const index = this.users.findIndex(u => u.id === user.id);
-        if (index !== -1) {
-          this.users[index] = updatedUser;
-          this.filteredUsers = [...this.users];
-        }
+      next: () => {
+        this.loadUsers();
       },
       error: (error) => {
         console.error('Error toggling user status:', error);
-        alert('Error updating user status');
+        alert('Error al actualizar el estado del usuario');
       }
     });
   }
@@ -149,43 +278,75 @@ export class UserListComponent implements OnInit {
 
     this.userService.deleteUser(this.userToDelete.id).subscribe({
       next: () => {
-        this.users = this.users.filter(u => u.id !== this.userToDelete?.id);
-        this.filteredUsers = [...this.users];
-        this.totalUsers--;
         this.showDeleteModal = false;
         this.userToDelete = null;
-
-        // Reload if current page is empty
-        if (this.users.length === 0 && this.currentPage > 1) {
-          this.currentPage--;
-          this.loadUsers();
-        }
+        this.loadUsers();
       },
       error: (error) => {
         console.error('Error deleting user:', error);
-        alert('Error deleting user');
+        alert('Error al eliminar el usuario');
         this.showDeleteModal = false;
         this.userToDelete = null;
       }
     });
   }
 
-  previousPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.loadUsers();
-    }
+  // Pagination methods
+  onPageChange(page: number): void {
+    this.page = Number(page);
+    this.updateQueryParams();
+    this.loadUsers();
   }
 
-  nextPage(): void {
-    if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-      this.loadUsers();
-    }
+  onLimitChange(limit: number): void {
+    this.limit = Number(limit);
+    this.page = 1;
+    this.updateQueryParams();
+    this.loadUsers();
+  }
+
+  private updateQueryParams(): void {
+    const formValue = this.filterForm.value;
+    const queryParams: any = {
+      page: this.page,
+      limit: this.limit
+    };
+
+    // Add form values to query params (excluding null/undefined/empty)
+    Object.keys(formValue).forEach(key => {
+      const value = formValue[key];
+      if (value !== null && value !== undefined && value !== '') {
+        queryParams[key] = value;
+      }
+    });
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: queryParams,
+      replaceUrl: true
+    });
   }
 
   get canCreateUser(): boolean {
     return this.currentUserRole === UserRole.SUPER_ADMIN ||
            this.currentUserRole === UserRole.ADMIN;
+  }
+
+  getStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      ACTIVE: 'Activo',
+      INACTIVE: 'Inactivo',
+      SUSPENDED: 'Suspendido'
+    };
+    return labels[status] || status;
+  }
+
+  getStatusClass(status: string): string {
+    const classes: Record<string, string> = {
+      ACTIVE: 'bg-green-100 text-green-800',
+      INACTIVE: 'bg-red-100 text-red-800',
+      SUSPENDED: 'bg-yellow-100 text-yellow-800'
+    };
+    return classes[status] || 'bg-gray-100 text-gray-800';
   }
 }

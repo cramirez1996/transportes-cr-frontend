@@ -19,6 +19,7 @@ export interface TripGroup {
 
   // Relaciones
   trips?: any[]; // Will use Trip[] when imported
+  expenses?: any[]; // Transactions associated with this trip group
 
   // Campos calculados
   totalRevenue?: number;

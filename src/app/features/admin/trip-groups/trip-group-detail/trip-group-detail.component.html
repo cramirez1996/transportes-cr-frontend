@@ -128,15 +128,220 @@
     </div>
 
     <!-- Trips List -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Viajes de la Vuelta</h2>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900">Viajes de la Vuelta</h2>
+        <button
+          type="button"
+          (click)="openAddTripModal()"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Agregar Viaje
+        </button>
+      </div>
+
       <div *ngIf="!tripGroup.trips || tripGroup.trips.length === 0" class="text-center py-8 text-gray-500">
         <p>No hay viajes asociados a esta vuelta.</p>
-        <p class="text-sm mt-2">Crea un nuevo viaje y asígnalo a esta vuelta.</p>
+        <p class="text-sm mt-2">Usa el botón "Agregar Viaje" para asignar viajes existentes a esta vuelta.</p>
       </div>
-      <div *ngIf="tripGroup.trips && tripGroup.trips.length > 0">
-        <p class="text-sm text-gray-600 mb-4">{{ tripGroup.trips.length }} viaje(s) asociado(s)</p>
-        <!-- Aquí puedes agregar una tabla con los viajes cuando tengas la relación cargada -->
+
+      <div *ngIf="tripGroup.trips && tripGroup.trips.length > 0" class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Cliente
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Origen → Destino
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Vehículo
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Conductor
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Fecha Salida
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Estado
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Precio
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let trip of tripGroup.trips" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ trip.customer?.businessName || trip.customer?.contactName || 'Sin cliente' }}
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-900">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium">{{ trip.origin }}</span>
+                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                  <span class="font-medium">{{ trip.destination }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span *ngIf="trip.isSubcontracted" class="text-orange-600 font-medium">
+                  Subcontratado
+                </span>
+                <span *ngIf="!trip.isSubcontracted && trip.vehicle">
+                  {{ trip.vehicle.licensePlate || trip.vehicle.plateNumber || '-' }}
+                </span>
+                <span *ngIf="!trip.isSubcontracted && !trip.vehicle">-</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span *ngIf="trip.isSubcontracted && trip.subcontractor">
+                  {{ trip.subcontractor.businessName }}
+                </span>
+                <span *ngIf="!trip.isSubcontracted && trip.driver">
+                  {{ trip.driver.firstName }} {{ trip.driver.lastName }}
+                </span>
+                <span *ngIf="!trip.isSubcontracted && !trip.driver">-</span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ formatDate(trip.departureDate) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getTripStatusColor(trip.status)">
+                  {{ getTripStatusLabel(trip.status) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 text-right">
+                {{ formatCurrency(trip.agreedPrice) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <a
+                  [routerLink]="['/admin/trips', trip.id]"
+                  class="text-blue-600 hover:text-blue-900 mr-3">
+                  Ver
+                </a>
+                <button
+                  type="button"
+                  (click)="removeTripFromGroup(trip)"
+                  class="text-red-600 hover:text-red-900">
+                  Quitar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot class="bg-gray-50">
+            <tr>
+              <td colspan="6" class="px-6 py-4 text-sm font-semibold text-gray-900 text-right">
+                Total Ingresos:
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 text-right">
+                {{ formatCurrency(tripGroup.totalRevenue) }}
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Expenses List -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900">Gastos de la Vuelta</h2>
+        <button
+          type="button"
+          (click)="openAddExpenseModal()"
+          class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Agregar Gasto
+        </button>
+      </div>
+
+      <div *ngIf="!tripGroup.expenses || tripGroup.expenses.length === 0" class="text-center py-8 text-gray-500">
+        <p>No hay gastos asociados a esta vuelta.</p>
+        <p class="text-sm mt-2">Usa el botón "Agregar Gasto" para asignar gastos existentes a esta vuelta.</p>
+      </div>
+      <div *ngIf="tripGroup.expenses && tripGroup.expenses.length > 0" class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Fecha
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Descripción
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Categoría
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Método de Pago
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Proveedor
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Monto
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr *ngFor="let expense of tripGroup.expenses" class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ formatDate(expense.date) }}
+              </td>
+              <td class="px-6 py-4 text-sm text-gray-900">
+                {{ expense.description }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ expense.category?.name || '-' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ getPaymentMethodLabel(expense.paymentMethod) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ expense.supplier?.businessName || '-' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600 text-right">
+                {{ formatCurrency(expense.amount) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <a
+                  [routerLink]="['/admin/accounting/transactions', expense.id]"
+                  class="text-blue-600 hover:text-blue-900 mr-3">
+                  Ver
+                </a>
+                <button
+                  type="button"
+                  (click)="removeExpenseFromGroup(expense)"
+                  class="text-red-600 hover:text-red-900">
+                  Quitar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot class="bg-gray-50">
+            <tr>
+              <td colspan="6" class="px-6 py-4 text-sm font-semibold text-gray-900 text-right">
+                Total Gastos:
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600 text-right">
+                {{ formatCurrency(tripGroup.totalExpenses) }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
     </div>
   </div>

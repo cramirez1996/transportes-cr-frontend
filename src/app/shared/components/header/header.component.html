@@ -12,7 +12,7 @@
       <h1 class="text-lg sm:text-xl font-bold text-gray-900">Transportes CR</h1>
     </div>
 
-    <!-- Right: Tenant Switcher & User menu -->
+    <!-- Right: Tenant Switcher, Notifications & User menu -->
     @if (currentUser(); as user) {
       <div class="flex items-center gap-3 sm:gap-4">
         <!-- Tenant Switcher (Custom Select) -->
@@ -53,6 +53,9 @@
             </app-custom-select>
           </div>
         }
+
+        <!-- Notifications -->
+        <app-notifications></app-notifications>
 
         <!-- User Info & Avatar with Dropdown -->
         <div class="flex items-center gap-3">

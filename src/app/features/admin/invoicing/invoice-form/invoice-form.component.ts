@@ -181,8 +181,8 @@ export class InvoiceFormComponent implements OnInit {
   }
 
   updateAccountingPeriodFromIssueDate(issueDate: string): void {
-    const date = new Date(issueDate);
-    const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    // Extract year-month from issueDate (YYYY-MM-DD -> YYYY-MM)
+    const yearMonth = issueDate.substring(0, 7); // Get 'YYYY-MM' from 'YYYY-MM-DD'
     this.invoiceForm.patchValue(
       { accountingPeriod: yearMonth },
       { emitEvent: false }
@@ -235,14 +235,14 @@ export class InvoiceFormComponent implements OnInit {
   }
 
   patchFormValues(invoice: Invoice): void {
-    const accountingDate = new Date(invoice.accountingPeriod);
-    const accountingYearMonth = `${accountingDate.getFullYear()}-${String(accountingDate.getMonth() + 1).padStart(2, '0')}`;
+    // Extract year-month from accountingPeriod (YYYY-MM-DD -> YYYY-MM)
+    const accountingYearMonth = invoice.accountingPeriod.substring(0, 7); // Get 'YYYY-MM' from 'YYYY-MM-DD'
 
     this.invoiceForm.patchValue({
       type: invoice.type,
       documentType: invoice.documentType,
       folioNumber: invoice.folioNumber,
-      issueDate: new Date(invoice.issueDate).toISOString().split('T')[0],
+      issueDate: invoice.issueDate, // Already in YYYY-MM-DD format
       accountingPeriod: accountingYearMonth,
       customerId: invoice.customer?.id,
       supplierId: invoice.supplier?.id,

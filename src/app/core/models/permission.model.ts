@@ -6,6 +6,7 @@ export enum PermissionAction {
   EXPORT = 'EXPORT',
   MANAGE_ROLES = 'MANAGE_ROLES',
   READ_OWN = 'READ_OWN',
+  BROADCAST = 'BROADCAST',
 }
 
 export interface Permission {

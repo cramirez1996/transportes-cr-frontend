@@ -266,10 +266,10 @@ export class InvoiceService {
       type: invoice.type,
       documentType: invoice.documentType,
       folioNumber: invoice.folioNumber,
-      issueDate: new Date(invoice.issueDate),
-      receptionDate: invoice.receptionDate ? new Date(invoice.receptionDate) : undefined,
-      acknowledgeDate: invoice.acknowledgeDate ? new Date(invoice.acknowledgeDate) : undefined,
-      accountingPeriod: new Date(invoice.accountingPeriod),
+      issueDate: invoice.issueDate, // Already in YYYY-MM-DD format
+      receptionDate: invoice.receptionDate, // Already in YYYY-MM-DD format
+      acknowledgeDate: invoice.acknowledgeDate, // Already in YYYY-MM-DD format
+      accountingPeriod: invoice.accountingPeriod, // Already in YYYY-MM-DD format
       customer: invoice.customer,
       supplier: invoice.supplier,
       trip: invoice.trip,
@@ -299,26 +299,7 @@ export class InvoiceService {
   }
 
   private mapInvoiceToBackend(invoiceData: CreateInvoiceDto | UpdateInvoiceDto): any {
-    const payload: any = { ...invoiceData };
-
-    if (invoiceData.issueDate) {
-      payload.issueDate = invoiceData.issueDate instanceof Date
-        ? invoiceData.issueDate.toISOString().split('T')[0]
-        : invoiceData.issueDate;
-    }
-
-    if (invoiceData.receptionDate) {
-      payload.receptionDate = invoiceData.receptionDate instanceof Date
-        ? invoiceData.receptionDate.toISOString()
-        : invoiceData.receptionDate;
-    }
-
-    if (invoiceData.acknowledgeDate) {
-      payload.acknowledgeDate = invoiceData.acknowledgeDate instanceof Date
-        ? invoiceData.acknowledgeDate.toISOString()
-        : invoiceData.acknowledgeDate;
-    }
-
-    return payload;
+    // No need to map dates - they're already in YYYY-MM-DD string format
+    return { ...invoiceData };
   }
 }

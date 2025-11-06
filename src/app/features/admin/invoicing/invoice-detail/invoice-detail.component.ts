@@ -8,10 +8,11 @@ import { InvoiceDocumentsModalComponent } from '../invoice-documents-modal/invoi
 import { ModalService } from '../../../../core/services/modal.service';
 import { DocumentService } from '../../../../core/services/document.service';
 import { DocumentEntityType, DocumentType, DOCUMENT_TYPE_LABELS } from '../../../../core/models/document.model';
+import { DateOnlyPipe } from '../../../../shared/pipes/date-only.pipe';
 
 @Component({
   selector: 'app-invoice-detail',
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, DateOnlyPipe],
   templateUrl: './invoice-detail.component.html',
   styleUrl: './invoice-detail.component.scss'
 })
