@@ -2,17 +2,17 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AnalyticsService } from '../../../../core/services/analytics.service';
-import { MonthlyFinancialReport } from '../../../../core/models/analytics.model';
+import { MonthlyCashFlowReport } from '../../../../core/models/analytics.model';
 
 @Component({
-  selector: 'app-financial-report',
+  selector: 'app-cash-flow-report',
   standalone: true,
   imports: [CommonModule, RouterLink],
-  templateUrl: './financial-report.component.html',
-  styleUrl: './financial-report.component.scss'
+  templateUrl: './cash-flow-report.component.html',
+  styleUrl: './cash-flow-report.component.scss'
 })
-export class FinancialReportComponent implements OnInit {
-  data: MonthlyFinancialReport | null = null;
+export class CashFlowReportComponent implements OnInit {
+  data: MonthlyCashFlowReport | null = null;
   selectedMonth: string;
   loading = true;
   error: string | null = null;
@@ -48,14 +48,14 @@ export class FinancialReportComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.analyticsService.getMonthlyFinancialReport(this.selectedMonth).subscribe({
+    this.analyticsService.getMonthlyCashFlowReport(this.selectedMonth).subscribe({
       next: (data) => {
         this.data = data;
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error loading financial report:', err);
-        this.error = 'Error al cargar el reporte financiero';
+        console.error('Error loading cash flow report:', err);
+        this.error = 'Error al cargar el reporte de flujo de caja';
         this.loading = false;
       }
     });
@@ -73,14 +73,14 @@ export class FinancialReportComponent implements OnInit {
     return this.analyticsService.formatMonthDisplay(this.selectedMonth);
   }
 
-  getIvaStatusClass(): string {
+  getCashFlowStatusClass(): string {
     if (!this.data) return '';
-    return this.data.iva.ivaAPagar > 0 ? 'text-red-600' : 'text-green-600';
+    return this.data.netCashFlow > 0 ? 'text-green-600' : 'text-red-600';
   }
 
-  getIvaStatusText(): string {
+  getCashFlowStatusText(): string {
     if (!this.data) return '';
-    return this.data.iva.ivaAPagar > 0 ? 'A Pagar al SII' : 'A Favor';
+    return this.data.netCashFlow > 0 ? 'Positivo' : 'Negativo';
   }
 
   exportToExcel(): void {

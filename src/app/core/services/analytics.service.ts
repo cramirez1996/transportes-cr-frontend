@@ -7,6 +7,7 @@ import {
   DashboardTrends,
   TripProfitabilitySummary,
   MonthlyFinancialReport,
+  MonthlyCashFlowReport,
   ExpensesByCategoryReport,
   DateRangeQuery,
   MonthlyInvoiceTrends,
@@ -68,6 +69,14 @@ export class AnalyticsService {
   }
 
   /**
+   * Get monthly cash flow report (only PAID invoices and cash transactions)
+   */
+  getMonthlyCashFlowReport(month: string): Observable<MonthlyCashFlowReport> {
+    const params = new HttpParams().set('month', month);
+    return this.http.get<MonthlyCashFlowReport>(`${this.apiUrl}/financial/cash-flow-report`, { params });
+  }
+
+  /**
    * Get expenses breakdown by category
    */
   getExpensesByCategory(query: DateRangeQuery = {}): Observable<ExpensesByCategoryReport> {
@@ -105,7 +114,9 @@ export class AnalyticsService {
    * Helper: Format month for display (e.g., "Enero 2025")
    */
   formatMonthDisplay(monthISO: string): string {
-    const date = new Date(monthISO);
+    // Parse YYYY-MM-DD manually to avoid timezone issues
+    const [year, month] = monthISO.split('-').map(Number);
+    const date = new Date(year, month - 1, 1); // month is 0-indexed
     return date.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
   }
 

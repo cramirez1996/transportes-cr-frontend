@@ -276,6 +276,11 @@ export const routes: Routes = [
           .then(m => m.FinancialReportComponent)
       },
       {
+        path: 'reports/cash-flow',
+        loadComponent: () => import('./features/admin/reports/cash-flow-report/cash-flow-report.component')
+          .then(m => m.CashFlowReportComponent)
+      },
+      {
         path: 'reports/expenses',
         loadComponent: () => import('./features/admin/reports/expenses-report/expenses-report.component')
           .then(m => m.ExpensesReportComponent)
@@ -294,6 +299,16 @@ export const routes: Routes = [
         path: 'custom-select-demo',
         loadComponent: () => import('./features/admin/custom-select-demo/custom-select-demo.component')
           .then(m => m.CustomSelectDemoComponent)
+      },
+      {
+        path: 'audit-logs',
+        loadComponent: () => import('./features/admin/audit-logs/audit-log-list/audit-log-list.component')
+          .then(m => m.AuditLogListComponent)
+      },
+      {
+        path: 'audit-logs/:id',
+        loadComponent: () => import('./features/admin/audit-logs/audit-log-detail/audit-log-detail.component')
+          .then(m => m.AuditLogDetailComponent)
       }
     ]
   },

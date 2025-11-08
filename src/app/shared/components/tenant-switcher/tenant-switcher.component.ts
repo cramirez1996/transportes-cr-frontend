@@ -53,12 +53,14 @@ export class TenantSwitcherComponent implements OnInit {
 
     if (newTenantId && newTenantId !== currentTenantId) {
       this.isLoading = true;
+      // Preserve current URL to stay on same page after tenant switch
+      const currentUrl = this.router.url;
 
       this.authService.switchTenant(newTenantId).subscribe({
         next: () => {
           this.isLoading = false;
-          // Redirect to dashboard to reload data with new tenant context
-          this.router.navigate(['/admin/dashboard']).then(() => {
+          // Stay on current page and reload to refresh data with new tenant context
+          this.router.navigateByUrl(currentUrl).then(() => {
             // Force page reload to ensure all components refresh with new tenant data
             window.location.reload();
           });

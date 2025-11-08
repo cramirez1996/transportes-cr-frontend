@@ -107,18 +107,23 @@ export class AuthService {
   /**
    * Cerrar sesión
    */
-  logout(refreshToken?: string): Observable<any> {
+  logout(refreshToken?: string, returnUrl?: string): Observable<any> {
     const token = refreshToken || this.getRefreshToken();
+    const currentUrl = returnUrl || this.router.url;
 
     return this.http.post(`${this.API_URL}/logout`, { refreshToken: token }).pipe(
       tap(() => {
         this.clearSession();
-        this.router.navigate(['/auth/login']);
+        this.router.navigate(['/auth/login'], {
+          queryParams: { returnUrl: currentUrl }
+        });
       }),
       catchError((error) => {
         // Aunque falle, limpiamos la sesión local
         this.clearSession();
-        this.router.navigate(['/auth/login']);
+        this.router.navigate(['/auth/login'], {
+          queryParams: { returnUrl: currentUrl }
+        });
         return throwError(() => error);
       }),
     );
@@ -400,8 +405,11 @@ export class AuthService {
    * Usado cuando el logout es automático por token expirado
    */
   clearSessionAndRedirect(): void {
+    const currentUrl = this.router.url;
     this.clearSession();
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/auth/login'], {
+      queryParams: { returnUrl: currentUrl }
+    });
   }
 
   /**

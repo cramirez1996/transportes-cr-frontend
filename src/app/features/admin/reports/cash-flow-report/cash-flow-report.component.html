@@ -8,13 +8,13 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
-        <span class="text-slate-900 font-medium">Reporte Financiero</span>
+        <span class="text-slate-900 font-medium">Flujo de Caja</span>
       </nav>
 
       <!-- Title & Controls -->
       <div class="flex items-start justify-between">
         <div class="flex-1">
-          <h1 class="text-4xl font-bold text-slate-900 mb-2">Reporte Financiero</h1>
+          <h1 class="text-4xl font-bold text-slate-900 mb-2">Flujo de Caja</h1>
           @if (data) {
             <p class="text-lg text-slate-600">{{ selectedMonthDisplay }}</p>
           }
@@ -55,6 +55,16 @@
       </div>
     </div>
 
+    <!-- Info Banner -->
+    @if (data) {
+      <div class="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 mb-6 flex items-start gap-3">
+        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+        </svg>
+        <p class="text-sm text-blue-800">{{ data.note }}</p>
+      </div>
+    }
+
     <!-- Error Message -->
     @if (error) {
       <div class="bg-red-50 border border-red-200 text-red-800 px-5 py-4 rounded-xl mb-6 flex items-start gap-3">
@@ -76,65 +86,63 @@
     } @else if (data) {
       <!-- Main KPIs Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <!-- Net Profit KPI -->
+        <!-- Net Cash Flow KPI -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
           <div class="flex items-start justify-between mb-4">
-            <div class="p-3 bg-emerald-50 rounded-xl">
-              <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 rounded-xl" [ngClass]="data.netCashFlow >= 0 ? 'bg-emerald-50' : 'bg-red-50'">
+              <svg class="w-6 h-6" [ngClass]="data.netCashFlow >= 0 ? 'text-emerald-600' : 'text-red-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
             </div>
           </div>
-          <p class="text-sm font-medium text-slate-600 mb-1">Ganancia Neta</p>
-          <p class="text-3xl font-bold text-slate-900">{{ formatCurrency(data.netProfit) }}</p>
+          <p class="text-sm font-medium text-slate-600 mb-1">Flujo de Caja Neto</p>
+          <p class="text-3xl font-bold text-slate-900">{{ formatCurrency(data.netCashFlow) }}</p>
           <div class="mt-3 flex items-center gap-1">
-            <span class="text-sm font-medium" [ngClass]="data.profitMarginPercentage >= 0 ? 'text-emerald-600' : 'text-red-600'">
-              {{ data.profitMarginPercentage }}%
+            <span class="text-sm font-medium" [ngClass]="data.cashFlowMarginPercentage >= 0 ? 'text-emerald-600' : 'text-red-600'">
+              {{ data.cashFlowMarginPercentage }}%
             </span>
             <span class="text-xs text-slate-500">margen</span>
           </div>
         </div>
 
-        <!-- Revenue KPI -->
+        <!-- Cash Income KPI -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
           <div class="flex items-start justify-between mb-4">
-            <div class="p-3 bg-blue-50 rounded-xl">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-emerald-50 rounded-xl">
+              <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
               </svg>
             </div>
           </div>
-          <p class="text-sm font-medium text-slate-600 mb-1">Ingresos Totales</p>
+          <p class="text-sm font-medium text-slate-600 mb-1">Ingresos Cobrados</p>
           <p class="text-3xl font-bold text-slate-900">{{ formatCurrency(data.income.totalGross) }}</p>
           <div class="mt-3 flex items-center gap-1">
             <span class="text-sm font-medium text-slate-700">{{ data.income.invoiceCount }}</span>
-            <span class="text-xs text-slate-500">facturas</span>
+            <span class="text-xs text-slate-500">facturas pagadas</span>
           </div>
         </div>
 
-        <!-- IVA Balance KPI -->
+        <!-- Cash Expenses KPI -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
           <div class="flex items-start justify-between mb-4">
-            <div class="p-3 rounded-xl" [ngClass]="data.iva.ivaAPagar > 0 ? 'bg-amber-50' : 'bg-emerald-50'">
-              <svg class="w-6 h-6" [ngClass]="data.iva.ivaAPagar > 0 ? 'text-amber-600' : 'text-emerald-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            <div class="p-3 bg-rose-50 rounded-xl">
+              <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>
               </svg>
             </div>
           </div>
-          <p class="text-sm font-medium text-slate-600 mb-1">{{ getIvaStatusText() }}</p>
-          <p class="text-3xl font-bold text-slate-900">{{ formatCurrency(Math.abs(data.iva.ivaAPagar)) }}</p>
-          <div class="mt-3">
-            <span class="text-xs font-medium px-2.5 py-1 rounded-full"
-              [ngClass]="data.iva.ivaAPagar > 0 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'">
-              {{ data.iva.ivaAPagar > 0 ? 'Por pagar' : 'A favor' }}
-            </span>
+          <p class="text-sm font-medium text-slate-600 mb-1">Gastos Pagados</p>
+          <p class="text-3xl font-bold text-slate-900">{{ formatCurrency(data.expenses.totalExpenses) }}</p>
+          <div class="mt-3 flex items-center gap-1">
+            <span class="text-sm font-medium text-slate-700">{{ data.expenses.invoiceCount }}</span>
+            <span class="text-xs text-slate-500">facturas pagadas</span>
           </div>
         </div>
       </div>
 
-      <!-- Financial Details Grid -->
+      <!-- Cash Flow Details Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Income Card -->
+        <!-- Cash Income Card -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="px-6 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
             <div class="flex items-center gap-3">
@@ -143,12 +151,13 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
               </div>
-              <h2 class="text-lg font-bold text-slate-900">Ingresos</h2>
+              <h2 class="text-lg font-bold text-slate-900">Ingresos en Efectivo</h2>
+              <span class="ml-auto text-xs font-medium text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">Cobrados</span>
             </div>
           </div>
           <div class="p-6 space-y-4">
             <div class="flex justify-between items-baseline pb-4 border-b border-slate-100">
-              <span class="text-sm font-medium text-slate-600">Total Bruto (con IVA)</span>
+              <span class="text-sm font-medium text-slate-600">Total Cobrado (con IVA)</span>
               <span class="text-xl font-bold text-emerald-600">{{ formatCurrency(data.income.totalGross) }}</span>
             </div>
             <div class="flex justify-between items-baseline pb-4 border-b border-slate-100">
@@ -159,14 +168,18 @@
               <span class="text-sm text-slate-600">IVA Débito</span>
               <span class="text-base font-semibold text-slate-900">{{ formatCurrency(data.income.totalIvaDebito) }}</span>
             </div>
+            <div class="flex justify-between items-baseline pb-4 border-b border-slate-100">
+              <span class="text-sm text-slate-600">Efectivo sin Factura</span>
+              <span class="text-base font-semibold text-slate-900">{{ formatCurrency(data.income.cashWithoutInvoice) }}</span>
+            </div>
             <div class="flex justify-between items-baseline">
-              <span class="text-sm text-slate-600">Número de Facturas</span>
+              <span class="text-sm text-slate-600">Facturas Pagadas</span>
               <span class="text-base font-semibold text-slate-900">{{ data.income.invoiceCount }}</span>
             </div>
           </div>
         </div>
 
-        <!-- Expenses Card -->
+        <!-- Cash Expenses Card -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="px-6 py-4 bg-gradient-to-r from-rose-50 to-pink-50 border-b border-rose-100">
             <div class="flex items-center gap-3">
@@ -175,12 +188,13 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
                 </svg>
               </div>
-              <h2 class="text-lg font-bold text-slate-900">Gastos</h2>
+              <h2 class="text-lg font-bold text-slate-900">Gastos en Efectivo</h2>
+              <span class="ml-auto text-xs font-medium text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full">Pagados</span>
             </div>
           </div>
           <div class="p-6 space-y-4">
             <div class="flex justify-between items-baseline pb-4 border-b border-slate-100">
-              <span class="text-sm font-medium text-slate-600">Total Gastos</span>
+              <span class="text-sm font-medium text-slate-600">Total Pagado</span>
               <span class="text-xl font-bold text-rose-600">{{ formatCurrency(data.expenses.totalExpenses) }}</span>
             </div>
             <div class="flex justify-between items-baseline pb-4 border-b border-slate-100">
@@ -196,56 +210,13 @@
               <span class="text-base font-semibold text-emerald-600">{{ formatCurrency(data.expenses.totalIvaCredito) }}</span>
             </div>
             <div class="flex justify-between items-baseline pb-4 border-b border-slate-100">
-              <span class="text-sm text-slate-600">Sin Factura</span>
-              <span class="text-base font-semibold text-slate-900">{{ formatCurrency(data.expenses.expensesWithoutInvoice) }}</span>
+              <span class="text-sm text-slate-600">Efectivo sin Factura</span>
+              <span class="text-base font-semibold text-slate-900">{{ formatCurrency(data.expenses.cashWithoutInvoice) }}</span>
             </div>
             <div class="flex justify-between items-baseline">
-              <span class="text-sm text-slate-600">Facturas de Compra</span>
+              <span class="text-sm text-slate-600">Facturas Pagadas</span>
               <span class="text-base font-semibold text-slate-900">{{ data.expenses.invoiceCount }}</span>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- IVA Calculation Card -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
-        <div class="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
-          <div class="flex items-center gap-3">
-            <div class="p-2 bg-white rounded-lg shadow-sm">
-              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-              </svg>
-            </div>
-            <h2 class="text-lg font-bold text-slate-900">Cálculo de IVA</h2>
-            <span class="ml-auto text-xs font-medium text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full">Formulario 29</span>
-          </div>
-        </div>
-        <div class="p-6">
-          <div class="space-y-4">
-            <div class="flex justify-between items-baseline pb-4 border-b border-slate-100">
-              <span class="text-sm text-slate-600">IVA Débito Fiscal (cobrado en ventas)</span>
-              <span class="text-lg font-semibold text-slate-900">{{ formatCurrency(data.iva.debitoFiscal) }}</span>
-            </div>
-            <div class="flex justify-between items-baseline pb-4 border-b border-slate-100">
-              <span class="text-sm text-slate-600">IVA Crédito Fiscal (pagado en compras)</span>
-              <span class="text-lg font-semibold text-emerald-600">- {{ formatCurrency(data.iva.creditoFiscal) }}</span>
-            </div>
-            <div class="flex justify-between items-center pt-2 px-5 py-4 bg-slate-50 rounded-xl">
-              <span class="text-base font-bold text-slate-900">{{ getIvaStatusText() }}</span>
-              <span class="text-2xl font-bold" [ngClass]="getIvaStatusClass()">
-                {{ formatCurrency(Math.abs(data.iva.ivaAPagar)) }}
-              </span>
-            </div>
-            @if (data.iva.ivaAPagar < 0) {
-              <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
-                <svg class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                </svg>
-                <p class="text-sm text-emerald-800">
-                  Tienes IVA a favor. Puedes usarlo como crédito en meses siguientes o solicitar devolución al SII.
-                </p>
-              </div>
-            }
           </div>
         </div>
       </div>
@@ -256,29 +227,25 @@
           <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
           </svg>
-          Resumen Ejecutivo
+          Resumen de Caja
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
-            <p class="text-sm text-slate-300 mb-2">Ingresos Totales</p>
+            <p class="text-sm text-slate-300 mb-2">Ingresos Cobrados</p>
             <p class="text-3xl font-bold">{{ formatCurrency(data.income.totalGross) }}</p>
           </div>
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
-            <p class="text-sm text-slate-300 mb-2">Gastos Totales</p>
+            <p class="text-sm text-slate-300 mb-2">Gastos Pagados</p>
             <p class="text-3xl font-bold">{{ formatCurrency(data.expenses.totalExpenses) }}</p>
           </div>
           <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
-            <p class="text-sm text-slate-300 mb-2">IVA a Pagar</p>
-            <p class="text-3xl font-bold">{{ formatCurrency(data.iva.ivaAPagar) }}</p>
-          </div>
-          <div class="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
-            <p class="text-sm text-slate-300 mb-2">Ganancia Neta</p>
-            <p class="text-3xl font-bold">{{ formatCurrency(data.netProfit) }}</p>
+            <p class="text-sm text-slate-300 mb-2">Flujo de Caja Neto</p>
+            <p class="text-3xl font-bold">{{ formatCurrency(data.netCashFlow) }}</p>
           </div>
         </div>
         <div class="mt-6 pt-6 border-t border-white/20 flex items-center justify-between">
-          <span class="text-slate-300">Margen de Rentabilidad</span>
-          <span class="text-5xl font-bold">{{ data.profitMarginPercentage }}%</span>
+          <span class="text-slate-300">Margen de Flujo de Caja</span>
+          <span class="text-5xl font-bold">{{ data.cashFlowMarginPercentage }}%</span>
         </div>
       </div>
     }

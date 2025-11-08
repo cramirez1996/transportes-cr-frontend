@@ -54,6 +54,33 @@ export interface MonthlyFinancialReport {
   profitMarginPercentage: number;
 }
 
+export interface CashFlowIncome {
+  totalGross: number;
+  totalNet: number;
+  totalIvaDebito: number;
+  invoiceCount: number;
+  cashWithoutInvoice: number;
+}
+
+export interface CashFlowExpenses {
+  expensesWithInvoice: number;
+  expensesNet: number;
+  totalIvaCredito: number;
+  cashWithoutInvoice: number;
+  totalExpenses: number;
+  invoiceCount: number;
+  transactionCount: number;
+}
+
+export interface MonthlyCashFlowReport {
+  month: string;
+  income: CashFlowIncome;
+  expenses: CashFlowExpenses;
+  netCashFlow: number;
+  cashFlowMarginPercentage: number;
+  note: string;
+}
+
 export interface ExpenseByCategory {
   categoryId: string;
   categoryName: string;
