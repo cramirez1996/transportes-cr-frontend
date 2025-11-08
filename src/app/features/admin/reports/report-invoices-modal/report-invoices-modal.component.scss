@@ -1,0 +1,28 @@
+// Modal backdrop with dark overlay
+:host {
+  .fixed {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+  }
+}
+
+// Custom scrollbar for invoice list
+:host ::ng-deep {
+  .max-h-\[60vh\]::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .max-h-\[60vh\]::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  .max-h-\[60vh\]::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 4px;
+  }
+
+  .max-h-\[60vh\]::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+  }
+}

@@ -1,10 +1,13 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
   AggregateResult,
   GroupByDimension,
 } from '../../../../../../core/models/transaction-explorer.model';
+import { ModalService } from '../../../../../../core/services/modal.service';
+import { ReportInvoicesModalComponent, ReportInvoice } from '../../../reports/report-invoices-modal/report-invoices-modal.component';
+import { InvoiceStatus } from '../../../../../../core/models/invoice.model';
 
 @Component({
   selector: 'app-breakdown-table',
@@ -18,7 +21,10 @@ export class BreakdownTableComponent {
   @Input() loading = false;
   @Input() dimension: GroupByDimension = GroupByDimension.CATEGORY;
 
-  constructor(private router: Router) {}
+  private router = inject(Router);
+  private modalService = inject(ModalService);
+
+  constructor() {}
 
   /**
    * Format currency in CLP
@@ -103,5 +109,58 @@ export class BreakdownTableComponent {
     } else {
       return 'text-red-600';
     }
+  }
+
+  /**
+   * Show invoices modal for a specific group
+   */
+  showInvoices(group: any, event: Event): void {
+    event.stopPropagation();
+
+    // Determine if this is income or expense based on group type
+    const type: 'income' | 'expense' = group.value >= 0 ? 'income' : 'expense';
+
+    // Create sample invoices (in real implementation, fetch from API)
+    const sampleInvoices: ReportInvoice[] = this.generateSampleInvoices(group, type);
+
+    this.modalService.open(ReportInvoicesModalComponent, {
+      title: `Facturas - ${group.label}`, // ModalService requires title at top level
+      data: {
+        title: `Facturas - ${group.label}`,
+        invoices: sampleInvoices,
+        type: type
+      }
+    });
+  }
+
+  /**
+   * Generate sample invoices for demonstration
+   * TODO: Replace with actual API call to fetch invoices by group
+   */
+  private generateSampleInvoices(group: any, type: 'income' | 'expense'): ReportInvoice[] {
+    // This is temporary - should fetch from backend
+    const count = Math.min(group.count, 5); // Show up to 5 sample invoices
+    const invoices: ReportInvoice[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const subtotal = Math.abs(group.value) / count * 0.84; // Approximate subtotal (without IVA)
+      const tax = subtotal * 0.19; // 19% IVA
+      const total = subtotal + tax;
+
+      invoices.push({
+        id: `sample-${i}`,
+        invoiceNumber: type === 'income' ? `F-${1000 + i}` : `FC-${2000 + i}`,
+        documentType: type === 'income' ? 33 : 46, // Factura Electrónica or Factura de Compra
+        issueDate: new Date(Date.now() - i * 86400000).toISOString().split('T')[0],
+        customerName: type === 'income' ? `Cliente ${i + 1}` : undefined,
+        supplierName: type === 'expense' ? `Proveedor ${i + 1}` : undefined,
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
+        status: InvoiceStatus.PAID
+      });
+    }
+
+    return invoices;
   }
 }
