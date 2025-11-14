@@ -189,6 +189,7 @@ export class TransactionService {
       date: new Date(transaction.date),
       description: transaction.description,
       trip: transaction.trip,
+      tripGroup: transaction.tripGroup,
       invoice: transaction.invoice,
       vehicle: transaction.vehicle,
       driver: transaction.driver,

@@ -283,6 +283,17 @@ export class TransactionFormComponent implements OnInit {
   loadTransaction(id: string): void {
     this.transactionService.getTransactionById(id).subscribe({
       next: (transaction: any) => {
+        // IMPORTANT: Set association type FIRST, before Angular renders the form
+        // This ensures radio buttons show the correct checked state
+        if (transaction.tripGroupId || transaction.tripGroup?.id) {
+          this.associationType = 'tripGroup';
+        } else if (transaction.tripId || transaction.trip?.id) {
+          this.associationType = 'trip';
+        } else {
+          this.associationType = 'none';
+        }
+
+        // Now patch form values
         this.transactionForm.patchValue({
           type: transaction.type,
           categoryId: transaction.category?.id || null,
@@ -292,22 +303,13 @@ export class TransactionFormComponent implements OnInit {
           paymentMethod: transaction.paymentMethod,
           referenceNumber: transaction.referenceNumber || null,
           invoiceId: transaction.invoice?.id || null,
-          tripId: transaction.trip?.id || null,
-          tripGroupId: transaction.tripGroup?.id || null,
+          tripId: transaction.tripId || transaction.trip?.id || null,
+          tripGroupId: transaction.tripGroupId || transaction.tripGroup?.id || null,
           vehicleId: transaction.vehicle?.id || null,
           driverId: transaction.driver?.id || null,
           customerId: transaction.customer?.id || null,
           supplierId: transaction.supplier?.id || null
         });
-
-        // Set association type based on loaded data
-        if (transaction.tripGroup?.id) {
-          this.associationType = 'tripGroup';
-        } else if (transaction.trip?.id) {
-          this.associationType = 'trip';
-        } else {
-          this.associationType = 'none';
-        }
 
         // Load tags if they exist
         if (transaction.tags) {

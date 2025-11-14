@@ -118,6 +118,7 @@ export class TransactionDetailComponent implements OnInit {
     if (!this.transaction) return false;
     return !!(
       this.transaction.trip ||
+      this.transaction.tripGroup ||
       this.transaction.invoice ||
       this.transaction.vehicle ||
       this.transaction.driver ||
